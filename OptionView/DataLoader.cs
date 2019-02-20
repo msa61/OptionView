@@ -73,7 +73,6 @@ namespace OptionView
                         record.BuySell = "Expired";
                         record.ExpireDate = Convert.ToDateTime(substrings[4]);
                         record.Strike = Convert.ToDecimal(substrings[6]);
-                        record.Quantity *= -1;
                     }
                     else
                     {
@@ -110,7 +109,7 @@ namespace OptionView
                     }
                     else
                     {
-                        Debug.WriteLine("UNEXPECTED TRADE TYPE: " + record.InsType);
+                        // stock transaction
                     }
                 }
 
@@ -290,7 +289,7 @@ namespace OptionView
                         // Update by negating the quantity for buys
                         sql = "UPDATE transactions SET Quantity = @qu WHERE ID=@row";
                         cmdStk = new SQLiteCommand(sql, App.ConnStr);
-                        cmdStk.Parameters.AddWithValue("qu", -quantity);
+                        cmdStk.Parameters.AddWithValue("qu", -Math.Abs(quantity));
                         cmdStk.Parameters.AddWithValue("row", row);
                         cmdStk.ExecuteNonQuery();
                     }
