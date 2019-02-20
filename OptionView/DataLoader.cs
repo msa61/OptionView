@@ -21,22 +21,17 @@ namespace OptionView
             {
                 transactions = ParseInputFile(filename);
 
+                // establish connection
                 if (App.ConnStr == null) App.ConnStr = new SQLiteConnection("Data Source=transactions.sqlite;Version=3;");
                 if (App.ConnStr.State == System.Data.ConnectionState.Closed ) App.ConnStr.Open();
                 
-
-                SaveTransactions();
+                SaveTransactions();  // transfer transaction array to database
                 UpdateNewTransactions();  // matches unassociated asignments and exercises
 
-
+                // save latest transaction for next upload
                 SQLiteCommand cmd = new SQLiteCommand("SELECT max(time) FROM transactions", App.ConnStr);
                 SQLiteDataReader rdr = cmd.ExecuteReader();
                 if (rdr.Read()) Config.SetProp("LastDate", rdr[0].ToString());
-
-
-
-
-
             }
             catch (Exception ex)
             {
@@ -61,6 +56,7 @@ namespace OptionView
                 {
                     if (record.TransactionSubcode == "Assignment")
                     {
+                        // nothing to do
                     }
                     else if ((record.TransactionSubcode == "Exercise") || (record.TransactionSubcode == "Expiration"))
                     {
@@ -68,15 +64,19 @@ namespace OptionView
                     }
                     else
                     {
+                        // all that's left is Sell to Open and Buy to Open
                         record.InsType = "Stock";
-                        int i = record.TransactionSubcode.IndexOf(" ");
-                        if (i > 0)
-                            record.BuySell = record.TransactionSubcode.Substring(0, i);
+                        string[] s = record.TransactionSubcode.Split(' ');
+                        if (s.Length ==3)
+                        {
+                            record.BuySell = s[0];
+                            record.OpenClose = s[2];
+                        }
                     }
 
                     if (record.TransactionSubcode == "Expiration")
                     {
-                        // Find matches.
+                        // parse the description that is available
                         string pattern = @"(\w+)\sof\s(\d+)\s(\w+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)";
                         string[] substrings = Regex.Split(record.Description, pattern, RegexOptions.IgnoreCase);
 
@@ -107,6 +107,10 @@ namespace OptionView
                         if (record.TransactionSubcode.IndexOf("Open") > 0) record.OpenClose = "Open";
 
                         record.Strike = Convert.ToDecimal(substrings[6]);
+                    }
+                    else
+                    {
+                        Debug.WriteLine("UNEXPECTED TRADE TYPE: " + record.InsType);
                     }
                 }
 
@@ -161,7 +165,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("ERROR: Save Transaction");
+                Debug.WriteLine("ERROR: Save Transaction" + ex.Message);
             }
 
 
@@ -172,19 +176,21 @@ namespace OptionView
         {
             try
             {
+                // null strike indicates a new record that hasn't been matched to its cooresponding/resulting transaction
+                // retrieve all cases
                 string sql = "SELECT id, time, quantity, * FROM transactions WHERE (TransSubType = 'Assignment' OR TransSubType = 'Exercise') AND Strike is NULL ORDER BY time";
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
                 SQLiteDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
+                    // save props of controlling record
                     Int32 row = reader.GetInt32(0);
+                    DateTime date = reader.GetDateTime(1);
                     string symbol = reader["Symbol"].ToString();
                     string type = reader["Type"].ToString();
                     string tranType = reader["TransSubType"].ToString();
                     Int32 quantity = reader.GetInt32(2);
-                    DateTime date = reader.GetDateTime(1);
                     Debug.WriteLine(tranType + " found -> " + symbol + ":" + type + " on " + date.ToString() + " (row:" + row + ")");
-
 
                     // find out how many other matching transactions might have happened on the same day as the Assignment/Exercise in question
                     SQLiteCommand stkQuery = new SQLiteCommand("SELECT Count(*) FROM transactions WHERE Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
@@ -198,7 +204,7 @@ namespace OptionView
 
                     if (rows == 1)
                     {
-                        // Find the corresponding transaction and get price
+                        // retrieve the price from the cooresponding transaction to use to find originating transaction
                         stkQuery = new SQLiteCommand("SELECT price FROM transactions WHERE Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
                         stkQuery.Parameters.AddWithValue("sym", symbol);
                         stkQuery.Parameters.AddWithValue("tt", tranType == "Assignment" ? "Buy" : "Sell");
@@ -208,7 +214,7 @@ namespace OptionView
                         stk.Read();
 
                         decimal price = stk.GetDecimal(0);
-                        Debug.WriteLine("  found a buy for " + symbol + " price: " + price.ToString());
+                        Debug.WriteLine("  found a " + tranType == "Assignment" ? "Buy" : "Sell" + " for " + symbol + " price: " + price.ToString());
 
                         // Find originating transaction for that strike/type in order to get the right expiration date
                         stkQuery = new SQLiteCommand("SELECT expireDate FROM transactions WHERE Symbol = @sym AND Type = @ty AND Strike = @st", App.ConnStr);
