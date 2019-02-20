@@ -39,21 +39,6 @@ namespace OptionView
         public string Description;
         public string AccountRef;
 
-
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string Spare1;
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string Spare2;
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string Spare3;
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string Spare4;
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string Spare5;
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string Spare6;
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string Spare7;
     }
 
     public class CustomDate : ConverterBase

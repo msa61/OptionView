@@ -23,13 +23,14 @@ namespace OptionView
     {
         public MainWindow()
         {
-            DataLoader.Load("all transactions.csv");
-            
+            //DataLoader.Load("all transactions.csv");
+            DataLoader.Load("feb-19.csv");
+
             InitializeComponent();
 
 
 
-            if (App.ConnStr.State == System.Data.ConnectionState.Open) App.ConnStr.Close();
+            if ((App.ConnStr != null) && App.ConnStr.State == System.Data.ConnectionState.Open) App.ConnStr.Close();
         }
 
  

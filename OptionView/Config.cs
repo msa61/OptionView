@@ -80,7 +80,21 @@ namespace OptionView
 
             return ret;
         }
+        public static DateTime GetDateProp(string prop)
+        {
+            DateTime ret = DateTime.MinValue;
+            try
+            {
+                string value = GetProp(prop);
+                if (value.Length > 0)  ret = Convert.ToDateTime(value);
+            }
+            catch (Exception ex)
+            {
 
+            }
+
+            return ret;
+        }
 
     }
 }

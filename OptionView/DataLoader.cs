@@ -25,8 +25,8 @@ namespace OptionView
                 if (App.ConnStr.State == System.Data.ConnectionState.Closed ) App.ConnStr.Open();
                 
 
-                //SaveTransactions();
-                //UpdateNewTransactions();  // matches unassociated asignments and exercises
+                SaveTransactions();
+                UpdateNewTransactions();  // matches unassociated asignments and exercises
 
 
                 SQLiteCommand cmd = new SQLiteCommand("SELECT max(time) FROM transactions", App.ConnStr);
@@ -122,6 +122,7 @@ namespace OptionView
             {
                 SQLiteCommand cmd;
 
+                DateTime lastDate = Config.GetDateProp("LastDate");
                 //(new SQLiteCommand("DELETE FROM transactions WHERE 1=1", conn)).ExecuteNonQuery();
 
                 string sql = "INSERT INTO transactions(Time, TransType, TransSubType, SecID, Symbol, 'Buy-Sell', 'Open-Close', Quantity, ExpireDate, Strike, Type, Price, Fees, Amount, Description, Account)"
@@ -131,25 +132,28 @@ namespace OptionView
 
                 foreach (var record in transactions)
                 {
-                    cmd = new SQLiteCommand(sql, App.ConnStr);
-                    cmd.Parameters.AddWithValue("tm", record.Time);
-                    cmd.Parameters.AddWithValue("tt", record.TransactionCode);
-                    cmd.Parameters.AddWithValue("tst", record.TransactionSubcode);
-                    cmd.Parameters.AddWithValue("sid", record.SecurityID);
-                    cmd.Parameters.AddWithValue("sym", record.Symbol);
-                    cmd.Parameters.AddWithValue("buy", record.BuySell);
-                    cmd.Parameters.AddWithValue("op", record.OpenClose);
-                    cmd.Parameters.AddWithValue("qu", record.Quantity);
-                    cmd.Parameters.AddWithValue("exp", record.ExpireDate);
-                    cmd.Parameters.AddWithValue("str", record.Strike);
-                    cmd.Parameters.AddWithValue("ty", record.InsType);
-                    cmd.Parameters.AddWithValue("pr", record.Price);
-                    cmd.Parameters.AddWithValue("fe", record.Fees);
-                    cmd.Parameters.AddWithValue("am", record.Amount);
-                    cmd.Parameters.AddWithValue("des", record.Description);
-                    cmd.Parameters.AddWithValue("acc", record.AccountRef);
+                    if (record.Time > lastDate)
+                    {
+                        cmd = new SQLiteCommand(sql, App.ConnStr);
+                        cmd.Parameters.AddWithValue("tm", record.Time);
+                        cmd.Parameters.AddWithValue("tt", record.TransactionCode);
+                        cmd.Parameters.AddWithValue("tst", record.TransactionSubcode);
+                        cmd.Parameters.AddWithValue("sid", record.SecurityID);
+                        cmd.Parameters.AddWithValue("sym", record.Symbol);
+                        cmd.Parameters.AddWithValue("buy", record.BuySell);
+                        cmd.Parameters.AddWithValue("op", record.OpenClose);
+                        cmd.Parameters.AddWithValue("qu", record.Quantity);
+                        cmd.Parameters.AddWithValue("exp", record.ExpireDate);
+                        cmd.Parameters.AddWithValue("str", record.Strike);
+                        cmd.Parameters.AddWithValue("ty", record.InsType);
+                        cmd.Parameters.AddWithValue("pr", record.Price);
+                        cmd.Parameters.AddWithValue("fe", record.Fees);
+                        cmd.Parameters.AddWithValue("am", record.Amount);
+                        cmd.Parameters.AddWithValue("des", record.Description);
+                        cmd.Parameters.AddWithValue("acc", record.AccountRef);
 
-                    cmd.ExecuteNonQuery();
+                        cmd.ExecuteNonQuery();
+                    }
                 }
 
                 sqlTransaction.Commit();
