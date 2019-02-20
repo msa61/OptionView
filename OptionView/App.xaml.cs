@@ -16,5 +16,16 @@ namespace OptionView
     {
         public static SQLiteConnection ConnStr = null;
 
+        public static void OpenConnection()
+        {
+            if (ConnStr == null) App.ConnStr = new SQLiteConnection("Data Source=transactions.sqlite;Version=3;");
+            if (ConnStr.State == System.Data.ConnectionState.Closed) App.ConnStr.Open();
+        }
+
+        public static void CloseConnection()
+        {
+            if ((ConnStr != null) && ConnStr.State == ConnectionState.Open) ConnStr.Close();
+        }
+
     }
 }

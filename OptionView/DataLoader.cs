@@ -22,8 +22,7 @@ namespace OptionView
                 transactions = ParseInputFile(filename);
 
                 // establish connection
-                if (App.ConnStr == null) App.ConnStr = new SQLiteConnection("Data Source=transactions.sqlite;Version=3;");
-                if (App.ConnStr.State == System.Data.ConnectionState.Closed) App.ConnStr.Open();
+                App.OpenConnection();
 
                 SaveTransactions();  // transfer transaction array to database
                 UpdateNewTransactions();  // matches unassociated asignments and exercises

@@ -18,9 +18,8 @@ namespace OptionView
 
             try
             {
-                if (App.ConnStr == null) App.ConnStr = new SQLiteConnection("Data Source=transactions.sqlite;Version=3;");
-                if (App.ConnStr.State == System.Data.ConnectionState.Closed) App.ConnStr.Open();
-
+                // establish connection
+                App.OpenConnection();
 
                 SQLiteCommand cmd = new SQLiteCommand("SELECT Count(*) FROM config WHERE prop = @p", App.ConnStr);
                 cmd.Parameters.AddWithValue("p", prop);
