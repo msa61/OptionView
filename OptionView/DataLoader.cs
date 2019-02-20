@@ -13,7 +13,7 @@ namespace OptionView
     public class DataLoader
     {
         private static Transaction[] transactions = null;
-        
+
 
         public static void Load(string filename)
         {
@@ -23,8 +23,8 @@ namespace OptionView
 
                 // establish connection
                 if (App.ConnStr == null) App.ConnStr = new SQLiteConnection("Data Source=transactions.sqlite;Version=3;");
-                if (App.ConnStr.State == System.Data.ConnectionState.Closed ) App.ConnStr.Open();
-                
+                if (App.ConnStr.State == System.Data.ConnectionState.Closed) App.ConnStr.Open();
+
                 SaveTransactions();  // transfer transaction array to database
                 UpdateNewTransactions();  // matches unassociated asignments and exercises
 
@@ -39,7 +39,7 @@ namespace OptionView
             }
         }
 
-        private static Transaction[] ParseInputFile( string filename )
+        private static Transaction[] ParseInputFile(string filename)
         {
             FileHelperEngine<Transaction> engine = new FileHelperEngine<Transaction>();
             Transaction[] records = engine.ReadFile(filename);
@@ -58,23 +58,11 @@ namespace OptionView
                     {
                         // nothing to do
                     }
-                    else if ((record.TransactionSubcode == "Exercise") || (record.TransactionSubcode == "Expiration"))
+                    else if (record.TransactionSubcode == "Exercise")
                     {
                         record.Quantity *= -1;
                     }
-                    else
-                    {
-                        // all that's left is Sell to Open and Buy to Open
-                        record.InsType = "Stock";
-                        string[] s = record.TransactionSubcode.Split(' ');
-                        if (s.Length ==3)
-                        {
-                            record.BuySell = s[0];
-                            record.OpenClose = s[2];
-                        }
-                    }
-
-                    if (record.TransactionSubcode == "Expiration")
+                    else if (record.TransactionSubcode == "Expiration")
                     {
                         // parse the description that is available
                         string pattern = @"(\w+)\sof\s(\d+)\s(\w+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)";
@@ -87,6 +75,18 @@ namespace OptionView
                         record.Strike = Convert.ToDecimal(substrings[6]);
                         record.Quantity *= -1;
                     }
+                    else
+                    {
+                        // all that's left is Sell to Open and Buy to Open
+                        record.InsType = "Stock";
+                        string[] s = record.TransactionSubcode.Split(' ');
+                        if (s.Length == 3)
+                        {
+                            record.BuySell = s[0];
+                            record.OpenClose = s[2];
+                        }
+                    }
+
                 }
                 else if (record.TransactionCode == "Trade")
                 {
@@ -176,75 +176,127 @@ namespace OptionView
         {
             try
             {
-                // null strike indicates a new record that hasn't been matched to its cooresponding/resulting transaction
-                // retrieve all cases
-                string sql = "SELECT id, time, quantity, * FROM transactions WHERE (TransSubType = 'Assignment' OR TransSubType = 'Exercise') AND Strike is NULL ORDER BY time";
-                SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
-                SQLiteDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    // save props of controlling record
-                    Int32 row = reader.GetInt32(0);
-                    DateTime date = reader.GetDateTime(1);
-                    string symbol = reader["Symbol"].ToString();
-                    string type = reader["Type"].ToString();
-                    string tranType = reader["TransSubType"].ToString();
-                    Int32 quantity = reader.GetInt32(2);
-                    Debug.WriteLine(tranType + " found -> " + symbol + ":" + type + " on " + date.ToString() + " (row:" + row + ")");
-
-                    // find out how many other matching transactions might have happened on the same day as the Assignment/Exercise in question
-                    SQLiteCommand stkQuery = new SQLiteCommand("SELECT Count(*) FROM transactions WHERE Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
-                    stkQuery.Parameters.AddWithValue("sym", symbol);
-                    stkQuery.Parameters.AddWithValue("tt", tranType == "Assignment" ? "Buy" : "Sell");
-                    stkQuery.Parameters.AddWithValue("tm", date);
-                    stkQuery.Parameters.AddWithValue("qu", quantity * 100);
-
-                    int rows = Convert.ToInt32(stkQuery.ExecuteScalar());
-                    Debug.WriteLine("found " + rows.ToString() + " related to the " + tranType + " of " + symbol);
-
-                    if (rows == 1)
-                    {
-                        // retrieve the price from the cooresponding transaction to use to find originating transaction
-                        stkQuery = new SQLiteCommand("SELECT price FROM transactions WHERE Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
-                        stkQuery.Parameters.AddWithValue("sym", symbol);
-                        stkQuery.Parameters.AddWithValue("tt", tranType == "Assignment" ? "Buy" : "Sell");
-                        stkQuery.Parameters.AddWithValue("tm", date);
-                        stkQuery.Parameters.AddWithValue("qu", quantity * 100);
-                        SQLiteDataReader stk = stkQuery.ExecuteReader();
-                        stk.Read();
-
-                        decimal price = stk.GetDecimal(0);
-                        Debug.WriteLine("  found a " + tranType == "Assignment" ? "Buy" : "Sell" + " for " + symbol + " price: " + price.ToString());
-
-                        // Find originating transaction for that strike/type in order to get the right expiration date
-                        stkQuery = new SQLiteCommand("SELECT expireDate FROM transactions WHERE Symbol = @sym AND Type = @ty AND Strike = @st", App.ConnStr);
-                        stkQuery.Parameters.AddWithValue("sym", symbol);
-                        stkQuery.Parameters.AddWithValue("st", price);
-                        stkQuery.Parameters.AddWithValue("ty", type);
-
-                        stk = stkQuery.ExecuteReader();
-                        stk.Read();
-                        DateTime expDate = stk.GetDateTime(0);
-                        Debug.WriteLine("  which expired on " + expDate.ToString());
-
-                        // Update the Put/Call transaction in order to match up later
-                        sql = "UPDATE transactions SET ExpireDate = @ex, Strike = @st WHERE ID=@row";
-                        stkQuery = new SQLiteCommand(sql, App.ConnStr);
-                        stkQuery.Parameters.AddWithValue("ex", expDate);
-                        stkQuery.Parameters.AddWithValue("st", price);
-                        stkQuery.Parameters.AddWithValue("row", row);
-                        stkQuery.ExecuteNonQuery();
-                    }
-                    else
-                    {
-                        // either nothing found, error?   or multiple/complex
-                        Debug.WriteLine("multiple assignments for " + symbol);
-                    }
-                }
+                MatchAssignmentsOrExercises();
+                MatchExpirations();
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("ERROR UpdateNewRecords: " + ex.Message);
+            }
+        }
+
+        private static void MatchAssignmentsOrExercises()
+        {
+            // null strike indicates a new record that hasn't been matched to its cooresponding/resulting transaction
+            // retrieve all cases
+            string sql = "SELECT id, time, quantity, * FROM transactions WHERE (TransSubType = 'Assignment' OR TransSubType = 'Exercise') AND Strike is NULL ORDER BY time";
+            SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                // save props of controlling record
+                Int32 row = reader.GetInt32(0);
+                DateTime date = reader.GetDateTime(1);
+                string symbol = reader["Symbol"].ToString();
+                string type = reader["Type"].ToString();
+                string tranType = reader["TransSubType"].ToString();
+                Int32 quantity = reader.GetInt32(2);
+                Debug.WriteLine(tranType + " found -> " + symbol + ":" + type + " on " + date.ToString() + " (row:" + row + ")");
+
+                // find out how many other matching transactions might have happened on the same day as the Assignment/Exercise in question
+                SQLiteCommand cmdStk = new SQLiteCommand("SELECT Count(*) FROM transactions WHERE Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
+                cmdStk.Parameters.AddWithValue("sym", symbol);
+                cmdStk.Parameters.AddWithValue("tt", tranType == "Assignment" ? "Buy" : "Sell");
+                cmdStk.Parameters.AddWithValue("tm", date);
+                cmdStk.Parameters.AddWithValue("qu", quantity * 100);
+
+                int rows = Convert.ToInt32(cmdStk.ExecuteScalar());
+                Debug.WriteLine("found " + rows.ToString() + " related to the " + tranType + " of " + symbol);
+
+                if (rows == 1)
+                {
+                    // retrieve the strike from the cooresponding transaction to use to find originating transaction
+                    cmdStk = new SQLiteCommand("SELECT price FROM transactions WHERE Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
+                    cmdStk.Parameters.AddWithValue("sym", symbol);
+                    cmdStk.Parameters.AddWithValue("tt", tranType == "Assignment" ? "Buy" : "Sell");
+                    cmdStk.Parameters.AddWithValue("tm", date);
+                    cmdStk.Parameters.AddWithValue("qu", quantity * 100);
+                    SQLiteDataReader stk = cmdStk.ExecuteReader();
+                    stk.Read();
+
+                    decimal price = stk.GetDecimal(0);
+                    Debug.WriteLine("  found a " + tranType == "Assignment" ? "Buy" : "Sell" + " for " + symbol + " price: " + price.ToString());
+
+                    // Find originating transaction for that strike/type in order to get the right expiration date
+                    cmdStk = new SQLiteCommand("SELECT expireDate FROM transactions WHERE Symbol = @sym AND Type = @ty AND Strike = @st", App.ConnStr);
+                    cmdStk.Parameters.AddWithValue("sym", symbol);
+                    cmdStk.Parameters.AddWithValue("st", price);
+                    cmdStk.Parameters.AddWithValue("ty", type);
+
+                    stk = cmdStk.ExecuteReader();
+                    stk.Read();
+                    DateTime expDate = stk.GetDateTime(0);
+                    Debug.WriteLine("  which expired on " + expDate.ToString());
+
+                    // Update the Put/Call transaction in order to match up later
+                    sql = "UPDATE transactions SET ExpireDate = @ex, Strike = @st WHERE ID=@row";
+                    cmdStk = new SQLiteCommand(sql, App.ConnStr);
+                    cmdStk.Parameters.AddWithValue("ex", expDate);
+                    cmdStk.Parameters.AddWithValue("st", price);
+                    cmdStk.Parameters.AddWithValue("row", row);
+                    cmdStk.ExecuteNonQuery();
+                }
+                else
+                {
+                    // either nothing found, error?   or multiple/complex
+                    Debug.WriteLine("multiple assignments for " + symbol);
+                }
+            }
+        }
+
+        private static void MatchExpirations()
+        {
+            string sql = "SELECT id, time, ExpireDate, Strike, Quantity, * FROM transactions WHERE TransSubType = 'Expiration' ORDER BY time";
+            SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                // save props of controlling record
+                Int32 row = reader.GetInt32(0);
+                DateTime date = reader.GetDateTime(1);
+                DateTime expDate = reader.GetDateTime(2);
+                decimal strike = reader.GetDecimal(3);
+                decimal quantity = reader.GetDecimal(4);
+                string symbol = reader["Symbol"].ToString();
+                string type = reader["Type"].ToString();
+
+
+                SQLiteCommand cmdStk = new SQLiteCommand("SELECT [Buy-Sell] FROM transactions WHERE Symbol = @sym AND TransType = 'Trade' AND Type = @ty AND ExpireDate = @ex AND Strike = @st and Time < @tm ORDER BY Time DESC", App.ConnStr);
+                cmdStk.Parameters.AddWithValue("sym", symbol);
+                cmdStk.Parameters.AddWithValue("ty", type);
+                cmdStk.Parameters.AddWithValue("ex", expDate);
+                cmdStk.Parameters.AddWithValue("st", strike);
+                cmdStk.Parameters.AddWithValue("tm", date);
+
+
+                SQLiteDataReader stk = cmdStk.ExecuteReader();
+                if (stk.Read())
+                {
+                    string buySell = stk["Buy-Sell"].ToString();
+                    Debug.WriteLine("found " + buySell + " related to the " + symbol + " " + type + " " + strike.ToString() + " " + expDate.ToString());
+
+                    if (buySell == "Buy")
+                    {
+                        // Update by negating the quantity for buys
+                        sql = "UPDATE transactions SET Quantity = @qu WHERE ID=@row";
+                        cmdStk = new SQLiteCommand(sql, App.ConnStr);
+                        cmdStk.Parameters.AddWithValue("qu", -quantity);
+                        cmdStk.Parameters.AddWithValue("row", row);
+                        cmdStk.ExecuteNonQuery();
+                    }
+                }
+
+
             }
         }
     }
