@@ -109,6 +109,7 @@ namespace OptionView
                     else
                     {
                         // stock transaction
+                        record.InsType = "Stock";
                     }
                 }
 
@@ -125,10 +126,14 @@ namespace OptionView
                 SQLiteCommand cmd;
 
                 DateTime lastDate = Config.GetDateProp("LastDate");
+
+                int maxLoadID = DBUtilities.GetMax("SELECT Max(LoadGroupID) FROM transactions");
+                int newLoadID = maxLoadID + 1; 
+
                 //(new SQLiteCommand("DELETE FROM transactions WHERE 1=1", conn)).ExecuteNonQuery();
 
-                string sql = "INSERT INTO transactions(Time, TransType, TransSubType, SecID, Symbol, 'Buy-Sell', 'Open-Close', Quantity, ExpireDate, Strike, Type, Price, Fees, Amount, Description, Account)"
-                        + " Values(@tm,@tt,@tst,@sid,@sym,@buy,@op,@qu,@exp,@str,@ty,@pr,@fe,@am,@des,@acc)";
+                string sql = "INSERT INTO transactions(Time, LoadGroupID, TransType, TransSubType, SecID, Symbol, 'Buy-Sell', 'Open-Close', Quantity, ExpireDate, Strike, Type, Price, Fees, Amount, Description, Account)"
+                        + " Values(@tm,@lg,@tt,@tst,@sid,@sym,@buy,@op,@qu,@exp,@str,@ty,@pr,@fe,@am,@des,@acc)";
 
                 SQLiteTransaction sqlTransaction = App.ConnStr.BeginTransaction();
 
@@ -138,6 +143,7 @@ namespace OptionView
                     {
                         cmd = new SQLiteCommand(sql, App.ConnStr);
                         cmd.Parameters.AddWithValue("tm", record.Time);
+                        cmd.Parameters.AddWithValue("lg", newLoadID);  // load group id
                         cmd.Parameters.AddWithValue("tt", record.TransactionCode);
                         cmd.Parameters.AddWithValue("tst", record.TransactionSubcode);
                         cmd.Parameters.AddWithValue("sid", record.SecurityID);
@@ -163,7 +169,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("ERROR: Save Transaction" + ex.Message);
+                Debug.WriteLine("ERROR: Save Transaction: " + ex.Message);
             }
 
 
