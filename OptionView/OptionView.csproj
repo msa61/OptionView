@@ -78,6 +78,9 @@
     </ApplicationDefinition>
     <Compile Include="Config.cs" />
     <Compile Include="DataLoader.cs" />
+    <Compile Include="DBUtilities.cs" />
+    <Compile Include="HoldingsHelper.cs" />
+    <Compile Include="Position.cs" />
     <Compile Include="Transaction.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
