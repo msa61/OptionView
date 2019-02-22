@@ -67,6 +67,17 @@ namespace OptionView
             return ret;
         }
 
+        public void DumpToDebug()
+        {
+            bool ret = true;
+            foreach (KeyValuePair<string, Position> item in this)
+            {
+                if (item.Value.Quantity != 0)
+                {
+                    Debug.WriteLine(item.Key + " : " + item.Value.Quantity);
+                }
+            }
+        }
 
         public List<int> GetRows()
         {
