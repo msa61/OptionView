@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using FileHelpers;
+using System.Data;
 using System.Data.SQLite;
 
 namespace OptionView
@@ -232,23 +233,46 @@ namespace OptionView
                     Debug.WriteLine("  found a " + tranType == "Assignment" ? "Buy" : "Sell" + " for " + symbol + " price: " + price.ToString());
 
                     // Find originating transaction for that strike/type in order to get the right expiration date
-                    cmdStk = new SQLiteCommand("SELECT expireDate FROM transactions WHERE Symbol = @sym AND Type = @ty AND Strike = @st", App.ConnStr);
+                    cmdStk = new SQLiteCommand("SELECT datetime(expireDate) AS ExpireDate FROM transactions WHERE Symbol = @sym AND Type = @ty AND Strike = @st", App.ConnStr);
                     cmdStk.Parameters.AddWithValue("sym", symbol);
                     cmdStk.Parameters.AddWithValue("st", price);
                     cmdStk.Parameters.AddWithValue("ty", type);
 
-                    stk = cmdStk.ExecuteReader();
-                    stk.Read();
-                    DateTime expDate = stk.GetDateTime(0);
+                    // there may be more than one instance of sym/type/strike
+                    SQLiteDataAdapter da = new SQLiteDataAdapter(cmdStk);
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+
+                    bool found = false;
+                    int i = 0;
+                    DateTime expDate = DateTime.MinValue;
+                    while ((!found) && (i < dt.Rows.Count))
+                    {
+                        // let's look for row where the expire data matches the date the assignment/exercise happen
+                        expDate = Convert.ToDateTime(dt.Rows[i][0]);
+                        if (date.Date == expDate) found = true;
+                        i++;
+                    }
+
+                    // if no match between transaction date and expire date, use whatever we can find
+                    if (!found && (dt.Rows.Count == 1))
+                        expDate = Convert.ToDateTime(dt.Rows[0][0]);
+
+                    //stk = cmdStk.ExecuteReader();
+                    //stk.Read();
+                    //DateTime expDate = stk.GetDateTime(0);
                     Debug.WriteLine("  which expired on " + expDate.ToString());
 
-                    // Update the Put/Call transaction in order to match up later
-                    sql = "UPDATE transactions SET ExpireDate = @ex, Strike = @st WHERE ID=@row";
-                    cmdStk = new SQLiteCommand(sql, App.ConnStr);
-                    cmdStk.Parameters.AddWithValue("ex", expDate);
-                    cmdStk.Parameters.AddWithValue("st", price);
-                    cmdStk.Parameters.AddWithValue("row", row);
-                    cmdStk.ExecuteNonQuery();
+                    if (expDate > DateTime.MinValue)
+                    {
+                        // Update the Put/Call transaction in order to match up later
+                        sql = "UPDATE transactions SET ExpireDate = @ex, Strike = @st WHERE ID=@row";
+                        cmdStk = new SQLiteCommand(sql, App.ConnStr);
+                        cmdStk.Parameters.AddWithValue("ex", expDate);
+                        cmdStk.Parameters.AddWithValue("st", price);
+                        cmdStk.Parameters.AddWithValue("row", row);
+                        cmdStk.ExecuteNonQuery();
+                    }
                 }
                 else
                 {
