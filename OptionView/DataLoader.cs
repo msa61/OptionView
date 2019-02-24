@@ -206,14 +206,14 @@ namespace OptionView
                 string type = reader["Type"].ToString();
                 string tranType = reader["TransSubType"].ToString();
                 Int32 quantity = reader.GetInt32(2);
-                Debug.WriteLine(tranType + " found -> " + symbol + ":" + type + " on " + date.ToString() + " (row:" + row + ")");
+                Debug.WriteLine(tranType + " found " + tranType + " -> " + symbol + ":" + type + " on " + date.ToString() + " (row:" + row + ")");
 
                 // find out how many other matching transactions might have happened on the same day as the Assignment/Exercise in question
                 SQLiteCommand cmdStk = new SQLiteCommand("SELECT Count(*) FROM transactions WHERE Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
                 cmdStk.Parameters.AddWithValue("sym", symbol);
-                cmdStk.Parameters.AddWithValue("tt", tranType == "Assignment" ? "Buy" : "Sell");
+                cmdStk.Parameters.AddWithValue("tt", ((tranType == "Assignment") ^ (type == "Call")) ? "Buy" : "Sell");
                 cmdStk.Parameters.AddWithValue("tm", date);
-                cmdStk.Parameters.AddWithValue("qu", quantity * 100);
+                cmdStk.Parameters.AddWithValue("qu", quantity * 100 * ((type == "Call") ? -1 : 1));
 
                 int rows = Convert.ToInt32(cmdStk.ExecuteScalar());
                 Debug.WriteLine("found " + rows.ToString() + " related to the " + tranType + " of " + symbol);
@@ -223,9 +223,9 @@ namespace OptionView
                     // retrieve the strike from the cooresponding transaction to use to find originating transaction
                     cmdStk = new SQLiteCommand("SELECT price FROM transactions WHERE Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
                     cmdStk.Parameters.AddWithValue("sym", symbol);
-                    cmdStk.Parameters.AddWithValue("tt", tranType == "Assignment" ? "Buy" : "Sell");
+                    cmdStk.Parameters.AddWithValue("tt", ((tranType == "Assignment") ^ (type == "Call")) ? "Buy" : "Sell");
                     cmdStk.Parameters.AddWithValue("tm", date);
-                    cmdStk.Parameters.AddWithValue("qu", quantity * 100);
+                    cmdStk.Parameters.AddWithValue("qu", quantity * 100 * ((type == "Call") ? -1 : 1));
                     SQLiteDataReader stk = cmdStk.ExecuteReader();
                     stk.Read();
 
