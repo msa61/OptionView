@@ -299,7 +299,7 @@ namespace OptionView
                 string type = reader["Type"].ToString();
 
 
-                SQLiteCommand cmdStk = new SQLiteCommand("SELECT [Buy-Sell] FROM transactions WHERE Symbol = @sym AND TransType = 'Trade' AND Type = @ty AND ExpireDate = @ex AND Strike = @st and Time < @tm ORDER BY Time DESC", App.ConnStr);
+                SQLiteCommand cmdStk = new SQLiteCommand("SELECT [Buy-Sell] FROM transactions WHERE Symbol = @sym AND TransType = 'Trade' AND Type = @ty AND ExpireDate = @ex AND Strike = @st and Time < @tm AND [Open-Close] = 'Open' ORDER BY Time DESC", App.ConnStr);
                 cmdStk.Parameters.AddWithValue("sym", symbol);
                 cmdStk.Parameters.AddWithValue("ty", type);
                 cmdStk.Parameters.AddWithValue("ex", expDate);
