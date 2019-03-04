@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
 
@@ -39,11 +40,27 @@ namespace OptionView
                         DateTime transTime = timeReader.GetDateTime(0);
                         Debug.WriteLine("  Transaction Time -> " + transTime.ToString());
 
-                        sql = "SELECT ID, ExpireDate, Strike, Quantity, Type FROM transactions WHERE symbol = @sym AND Time = @tm";
+                        sql = "SELECT ID, ExpireDate, Strike, Quantity, Type, [Open-Close] FROM transactions WHERE symbol = @sym AND Time = @tm";
                         SQLiteCommand transCmd = new SQLiteCommand(sql, App.ConnStr);
                         transCmd.Parameters.AddWithValue("sym", symbol);
                         transCmd.Parameters.AddWithValue("tm", transTime);
 
+                        // retrieve table to iterate over
+                        SQLiteDataAdapter da = new SQLiteDataAdapter(transCmd);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+
+                        bool anyCloses = false;
+                        int i = 0;
+                        while ((!anyCloses) && (i < dt.Rows.Count))
+                        {
+                            // let's look for any transaction that was a close as an indicator that this was an adjustment, roll, etc.
+                            if (dt.Rows[i]["Open-Close"].ToString() == "Close")
+                                anyCloses = true;
+                            i++;
+                        }
+
+                        // continue with process all of the rows
                         SQLiteDataReader transReader = transCmd.ExecuteReader();
                         while (transReader.Read())
                         {
@@ -52,13 +69,15 @@ namespace OptionView
                             decimal strike = (transReader.GetValue(2) == DBNull.Value) ? 0 : transReader.GetDecimal(2);
                             decimal quantity = transReader.GetDecimal(3);
                             string type = transReader["Type"].ToString();
+                            string openClose = transReader["Open-Close"].ToString();
 
                             string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMMdd") + type + strike.ToString("#.0");
                             Debug.WriteLine("    Transactions -> " + key + "  quant: " + quantity.ToString());
 
-                            holdings.AddTransaction(key, quantity, row);
+                            holdings.AddTransaction(anyCloses, key, quantity, row, openClose);
                         }
 
+                        holdings.DumpToDebug();
                         if (holdings.IsAllClosed())
                         {
                             Debug.WriteLine("everything is closed out");
