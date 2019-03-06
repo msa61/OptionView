@@ -11,6 +11,9 @@ namespace OptionView
     public class Position
     {
         public string Symbol;
+        public DateTime ExpDate;
+        public decimal Strike;
+        public string Type;
         public decimal Quantity;
         public List<int> Rows;
 
@@ -31,8 +34,11 @@ namespace OptionView
             
         }
 
-        public Position AddTransaction( string key, decimal quant, int row)
+        public string AddTransaction(string symbol, DateTime expDate, decimal strike, string type, decimal quant, int row, string openClose)
         {
+            string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMMdd") + type + strike.ToString("#.0");
+
+
             Position p = null;
             if (this.ContainsKey(key))
             {
@@ -43,13 +49,17 @@ namespace OptionView
             else
             {
                 p = new Position();
+                p.Symbol = symbol;
+                p.ExpDate = expDate;
+                p.Strike = strike;
+                p.Type = type;
                 p.Quantity = quant;
                 p.Rows.Add(row);
                 this.Add(key, p);
             }
 
 
-            return p;
+            return key;
         }
 
 
@@ -79,7 +89,7 @@ namespace OptionView
             }
         }
 
-        public List<int> GetRows()
+        public List<int> GetRowNumbers()
         {
             List<int> ret = new List<int>();
 
