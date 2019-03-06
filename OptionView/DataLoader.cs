@@ -56,10 +56,11 @@ namespace OptionView
                 {
                     if (record.TransactionSubcode == "Assignment")
                     {
-                        // nothing to do
+                        record.OpenClose = "Close";
                     }
                     else if (record.TransactionSubcode == "Exercise")
                     {
+                        record.OpenClose = "Close";
                         record.Quantity *= -1;
                     }
                     else if (record.TransactionSubcode == "Expiration")
@@ -71,6 +72,7 @@ namespace OptionView
                         if (substrings.Count() != 8) Console.Write("ERROR");
 
                         record.BuySell = "Expired";
+                        record.OpenClose = "Close";
                         record.ExpireDate = Convert.ToDateTime(substrings[4]);
                         record.Strike = Convert.ToDecimal(substrings[6]);
                     }
@@ -97,14 +99,7 @@ namespace OptionView
 
                         if (substrings.Count() != 9) Console.Write("ERROR");
 
-
-                        if (substrings[1] == "Bought") record.BuySell = "Buy";
-                        if (substrings[1] == "Sold") record.BuySell = "Sell";
                         record.ExpireDate = Convert.ToDateTime(substrings[4]);
-
-                        if (record.TransactionSubcode.IndexOf("Close") > 0) record.OpenClose = "Close";
-                        if (record.TransactionSubcode.IndexOf("Open") > 0) record.OpenClose = "Open";
-
                         record.Strike = Convert.ToDecimal(substrings[6]);
                     }
                     else
@@ -112,6 +107,12 @@ namespace OptionView
                         // stock transaction
                         record.InsType = "Stock";
                     }
+
+                    if (record.TransactionSubcode.IndexOf("Buy") >= 0) record.BuySell = "Buy";
+                    if (record.TransactionSubcode.IndexOf("Sell") >= 0) record.BuySell = "Sell";
+                    if (record.TransactionSubcode.IndexOf("Close") >= 0) record.OpenClose = "Close";
+                    if (record.TransactionSubcode.IndexOf("Open") >= 0) record.OpenClose = "Open";
+
                 }
 
             }
