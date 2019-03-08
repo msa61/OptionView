@@ -262,7 +262,7 @@ namespace OptionView
                     //stk = cmdStk.ExecuteReader();
                     //stk.Read();
                     //DateTime expDate = stk.GetDateTime(0);
-                    Debug.WriteLine("  which expired on " + expDate.ToString());
+                    Debug.WriteLine("  which expired on " + expDate.ToString("MMM-d"));
 
                     if (expDate > DateTime.MinValue)
                     {
@@ -312,7 +312,7 @@ namespace OptionView
                 if (stk.Read())
                 {
                     string buySell = stk["Buy-Sell"].ToString();
-                    Debug.WriteLine("found " + buySell + " related to the " + symbol + " " + type + " " + strike.ToString() + " " + expDate.ToString());
+                    Debug.WriteLine("found " + buySell + " related to the " + symbol + " " + type + " " + strike.ToString() + " " + expDate.ToString("MMM-d"));
 
                     if (buySell == "Buy")
                     {
