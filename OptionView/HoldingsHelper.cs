@@ -12,102 +12,55 @@ namespace OptionView
 {
     public class HoldingsHelper
     {
-
+        public static bool test(object x)
+        {
+            return true;
+        }
         public static void Query()
         {
+            string symbol = "";
+
             try
             {
                 // establish connection
                 App.OpenConnection();
 
                 string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol != '' ORDER BY symbol";
+                //string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol = 'AMD' ORDER BY symbol";
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
                 SQLiteDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    Positions holdings = new Positions();
 
                     // save props of controlling record
-                    string symbol = reader["Symbol"].ToString();
+                    symbol = reader["Symbol"].ToString();
                     Debug.WriteLine("Found -> " + symbol);
 
-                    sql = "SELECT DISTINCT Time FROM transactions WHERE symbol = @sym GROUP BY Time, Type, Strike, ExpireDate ORDER BY time";
-                    SQLiteCommand timeCmd = new SQLiteCommand(sql, App.ConnStr);
-                    timeCmd.Parameters.AddWithValue("sym", symbol);
-                    SQLiteDataReader timeReader = timeCmd.ExecuteReader();
-                    while (timeReader.Read())
+
+                    sql = "SELECT ID, datetime(Time) AS TransTime, TransType, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, [Open-Close] FROM transactions WHERE symbol = @sym ORDER BY Time";
+                    SQLiteCommand cmdTrans = new SQLiteCommand(sql, App.ConnStr);
+                    cmdTrans.Parameters.AddWithValue("sym", symbol);
+
+                    // 
+                    SQLiteDataAdapter da = new SQLiteDataAdapter(cmdTrans);
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+
+                    while (dt.Rows.Count > 0)
                     {
-                        DateTime transTime = timeReader.GetDateTime(0);
-                        Debug.WriteLine("  Transaction Time -> " + transTime.ToString());
-
-                        sql = "SELECT ID, ExpireDate, Strike, Quantity, Type, [Open-Close] FROM transactions WHERE symbol = @sym AND Time = @tm";
-                        SQLiteCommand transCmd = new SQLiteCommand(sql, App.ConnStr);
-                        transCmd.Parameters.AddWithValue("sym", symbol);
-                        transCmd.Parameters.AddWithValue("tm", transTime);
-
-                        // retrieve table to iterate over
-                        SQLiteDataAdapter da = new SQLiteDataAdapter(transCmd);
-                        DataTable dt = new DataTable();
-                        da.Fill(dt);
-
-                        bool anyCloses = false;
-                        int i = 0;
-                        while ((!anyCloses) && (i < dt.Rows.Count))
-                        {
-                            // let's look for any transaction that was a close as an indicator that this was an adjustment, roll, etc.
-                            if (dt.Rows[i]["Open-Close"].ToString() == "Close")
-                                anyCloses = true;
-                            i++;
-                        }
-
-                        // continue with process all of the rows
-                        SQLiteDataReader transReader = transCmd.ExecuteReader();
-                        while (transReader.Read())
-                        {
-                            Int32 row = transReader.GetInt32(0);
-                            DateTime expDate = (transReader.GetValue(1) == DBNull.Value) ? DateTime.MinValue : transReader.GetDateTime(1);
-                            decimal strike = (transReader.GetValue(2) == DBNull.Value) ? 0 : transReader.GetDecimal(2);
-                            decimal quantity = transReader.GetDecimal(3);
-                            string type = transReader["Type"].ToString();
-                            string openClose = transReader["Open-Close"].ToString();
-
-                            string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMMdd") + type + strike.ToString("#.0");
-                            Debug.WriteLine("    Transactions -> " + key + "  quant: " + quantity.ToString());
-
-                            holdings.AddTransaction(anyCloses, key, quantity, row, openClose);
-                        }
-
-                        holdings.DumpToDebug();
-                        if (holdings.IsAllClosed())
-                        {
-                            Debug.WriteLine("everything is closed out");
-
-                            int newGroupID = DBUtilities.GetMax("SELECT max(TransGroupID) FROM Transactions") + 1;
-
-                            List<int> rows = holdings.GetRows();
-                            foreach (int r in rows)
-                            {
-                                sql = "UPDATE transactions SET TransGroupID = @id WHERE ID=@row";
-                                SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
-                                cmdUpd.Parameters.AddWithValue("id", newGroupID);
-                                cmdUpd.Parameters.AddWithValue("row", r);
-                                cmdUpd.ExecuteNonQuery();
-                            }
-
-                            holdings.Clear();
-                        }
-
-                        
+                        string t = dt.Rows[0]["TransTime"].ToString(); // maintain sqlite date format as a string 
+                        ProcessTransactionChain(symbol, dt, t);
                     }
-                }
+
+
+                }  // end of symbol loop
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("QUERY: " + ex.Message);
+                Debug.WriteLine("QUERY: " + ex.Message + "(" + symbol + ")");
             }
 
-            //
-
+ 
 
 
             //SELECT* FROM(
@@ -117,6 +70,173 @@ namespace OptionView
             // aggragates lots that might have separated
             //SELECT  time, type, strike, expiredate, sum(quantity) AS total FROM transactions WHERE symbol = 'GOOG' GROUP BY  time, type, strike, expiredate 
         
+        }
+
+
+
+        //
+        // Header function for setting up recursion
+        // starts with data table of all possible transaction, symbol and a particular transaction time
+        // chain is built from there
+        //
+        private static void ProcessTransactionChain(string symbol, DataTable dt, string time)
+        {
+            Positions holdings = new Positions();
+            List<string> times = new List<string>();
+
+            // start recursion
+            ProcessTransactionGroup(symbol, dt, time, holdings, times);
+
+
+
+
+            Debug.WriteLine("Chain completed");
+
+            int newGroupID = DBUtilities.GetMax("SELECT max(TransGroupID) FROM Transactions") + 1;
+
+
+
+            string sql = "INSERT INTO TransGroup(ID, Symbol, Open) Values(@id,@sym,@op)";
+            SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+            cmd.Parameters.AddWithValue("id", newGroupID);
+            cmd.Parameters.AddWithValue("sym", symbol);
+            cmd.Parameters.AddWithValue("op", ! holdings.IsAllClosed());
+            cmd.ExecuteNonQuery();
+
+            List<int> rows = holdings.GetRowNumbers();
+            foreach (int r in rows)
+            {
+                sql = "UPDATE transactions SET TransGroupID = @id WHERE ID=@row";
+                SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                cmdUpd.Parameters.AddWithValue("id", newGroupID);
+                cmdUpd.Parameters.AddWithValue("row", r);
+                cmdUpd.ExecuteNonQuery();
+            }
+
+
+
+
+        }
+
+
+
+        private static void ProcessTransactionGroup(string symbol, DataTable dt, string time, Positions holdings, List<string> times)
+         {
+            // Collect all 'opens' for the selected time
+            DataRow[] rows = dt.Select("TransTime = '" + time + "'");
+
+            if (rows.Count() == 0) return;  // nothing found
+            bool somethingAdded = false;
+
+            for (int i = 0; i < rows.Count(); i++)
+            {
+                DataRow r = rows[i];
+                DateTime expDate = DateTime.MinValue;
+                if (r["ExpireDate"] != DBNull.Value) expDate = Convert.ToDateTime(r.Field<string>("ExpireDate").ToString());
+                string type = r.Field<string>("Type").ToString();
+                decimal strike = 0;
+                if (r["Strike"] != DBNull.Value) strike = (decimal)r.Field<Double>("Strike");
+                Int32 quantity = (Int32)r.Field<Int64>("Quantity");
+                Int32 row = (Int32)r.Field<Int64>("ID");
+                string openClose = r.Field<string>("Open-Close").ToString();
+
+                if (openClose == "Open")
+                {
+                    bool process = true;
+                    if ((type == "Stock") && (r.Field<string>("TransType").ToString() != "Trade"))
+                    {
+                        // need to handle stock activity at expiration differently since there are 'opens' that can cause 
+                        // all other transactions for symbol to be sucked up into this chain
+                        decimal price = (decimal)r.Field<Double>("Price");
+                        // there is an option with this price already in the chain
+                        process = holdings.Includes("", Convert.ToDateTime(time).Date, price);
+                    }
+
+                    if (process)
+                    {
+                        // add transaction to the chain
+                        string key = holdings.AddTransaction(symbol, type, expDate, strike, quantity, row, openClose);
+                        Debug.WriteLine("    Opening transaction added to holdings: " + key + "    " + time.ToString());
+ 
+                        // add the associated time to the hierarchy for chain
+                        if (!times.Contains(time)) times.Add(time);
+                        somethingAdded = true;
+                    }
+                }
+            }
+
+            if (!somethingAdded) return;
+
+            // run thru what is found, and search for matching/closing transactions
+            for (int i = 0; i < holdings.Count; i++)
+            {
+                Position p = holdings[holdings.Keys.ElementAt(i)];
+
+                if (p.Quantity != 0)
+                {
+                    Func<DataRow, bool> func;
+
+                    // define the appropriate linq filter
+                    if (p.Type == "Stock")
+                        func = r => (r.Field<string>("Type")) == p.Type 
+                                    && r.Field<string>("Open-Close") == "Close" 
+                                    && Convert.ToDateTime(r.Field<string>("TransTime")) >= Convert.ToDateTime(time);
+                    else
+                        func = r => (r.Field<string>("Type")) == p.Type 
+                                    && (decimal)r.Field<Double>("Strike") == p.Strike 
+                                    && Convert.ToDateTime(r.Field<string>("ExpireDate")) == p.ExpDate && r.Field<string>("Open-Close") == "Close" 
+                                    && Convert.ToDateTime(r.Field<string>("TransTime")) >= Convert.ToDateTime(time);
+
+                    var closingRow = dt.AsEnumerable()
+                                       .Where(func);
+
+                    // generally should only be one transaction, but occassionaly the closing transaction can split lots accross multiple transactions
+                    foreach (DataRow r in closingRow)
+                    {
+                        bool process = true;
+                        if ((r.Field<string>("Type") == "Stock") && (r.Field<string>("TransType").ToString() != "Trade"))
+                        {
+                            // need to handle stock activity at expiration differently since there are 'closes' that can cause 
+                            // all other transactions for symbol to be sucked up into this chain
+                            decimal price = (decimal)r.Field<Double>("Price");
+                            // there is an option with this price already in the chain
+                            process = holdings.Includes("", Convert.ToDateTime(time).Date, price);
+                        }
+
+                        if (process)
+                        {
+                            string key = holdings.AddTransaction(p.Symbol, p.Type, p.ExpDate, p.Strike, (Int32)r.Field<Int64>("Quantity"), (Int32)r.Field<Int64>("ID"), r.Field<string>("Open-Close").ToString());
+                            Debug.WriteLine("    Closing transaction added to holdings: " + key + "    " + time.ToString());
+
+                            // add the associated time to the hierarchy for chain
+                            string t = r.Field<string>("TransTime");
+                            if (!times.Contains(t)) times.Add(t);
+                        }
+
+                        if (p.Quantity == 0) break;
+                    }
+                }
+            }
+
+            // purge out collected rows from original table with all transactions for a given symbol
+            List<int> idList = holdings.GetRowNumbers();
+            foreach (int id in idList)
+            {
+                rows = dt.Select("ID = " + id.ToString());
+                for (int i = 0; i < rows.Count(); i++)
+                    rows[i].Delete();
+                dt.AcceptChanges();
+            }
+
+            // recurse for anything else in the transaction that might open new positions
+            for (int i = 0; i < times.Count(); i++)
+            {
+                string t = times[i];
+                if (Convert.ToDateTime(t) > Convert.ToDateTime(time))
+                    ProcessTransactionGroup(symbol, dt, t, holdings, times);
+            }
+
+
         }
     }
 }
