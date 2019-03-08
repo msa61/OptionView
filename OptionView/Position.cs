@@ -29,12 +29,14 @@ namespace OptionView
 
     public class Positions : Dictionary<string,Position>
     {
+        private int groupID = 0;
+
         public Positions ()
         {
             
         }
 
-        public string AddTransaction(string symbol, string type, DateTime expDate, decimal strike,  decimal quant, int row, string openClose)
+        public string AddTransaction(string symbol, string type, DateTime expDate, decimal strike,  decimal quant, int row, string openClose, int grpID)
         {
             string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMMdd") + type + strike.ToString("#.0");
 
@@ -58,10 +60,15 @@ namespace OptionView
                 this.Add(key, p);
             }
 
+            if (grpID > 0) groupID = grpID;
 
             return key;
         }
 
+        public int GroupID()
+        {
+            return groupID;
+        }
 
         public bool IsAllClosed()
         {
@@ -84,7 +91,9 @@ namespace OptionView
             {
                 // leave out Call/Put for the time being
                 //if ((item.Value.Type == type) && (item.Value.ExpDate == expDate) && (item.Value.Strike == strike))
-                if ((item.Value.ExpDate == expDate) && (item.Value.Strike == strike))
+                // for early exercise this doesn't work
+                //if ((item.Value.ExpDate == expDate) && (item.Value.Strike == strike))
+                if (item.Value.Strike == strike)
                 {
                     ret = true;
                     break;
