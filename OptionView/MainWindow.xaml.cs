@@ -23,10 +23,19 @@ namespace OptionView
     {
         public MainWindow()
         {
-            DataLoader.Load("all transactions.csv");
-            DataLoader.Load("feb-19.csv");
+            //DataLoader.Load("all transactions.csv");
+            //DataLoader.Load("feb-19.csv");
+            //DataLoader.Load("feb-22.csv");
+            //DataLoader.Load("feb-24.csv");
+            //DataLoader.Load("mar-5.csv");
+            //DataLoader.Load("mar-7.csv");
+            //DataLoader.Load("gld.csv");
+            //DataLoader.Load("spy.csv");
+            //DataLoader.Load("msft.csv");
 
-            //Position.Query();
+            //DataLoader.Load("DALcorrection.csv");
+
+            HoldingsHelper.UpdateNewTransactions();
 
 
             InitializeComponent();

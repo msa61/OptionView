@@ -16,7 +16,7 @@ namespace OptionView
         {
             return true;
         }
-        public static void Query()
+        public static void UpdateNewTransactions()
         {
             string symbol = "";
 
