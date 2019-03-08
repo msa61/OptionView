@@ -25,7 +25,7 @@ namespace OptionView
                 // establish connection
                 App.OpenConnection();
 
-                string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol != '' ORDER BY symbol";
+                string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol != '' AND TransType = 'Trade' ORDER BY symbol";
                 //string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol = 'AMD' ORDER BY symbol";
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
                 SQLiteDataReader reader = cmd.ExecuteReader();
@@ -36,8 +36,12 @@ namespace OptionView
                     symbol = reader["Symbol"].ToString();
                     Debug.WriteLine("Found -> " + symbol);
 
+                    sql = "SELECT transactions.ID AS ID, transgroup.ID as tID, datetime(Time) AS TransTime, TransType, TransGroupID, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, [Open-Close]";
+                    sql += " FROM transactions";
+                    sql += " LEFT JOIN transgroup ON transgroupid = transgroup.id";
+                    sql += " WHERE transactions.symbol = @sym AND (transgroup.Open = 1 OR transgroup.Open IS NULL)";
+                    sql += " ORDER BY Time";
 
-                    sql = "SELECT ID, datetime(Time) AS TransTime, TransType, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, [Open-Close] FROM transactions WHERE symbol = @sym ORDER BY Time";
                     SQLiteCommand cmdTrans = new SQLiteCommand(sql, App.ConnStr);
                     cmdTrans.Parameters.AddWithValue("sym", symbol);
 
@@ -82,45 +86,53 @@ namespace OptionView
         private static void ProcessTransactionChain(string symbol, DataTable dt, string time)
         {
             Positions holdings = new Positions();
-            List<string> times = new List<string>();
+            SortedList<string, string> times = new SortedList<string, string>();
 
             // start recursion
             ProcessTransactionGroup(symbol, dt, time, holdings, times);
-
-
-
-
             Debug.WriteLine("Chain completed");
 
-            int newGroupID = DBUtilities.GetMax("SELECT max(TransGroupID) FROM Transactions") + 1;
 
+            // retrieve existing group id
+            int groupID = holdings.GroupID();
 
+            if (groupID > 0)
+            {
+                // update chain status
+                string sql = "UPDATE TransGroup SET Open = @op WHERE ID=@row";
+                SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                cmdUpd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
+                cmdUpd.Parameters.AddWithValue("row", groupID);
+                cmdUpd.ExecuteNonQuery();
+            }
+            else
+            {
+                groupID = DBUtilities.GetMax("SELECT max(TransGroupID) FROM Transactions") + 1;
 
-            string sql = "INSERT INTO TransGroup(ID, Symbol, Open) Values(@id,@sym,@op)";
-            SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
-            cmd.Parameters.AddWithValue("id", newGroupID);
-            cmd.Parameters.AddWithValue("sym", symbol);
-            cmd.Parameters.AddWithValue("op", ! holdings.IsAllClosed());
-            cmd.ExecuteNonQuery();
+                string sql = "INSERT INTO TransGroup(ID, Symbol, Open) Values(@id,@sym,@op)";
+                SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+                cmd.Parameters.AddWithValue("id", groupID);
+                cmd.Parameters.AddWithValue("sym", symbol);
+                cmd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
+                cmd.ExecuteNonQuery();
+            }
 
             List<int> rows = holdings.GetRowNumbers();
             foreach (int r in rows)
             {
-                sql = "UPDATE transactions SET TransGroupID = @id WHERE ID=@row";
+                // update all of the rows in the chain
+                string sql = "UPDATE transactions SET TransGroupID = @id WHERE ID=@row";
                 SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
-                cmdUpd.Parameters.AddWithValue("id", newGroupID);
+                cmdUpd.Parameters.AddWithValue("id", groupID);
                 cmdUpd.Parameters.AddWithValue("row", r);
                 cmdUpd.ExecuteNonQuery();
             }
-
-
-
 
         }
 
 
 
-        private static void ProcessTransactionGroup(string symbol, DataTable dt, string time, Positions holdings, List<string> times)
+        private static void ProcessTransactionGroup(string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
          {
             // Collect all 'opens' for the selected time
             DataRow[] rows = dt.Select("TransTime = '" + time + "'");
@@ -139,6 +151,8 @@ namespace OptionView
                 Int32 quantity = (Int32)r.Field<Int64>("Quantity");
                 Int32 row = (Int32)r.Field<Int64>("ID");
                 string openClose = r.Field<string>("Open-Close").ToString();
+                int grpID = 0;
+                if (r["TransGroupID"] != DBNull.Value) grpID = (int)r.Field<Int64>("TransGroupID");
 
                 if (openClose == "Open")
                 {
@@ -155,11 +169,11 @@ namespace OptionView
                     if (process)
                     {
                         // add transaction to the chain
-                        string key = holdings.AddTransaction(symbol, type, expDate, strike, quantity, row, openClose);
-                        Debug.WriteLine("    Opening transaction added to holdings: " + key + "    " + time.ToString());
+                        string key = holdings.AddTransaction(symbol, type, expDate, strike, quantity, row, openClose, grpID);
+                        Debug.WriteLine("    Opening transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString());
  
                         // add the associated time to the hierarchy for chain
-                        if (!times.Contains(time)) times.Add(time);
+                        if (!times.ContainsKey(time)) times.Add(time, time);
                         somethingAdded = true;
                     }
                 }
@@ -205,12 +219,15 @@ namespace OptionView
 
                         if (process)
                         {
-                            string key = holdings.AddTransaction(p.Symbol, p.Type, p.ExpDate, p.Strike, (Int32)r.Field<Int64>("Quantity"), (Int32)r.Field<Int64>("ID"), r.Field<string>("Open-Close").ToString());
-                            Debug.WriteLine("    Closing transaction added to holdings: " + key + "    " + time.ToString());
+                            int grpID = 0;
+                            if (r["TransGroupID"] != DBNull.Value) grpID = (int)r.Field<Int64>("TransGroupID");
+
+                            string key = holdings.AddTransaction(p.Symbol, p.Type, p.ExpDate, p.Strike, (Int32)r.Field<Int64>("Quantity"), (Int32)r.Field<Int64>("ID"), r.Field<string>("Open-Close").ToString(), grpID);
+                            Debug.WriteLine("    Closing transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString());
 
                             // add the associated time to the hierarchy for chain
                             string t = r.Field<string>("TransTime");
-                            if (!times.Contains(t)) times.Add(t);
+                            if (!times.ContainsKey(t)) times.Add(t, t);
                         }
 
                         if (p.Quantity == 0) break;
@@ -231,7 +248,7 @@ namespace OptionView
             // recurse for anything else in the transaction that might open new positions
             for (int i = 0; i < times.Count(); i++)
             {
-                string t = times[i];
+                string t = times[times.Keys[i]];
                 if (Convert.ToDateTime(t) > Convert.ToDateTime(time))
                     ProcessTransactionGroup(symbol, dt, t, holdings, times);
             }
