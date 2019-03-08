@@ -34,7 +34,7 @@ namespace OptionView
             
         }
 
-        public string AddTransaction(string symbol, DateTime expDate, decimal strike, string type, decimal quant, int row, string openClose)
+        public string AddTransaction(string symbol, string type, DateTime expDate, decimal strike,  decimal quant, int row, string openClose)
         {
             string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMMdd") + type + strike.ToString("#.0");
 
@@ -76,6 +76,23 @@ namespace OptionView
             }
             return ret;
         }
+
+        public bool Includes (string type, DateTime expDate, decimal strike)
+        {
+            bool ret = false;
+            foreach (KeyValuePair<string, Position> item in this)
+            {
+                // leave out Call/Put for the time being
+                //if ((item.Value.Type == type) && (item.Value.ExpDate == expDate) && (item.Value.Strike == strike))
+                if ((item.Value.ExpDate == expDate) && (item.Value.Strike == strike))
+                {
+                    ret = true;
+                    break;
+                }
+            }
+            return ret;
+        }
+
 
         public void DumpToDebug()
         {
