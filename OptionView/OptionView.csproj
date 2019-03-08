@@ -80,7 +80,9 @@
     <Compile Include="DataLoader.cs" />
     <Compile Include="DBUtilities.cs" />
     <Compile Include="HoldingsHelper.cs" />
+    <Compile Include="MoveTile.cs" />
     <Compile Include="Position.cs" />
+    <Compile Include="Tiles.cs" />
     <Compile Include="Transaction.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

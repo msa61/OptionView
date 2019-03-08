@@ -3,10 +3,109 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:OptionView"
+        xmlns:s="clr-namespace:OptionView"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
+
+
+    <Window.Resources>
+
+        <!-- MoveThumb Template -->
+        <ControlTemplate x:Key="MoveThumbTemplate" TargetType="{x:Type s:MoveTile}">
+            <Rectangle Fill="Transparent"/>
+        </ControlTemplate>
+
+        <!-- Item Template -->
+        <ControlTemplate x:Key="GreenTileTemplate" TargetType="{x:Type ContentControl}">
+            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100">
+                <s:MoveTile Template="{StaticResource MoveThumbTemplate}" />
+                <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                            <LinearGradientBrush.RelativeTransform>
+                                <TransformGroup>
+                                    <ScaleTransform CenterY="0.5" CenterX="0.5"/>
+                                    <SkewTransform CenterY="0.5" CenterX="0.5"/>
+                                    <RotateTransform Angle="325" CenterY="0.5" CenterX="0.5"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </LinearGradientBrush.RelativeTransform>
+                            <GradientStop Color="#FF64A864" Offset="0.947"/>
+                            <GradientStop Color="#FF069106" Offset="0.55"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <ContentPresenter Content="{TemplateBinding Content}"/>
+            </Grid>
+        </ControlTemplate>
+        <ControlTemplate x:Key="RedTileTemplate" TargetType="{x:Type ContentControl}">
+            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100">
+                <s:MoveTile Template="{StaticResource MoveThumbTemplate}" />
+                <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False">
+                    <Rectangle.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Color="#FFB4545D" Offset="1"/>
+                            <GradientStop Color="#FF910613" Offset="0.083"/>
+                            <GradientStop Color="#FF93202B" Offset="0.004"/>
+                        </RadialGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <ContentPresenter Content="{TemplateBinding Content}"/>
+            </Grid>
+        </ControlTemplate>
+        <Style x:Key="SymbolHeader" TargetType="{x:Type TextBlock}">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Height" Value="19" />
+            <Setter Property="Width" Value="81" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+        </Style>
+        <Style x:Key="SymbolDetails" TargetType="{x:Type TextBlock}">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Height" Value="19" />
+            <Setter Property="Width" Value="81" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+        </Style>
+        <Style x:Key="TileCanvas" TargetType="{x:Type Canvas}">
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Height" Value="59" />
+            <Setter Property="Width" Value="101" />
+            <Setter Property="Margin" Value="10,10,0,0" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+        </Style>
+
+
+    </Window.Resources>
+
+
+
+
+    <Grid >
+        <Grid.RowDefinitions>
+            <RowDefinition x:Name="HeaderRow" Height="21"/>
+            <RowDefinition x:Name="MainRow" Height="239*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="NavCol" MaxWidth="100" MinWidth="100" Width="100*"/>
+            <ColumnDefinition x:Name="ContentCol" MinWidth="200"/>
+            <ColumnDefinition x:Name="DetailsCol" MaxWidth="200" Width="200*"/>
+        </Grid.ColumnDefinitions>
+
+        <Canvas x:Name="MainCanvas" Grid.Row="1" Grid.Column="1"  Background="#FFF1fCfC">
+<!--
+            <ContentControl Canvas.Top="10" Canvas.Left="10" Template="{DynamicResource RedTileTemplate}" Selector.IsSelected="True" >
+                <Canvas Style="{DynamicResource TileCanvas}" >
+                    <TextBlock Text="Symbol" Style="{DynamicResource SymbolHeader}"/>
+                    <TextBlock Text="Text" Canvas.Top="14" Style="{DynamicResource SymbolDetails}" Height="24"/>
+                    <TextBlock Text="Text2" Canvas.Top="28" Style="{DynamicResource SymbolDetails}"/>
+                </Canvas>
+            </ContentControl>
+-->
+        </Canvas>
+        <Button Grid.Row="0" Grid.Column="0" Content="Button" Click="Button_Click"/>
+
     </Grid>
+
 </Window>
