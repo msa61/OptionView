@@ -15,6 +15,7 @@ namespace OptionView
         public decimal Strike;
         public string Type;
         public decimal Quantity;
+        public decimal Amount;
         public List<int> Rows;
 
         public Position ()
@@ -36,7 +37,7 @@ namespace OptionView
             
         }
 
-        public string AddTransaction(string symbol, string type, DateTime expDate, decimal strike,  decimal quant, int row, string openClose, int grpID)
+        public string AddTransaction(string symbol, string type, DateTime expDate, decimal strike, decimal quant, decimal amount, int row, string openClose, int grpID)
         {
             string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMMdd") + type + strike.ToString("#.0");
 
@@ -46,6 +47,7 @@ namespace OptionView
             {
                 p = this[key];
                 p.Quantity += quant;
+                p.Amount += amount;
                 p.Rows.Add(row);
             }
             else
@@ -56,6 +58,7 @@ namespace OptionView
                 p.Strike = strike;
                 p.Type = type;
                 p.Quantity = quant;
+                p.Amount = amount;
                 p.Rows.Add(row);
                 this.Add(key, p);
             }
@@ -63,6 +66,11 @@ namespace OptionView
             if (grpID > 0) groupID = grpID;
 
             return key;
+        }
+
+        public string AddTransaction(string symbol, string type, DateTime expDate, decimal strike, decimal quant, int row, string openClose, int grpID)
+        {
+            return AddTransaction(symbol, type, expDate, strike, quant, 0.0m, row, openClose, grpID);
         }
 
         public int GroupID()
