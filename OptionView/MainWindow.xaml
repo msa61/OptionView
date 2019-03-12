@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:s="clr-namespace:OptionView"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" Left="100" Top="100"
+        Closing="MainWindow_Closing">
 
 
     <Window.Resources>
@@ -26,12 +27,12 @@
                                 <TransformGroup>
                                     <ScaleTransform CenterY="0.5" CenterX="0.5"/>
                                     <SkewTransform CenterY="0.5" CenterX="0.5"/>
-                                    <RotateTransform Angle="325" CenterY="0.5" CenterX="0.5"/>
+                                    <RotateTransform Angle="315" CenterY="0.5" CenterX="0.5"/>
                                     <TranslateTransform/>
                                 </TransformGroup>
                             </LinearGradientBrush.RelativeTransform>
-                            <GradientStop Color="#FF64A864" Offset="0.947"/>
-                            <GradientStop Color="#FF069106" Offset="0.55"/>
+                            <GradientStop Color="#BF538C2B" Offset="0.978"/>
+                            <GradientStop Color="#FF538C2B" Offset="0.113"/>
                         </LinearGradientBrush>
                     </Rectangle.Fill>
                 </Rectangle>
@@ -43,11 +44,18 @@
                 <s:MoveTile Template="{StaticResource MoveThumbTemplate}" />
                 <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False">
                     <Rectangle.Fill>
-                        <RadialGradientBrush>
-                            <GradientStop Color="#FFB4545D" Offset="1"/>
-                            <GradientStop Color="#FF910613" Offset="0.083"/>
-                            <GradientStop Color="#FF93202B" Offset="0.004"/>
-                        </RadialGradientBrush>
+                        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                            <LinearGradientBrush.RelativeTransform>
+                                <TransformGroup>
+                                    <ScaleTransform CenterY="0.5" CenterX="0.5"/>
+                                    <SkewTransform CenterY="0.5" CenterX="0.5"/>
+                                    <RotateTransform Angle="315" CenterY="0.5" CenterX="0.5"/>
+                                    <TranslateTransform/>
+                                </TransformGroup>
+                            </LinearGradientBrush.RelativeTransform>
+                            <GradientStop Color="#BF99291E" Offset="0.978"/>
+                            <GradientStop Color="#FF99291E" Offset="0.113"/>
+                        </LinearGradientBrush>
                     </Rectangle.Fill>
                 </Rectangle>
                 <ContentPresenter Content="{TemplateBinding Content}"/>
@@ -94,17 +102,18 @@
         </Grid.ColumnDefinitions>
 
         <Canvas x:Name="MainCanvas" Grid.Row="1" Grid.Column="1"  Background="#FFF1fCfC">
-<!--
-            <ContentControl Canvas.Top="10" Canvas.Left="10" Template="{DynamicResource RedTileTemplate}" Selector.IsSelected="True" >
+
+            <!--
+            <ContentControl Canvas.Top="10" Canvas.Left="10" Template="{DynamicResource GreenTileTemplate}" Selector.IsSelected="True" >
                 <Canvas Style="{DynamicResource TileCanvas}" >
                     <TextBlock Text="Symbol" Style="{DynamicResource SymbolHeader}"/>
                     <TextBlock Text="Text" Canvas.Top="14" Style="{DynamicResource SymbolDetails}" Height="24"/>
                     <TextBlock Text="Text2" Canvas.Top="28" Style="{DynamicResource SymbolDetails}"/>
                 </Canvas>
             </ContentControl>
--->
+            -->
         </Canvas>
-        <Button Grid.Row="0" Grid.Column="0" Content="Button" Click="Button_Click"/>
+        
 
     </Grid>
 
