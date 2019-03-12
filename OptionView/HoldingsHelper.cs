@@ -19,6 +19,29 @@ namespace OptionView
 
 
 
+        public static void UpdateTilePosition(string tag, int x, int y)
+        {
+            try
+            {
+                // establish connection
+                App.OpenConnection();
+
+                // update all of the rows in the chain
+                string sql = "UPDATE transgroup SET x = @x, y = @y WHERE ID=@row";
+                SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                cmdUpd.Parameters.AddWithValue("x", x);
+                cmdUpd.Parameters.AddWithValue("y", y);
+                cmdUpd.Parameters.AddWithValue("row", tag);
+                cmdUpd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("UpdateTilePosition: " + ex.Message);
+            }
+        }
+
+
+
 
         public static Portfolio CurrentHoldings()
         {
@@ -43,7 +66,7 @@ namespace OptionView
                     underlying.TransactionGroup = Convert.ToInt32(readerGroup["ID"]); // readerGroup
                     underlying.Cost = Convert.ToDecimal(readerGroup["Cost"]);
                     if (readerGroup["X"] != DBNull.Value) underlying.X = Convert.ToInt32(readerGroup["X"]);
-                    if (readerGroup["Y"] != DBNull.Value) underlying.X = Convert.ToInt32(readerGroup["Y"]);
+                    if (readerGroup["Y"] != DBNull.Value) underlying.Y = Convert.ToInt32(readerGroup["Y"]);
                     if (readerGroup["Comments"] != DBNull.Value) underlying.Comments = readerGroup["Comments"].ToString();
 
                     // step thru open holdings
