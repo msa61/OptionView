@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Shapes;
+using System.Windows.Media;
 
 
 
@@ -34,6 +36,22 @@ namespace OptionView
             Canvas tileCanvas = new Canvas();
             tileCanvas.Style = (Style)window.Resources["TileCanvas"];
             cc.Content = tileCanvas;
+
+
+            Rectangle rect = new Rectangle()
+            {
+                Name = "SelectedFrame",
+                Stroke = Brushes.Gray,
+                Visibility = Visibility.Hidden,
+                StrokeThickness= 1,
+                StrokeDashArray = new DoubleCollection() { 2 },
+                IsHitTestVisible = false,
+                Margin = new Thickness(-10,-10,0,0),
+                Width = 150,
+                Height = 100
+            };
+            tileCanvas.Children.Add(rect);
+
 
             TextBlock txtSymbol = new TextBlock()
             {
