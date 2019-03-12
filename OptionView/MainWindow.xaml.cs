@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.ComponentModel;
+using System.Diagnostics;
 
 
 namespace OptionView
@@ -41,78 +43,54 @@ namespace OptionView
 
             //DataLoader.Load("DALcorrection.csv");
 
+
             HoldingsHelper.UpdateNewTransactions();
 
-
             InitializeComponent();
+            ResetScreen();
 
 
+
+            Portfolio p = HoldingsHelper.CurrentHoldings();
+            foreach (Underlying u in p)
+            {
+                Tiles.CreateTile(this, MainCanvas, (u.Cost > 0), u.TransactionGroup, u.Symbol, u.X, u.Y, u.Comments, u.Cost.ToString());
+            }
 
             App.CloseConnection();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void ResetScreen()
         {
-            left += 10;
-            top += 10;
-            nextColor = !nextColor;
-            //CreateTile(nextColor, "NDVA", left, top, "blah");
+            string scrnProps = Config.GetProp("Screen");
+            string[] props = scrnProps.Split('|');
 
-            Canvas canvas = MainCanvas;
-            Tiles t = new Tiles();
-            t.CreateTile(this, MainCanvas, nextColor, "NDVA", left, top, "blah");
+            if (props.Length < 5) return;
 
+            if (props[0] == "1") this.WindowState = WindowState.Maximized;
+            this.Left = Convert.ToDouble(props[1]);
+            this.Top = Convert.ToDouble(props[2]);
+            this.Width = Convert.ToDouble(props[3]);
+            this.Height = Convert.ToDouble(props[4]);
         }
 
-        //private void CreateTile(bool green, string symbol, int left, int top, string details)
-        //{
-        //    //<ContentControl Canvas.Top = "10" Canvas.Left = "10" Template = "{StaticResource DesignerItemTemplate}" >
-        //    //  <Canvas Style = "{DynamicResource TileCanvas}" >
-        //    //     < TextBlock Text = "Symbol" Style = "{DynamicResource SymbolHeader}" />
-        //    //     < TextBlock Text = "Text" Canvas.Top = "19" Style = "{DynamicResource SymbolDetails}" />
-        //    //     < TextBlock Text = "Text2" Canvas.Top = "38" Style = "{DynamicResource SymbolDetails}" />
-        //    //  </ Canvas >
-        //    //</ ContentControl > 
+        void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            Debug.WriteLine("window closing");
 
-        //    ContentControl cc = new ContentControl();
-        //    if (green)
-        //        cc.Template = (ControlTemplate)this.Resources["GreenTileTemplate"];
-        //    else
-        //        cc.Template = (ControlTemplate)this.Resources["RedTileTemplate"];
+            string scrnProps = ((this.WindowState == WindowState.Maximized) ? "1|" : "0|") + this.Left.ToString() + "|" + this.Top.ToString() + "|" + this.Width.ToString() + "|" + this.Height.ToString();
+            Config.SetProp("Screen", scrnProps);
 
+            Point basePt = MainCanvas.PointToScreen(new Point());
 
-        //    Canvas tileCanvas = new Canvas();
-        //    tileCanvas.Style = (Style)this.Resources["TileCanvas"];
-        //    cc.Content = tileCanvas;
-
-        //    TextBlock txtSymbol = new TextBlock()
-        //    {
-        //        Text = symbol,
-        //        Style = (Style)this.Resources["SymbolHeader"]
-        //    };
-        //    tileCanvas.Children.Add(txtSymbol);
-
-        //    TextBlock txtDetail1 = new TextBlock()
-        //    {
-        //        Text = details,
-        //        Style = (Style)this.Resources["SymbolDetails"],
-        //    };
-        //    Canvas.SetTop(txtDetail1, 14);
-        //    tileCanvas.Children.Add(txtDetail1);
-
-        //    TextBlock txtDetail2 = new TextBlock()
-        //    {
-        //        Text = "tbd",
-        //        Style = (Style)this.Resources["SymbolDetails"]
-        //    };
-        //    Canvas.SetTop(txtDetail2, 28);
-        //    tileCanvas.Children.Add(txtDetail2);
+            foreach (ContentControl cc in MainCanvas.Children)
+            {
+                Point pt = cc.PointToScreen(new Point());
+                HoldingsHelper.UpdateTilePosition(cc.Tag.ToString(), (int)(pt.X - basePt.X), (int)(pt.Y - basePt.Y));
+            }
+        }
 
 
-        //    Canvas.SetLeft(cc, left);
-        //    Canvas.SetTop(cc, top);
-
-        //    MainCanvas.Children.Add(cc);
-        //}
+ 
     }
 }
