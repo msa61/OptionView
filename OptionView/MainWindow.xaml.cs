@@ -81,12 +81,9 @@ namespace OptionView
             string scrnProps = ((this.WindowState == WindowState.Maximized) ? "1|" : "0|") + this.Left.ToString() + "|" + this.Top.ToString() + "|" + this.Width.ToString() + "|" + this.Height.ToString();
             Config.SetProp("Screen", scrnProps);
 
-            Point basePt = MainCanvas.PointToScreen(new Point());
-
             foreach (ContentControl cc in MainCanvas.Children)
             {
-                Point pt = cc.PointToScreen(new Point());
-                HoldingsHelper.UpdateTilePosition(cc.Tag.ToString(), (int)(pt.X - basePt.X), (int)(pt.Y - basePt.Y));
+                HoldingsHelper.UpdateTilePosition(cc.Tag.ToString(), (int)Canvas.GetLeft(cc), (int)Canvas.GetTop(cc));
             }
         }
 
