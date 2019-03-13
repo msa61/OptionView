@@ -20,46 +20,60 @@
         <ControlTemplate x:Key="GreenTileTemplate" TargetType="{x:Type ContentControl}">
             <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100">
                 <s:MoveTile Template="{StaticResource MoveThumbTemplate}" />
-                <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False">
-                    <Rectangle.Fill>
-                        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
-                            <LinearGradientBrush.RelativeTransform>
-                                <TransformGroup>
-                                    <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                                    <SkewTransform CenterY="0.5" CenterX="0.5"/>
-                                    <RotateTransform Angle="315" CenterY="0.5" CenterX="0.5"/>
-                                    <TranslateTransform/>
-                                </TransformGroup>
-                            </LinearGradientBrush.RelativeTransform>
-                            <GradientStop Color="#BF538C2B" Offset="0.978"/>
-                            <GradientStop Color="#FF538C2B" Offset="0.113"/>
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
+                <Border BorderThickness="3">
+                    <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False" >
+                        <Rectangle.Fill>
+                            <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                                <LinearGradientBrush.RelativeTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform CenterY="0.5" CenterX="0.5"/>
+                                        <SkewTransform CenterY="0.5" CenterX="0.5"/>
+                                        <RotateTransform Angle="315" CenterY="0.5" CenterX="0.5"/>
+                                        <TranslateTransform/>
+                                    </TransformGroup>
+                                </LinearGradientBrush.RelativeTransform>
+                                <GradientStop Color="#BF538C2B" Offset="0.978"/>
+                                <GradientStop Color="#FF538C2B" Offset="0.113"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                </Border>
                 <ContentPresenter Content="{TemplateBinding Content}"/>
             </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Panel.ZIndex" Value="1"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
         </ControlTemplate>
         <ControlTemplate x:Key="RedTileTemplate" TargetType="{x:Type ContentControl}">
             <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100">
                 <s:MoveTile Template="{StaticResource MoveThumbTemplate}" />
-                <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False">
-                    <Rectangle.Fill>
-                        <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
-                            <LinearGradientBrush.RelativeTransform>
-                                <TransformGroup>
-                                    <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                                    <SkewTransform CenterY="0.5" CenterX="0.5"/>
-                                    <RotateTransform Angle="315" CenterY="0.5" CenterX="0.5"/>
-                                    <TranslateTransform/>
-                                </TransformGroup>
-                            </LinearGradientBrush.RelativeTransform>
-                            <GradientStop Color="#BF99291E" Offset="0.978"/>
-                            <GradientStop Color="#FF99291E" Offset="0.113"/>
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
+                <Border BorderThickness="3" >
+                    <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False" >
+                        <Rectangle.Fill>
+                            <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                                <LinearGradientBrush.RelativeTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform CenterY="0.5" CenterX="0.5"/>
+                                        <SkewTransform CenterY="0.5" CenterX="0.5"/>
+                                        <RotateTransform Angle="315" CenterY="0.5" CenterX="0.5"/>
+                                        <TranslateTransform/>
+                                    </TransformGroup>
+                                </LinearGradientBrush.RelativeTransform>
+                                <GradientStop Color="#BF99291E" Offset="0.978"/>
+                                <GradientStop Color="#FF99291E" Offset="0.113"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                </Border>
                 <ContentPresenter Content="{TemplateBinding Content}"/>
             </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Panel.ZIndex" Value="1"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
         </ControlTemplate>
         <Style x:Key="SymbolHeader" TargetType="{x:Type TextBlock}">
             <Setter Property="Foreground" Value="White"/>
@@ -103,17 +117,20 @@
 
         <Canvas x:Name="MainCanvas" Grid.Row="1" Grid.Column="1"  Background="#FFF1fCfC">
 
-            <!--
-            <ContentControl Canvas.Top="10" Canvas.Left="10" Template="{DynamicResource GreenTileTemplate}" Selector.IsSelected="True" >
+
+            <!--<ContentControl Canvas.Top="10" Canvas.Left="10" Template="{DynamicResource RedTileTemplate}" Selector.IsSelected="True" >
                 <Canvas Style="{DynamicResource TileCanvas}" >
+                    <Rectangle Name="SelectedFrame" Stroke="Gray" Visibility="Hidden" StrokeThickness="1" StrokeDashArray="2" IsHitTestVisible="False" Margin="-10,-10,0,0" Width="150" Height="100" />
+
                     <TextBlock Text="Symbol" Style="{DynamicResource SymbolHeader}"/>
                     <TextBlock Text="Text" Canvas.Top="14" Style="{DynamicResource SymbolDetails}" Height="24"/>
                     <TextBlock Text="Text2" Canvas.Top="28" Style="{DynamicResource SymbolDetails}"/>
+
                 </Canvas>
-            </ContentControl>
-            -->
+            </ContentControl>-->
+
         </Canvas>
-        
+
 
     </Grid>
 
