@@ -13,7 +13,7 @@
 
         <!-- MoveThumb Template -->
         <ControlTemplate x:Key="MoveThumbTemplate" TargetType="{x:Type s:MoveTile}">
-            <Rectangle Fill="Transparent"/>
+            <Rectangle Fill="Transparent" MouseLeftButtonDown="TileMouseDown"/>
         </ControlTemplate>
 
         <!-- Item Template -->
@@ -86,7 +86,15 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Height" Value="19" />
-            <Setter Property="Width" Value="81" />
+            <Setter Property="Width" Value="100" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+        </Style>
+        <Style x:Key="DaysTilExpiration" TargetType="{x:Type TextBlock}">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Height" Value="19" />
+            <Setter Property="Width" Value="30" />
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
         <Style x:Key="TileCanvas" TargetType="{x:Type Canvas}">
@@ -115,7 +123,7 @@
             <ColumnDefinition x:Name="DetailsCol" MaxWidth="200" Width="200*"/>
         </Grid.ColumnDefinitions>
 
-        <Canvas x:Name="MainCanvas" Grid.Row="1" Grid.Column="1"  Background="#FFF1fCfC">
+        <Canvas x:Name="MainCanvas" Grid.Row="1" Grid.Column="1"  Background="#FF0D0D0D">
 
 
             <!--<ContentControl Canvas.Top="10" Canvas.Left="10" Template="{DynamicResource RedTileTemplate}" Selector.IsSelected="True" >
