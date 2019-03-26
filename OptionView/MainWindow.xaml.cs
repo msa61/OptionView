@@ -37,6 +37,8 @@ namespace OptionView
             //DataLoader.Load("feb-24.csv");
             //DataLoader.Load("mar-5.csv");
             //DataLoader.Load("mar-7.csv");
+            //DataLoader.Load("mar-13.csv");
+            //DataLoader.Load("mar-25.csv");
             //DataLoader.Load("gld.csv");
             //DataLoader.Load("spy.csv");
             //DataLoader.Load("msft.csv");
@@ -54,7 +56,7 @@ namespace OptionView
             Portfolio p = HoldingsHelper.CurrentHoldings();
             foreach (Underlying u in p)
             {
-                Tiles.CreateTile(this, MainCanvas, (u.Cost > 0), u.TransactionGroup, u.Symbol, u.X, u.Y, u.Comments, u.Cost.ToString());
+                Tiles.CreateTile(this, MainCanvas, (u.Cost > 0), u.TransactionGroup, u.Symbol, u.X, u.Y, u.Strategy, u.Cost.ToString(), (u.EarliestExpiration - DateTime.Today).TotalDays.ToString());
             }
 
             App.CloseConnection();
@@ -88,6 +90,20 @@ namespace OptionView
         }
 
 
+        AdornerLayer adornerLayer = null;
+        TileAdorner tileAdorner = null;
+        private void TileMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender.GetType() == typeof(Rectangle))
+            {
+                if (adornerLayer != null && tileAdorner != null) adornerLayer.Remove(tileAdorner);
+
+                Rectangle rect = (Rectangle)sender;
+                adornerLayer = AdornerLayer.GetAdornerLayer(rect);
+                tileAdorner = new TileAdorner(rect);
+                adornerLayer.Add(tileAdorner);
+            }
+        }
  
     }
 }
