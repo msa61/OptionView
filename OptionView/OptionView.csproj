@@ -83,6 +83,7 @@
     <Compile Include="MoveTile.cs" />
     <Compile Include="Portfolio.cs" />
     <Compile Include="Position.cs" />
+    <Compile Include="TileAdorner.cs" />
     <Compile Include="Tiles.cs" />
     <Compile Include="Transaction.cs" />
     <Page Include="MainWindow.xaml">
