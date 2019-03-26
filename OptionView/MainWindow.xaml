@@ -78,23 +78,18 @@
         <Style x:Key="SymbolHeader" TargetType="{x:Type TextBlock}">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Height" Value="19" />
-            <Setter Property="Width" Value="81" />
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
         <Style x:Key="SymbolDetails" TargetType="{x:Type TextBlock}">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Height" Value="19" />
-            <Setter Property="Width" Value="100" />
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
         <Style x:Key="DaysTilExpiration" TargetType="{x:Type TextBlock}">
             <Setter Property="HorizontalAlignment" Value="Right" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="FontSize" Value="11" />
-            <Setter Property="Height" Value="19" />
-            <Setter Property="Width" Value="30" />
+            <Setter Property="Canvas.Right" Value="-28" />
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
         <Style x:Key="TileCanvas" TargetType="{x:Type Canvas}">
@@ -133,6 +128,8 @@
                     <TextBlock Text="Symbol" Style="{DynamicResource SymbolHeader}"/>
                     <TextBlock Text="Text" Canvas.Top="14" Style="{DynamicResource SymbolDetails}" Height="24"/>
                     <TextBlock Text="Text2" Canvas.Top="28" Style="{DynamicResource SymbolDetails}"/>
+
+                    <TextBlock Text="33" Style="{DynamicResource  DaysTilExpiration}" />
 
                 </Canvas>
             </ContentControl>-->
