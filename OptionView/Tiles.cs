@@ -16,7 +16,7 @@ namespace OptionView
     public class Tiles
     {
 
-        public static void CreateTile(Window window, Canvas canvas, bool green, int ID, string symbol, int left, int top, string details1, string details2)
+        public static void CreateTile(Window window, Canvas canvas, bool green, int ID, string symbol, int left, int top, string details1, string details2, string dte)
         {
             //<ContentControl Canvas.Top = "10" Canvas.Left = "10" Template = "{StaticResource DesignerItemTemplate}" >
             //  <Canvas Style = "{DynamicResource TileCanvas}" >
@@ -75,6 +75,14 @@ namespace OptionView
             };
             Canvas.SetTop(txtDetail2, 28);
             tileCanvas.Children.Add(txtDetail2);
+
+            TextBlock txtDTE = new TextBlock()
+            {
+                Text = dte,
+                Style = (Style)window.Resources["DaysTilExpiration"]
+            };
+            Canvas.SetRight(txtDTE, -95);
+            tileCanvas.Children.Add(txtDTE);
 
 
             Canvas.SetLeft(cc, left);
