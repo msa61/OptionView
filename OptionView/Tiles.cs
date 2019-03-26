@@ -81,7 +81,7 @@ namespace OptionView
                 Text = dte,
                 Style = (Style)window.Resources["DaysTilExpiration"]
             };
-            Canvas.SetRight(txtDTE, -95);
+            txtDTE.HorizontalAlignment = HorizontalAlignment.Right;
             tileCanvas.Children.Add(txtDTE);
 
 
