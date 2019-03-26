@@ -53,7 +53,7 @@ namespace OptionView
                 App.OpenConnection();
 
                 string sql = "SELECT * FROM transgroup AS tg LEFT JOIN";
-                sql += " (SELECT transgroupid, sum(amount) as Cost from transactions GROUP BY  transgroupid) AS t ON tg.id = t.transgroupid";
+                sql += " (SELECT transgroupid, SUM(amount) AS Cost, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime, datetime(MIN(expireDate)) AS EarliestExpiration from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
                 sql += " WHERE tg.Open = 1";
 
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
@@ -68,6 +68,12 @@ namespace OptionView
                     if (readerGroup["X"] != DBNull.Value) underlying.X = Convert.ToInt32(readerGroup["X"]);
                     if (readerGroup["Y"] != DBNull.Value) underlying.Y = Convert.ToInt32(readerGroup["Y"]);
                     if (readerGroup["Comments"] != DBNull.Value) underlying.Comments = readerGroup["Comments"].ToString();
+                    if (readerGroup["Strategy"] != DBNull.Value) underlying.Strategy = readerGroup["Strategy"].ToString();
+                    if (readerGroup["ExitStrategy"] != DBNull.Value) underlying.ExitStrategy = readerGroup["ExitStrategy"].ToString();
+                    if (readerGroup["CapitalRequired"] != DBNull.Value) underlying.CapitalRequired = Convert.ToDecimal(readerGroup["CapitalRequired"]);
+                    if (readerGroup["startTime"] != DBNull.Value) underlying.StartTime = Convert.ToDateTime(readerGroup["startTime"].ToString());
+                    if (readerGroup["endTime"] != DBNull.Value) underlying.EndTime = Convert.ToDateTime(readerGroup["endTime"].ToString());
+                    if (readerGroup["EarliestExpiration"] != DBNull.Value) underlying.EarliestExpiration = Convert.ToDateTime(readerGroup["EarliestExpiration"].ToString());
 
                     // step thru open holdings
                     sql = "SELECT * FROM (SELECT symbol, transgroupid, type, datetime(expiredate) AS ExpireDate, strike, sum(quantity) AS total, sum(amount) as amount FROM transactions";
@@ -115,7 +121,7 @@ namespace OptionView
                 // establish connection
                 App.OpenConnection();
 
-                string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol != '' AND TransType = 'Trade' ORDER BY symbol";
+                string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol != '' AND TransType != 'Money Movement' ORDER BY symbol";
                 //string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol = 'AMD' ORDER BY symbol";
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
                 SQLiteDataReader reader = cmd.ExecuteReader();

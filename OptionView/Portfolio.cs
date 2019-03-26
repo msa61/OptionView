@@ -13,8 +13,14 @@ namespace OptionView
         public decimal Cost;
         public int X;
         public int Y;
+        public string Strategy;
+        public string ExitStrategy;
         public string Comments;
         public Positions Holdings;
+        public decimal CapitalRequired;
+        public DateTime StartTime;
+        public DateTime EndTime;
+        public DateTime EarliestExpiration;
 
 
         public Underlying()
