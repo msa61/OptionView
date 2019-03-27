@@ -26,6 +26,7 @@ namespace OptionView
         private int left = 10;
         private int top = 10;
         private bool nextColor = true;
+        private Portfolio portfolio;
 
 
 
@@ -53,9 +54,10 @@ namespace OptionView
 
 
 
-            Portfolio p = HoldingsHelper.CurrentHoldings();
-            foreach (Underlying u in p)
+            portfolio = HoldingsHelper.CurrentHoldings();
+            foreach (KeyValuePair<int,Underlying> entry in portfolio)
             {
+                Underlying u = entry.Value;
                 Tiles.CreateTile(this, MainCanvas, (u.Cost > 0), u.TransactionGroup, u.Symbol, u.X, u.Y, u.Strategy, u.Cost.ToString(), (u.EarliestExpiration - DateTime.Today).TotalDays.ToString());
             }
 
@@ -102,6 +104,25 @@ namespace OptionView
                 adornerLayer = AdornerLayer.GetAdornerLayer(rect);
                 tileAdorner = new TileAdorner(rect);
                 adornerLayer.Add(tileAdorner);
+
+
+                MoveTile tile = (MoveTile)VisualTreeHelper.GetParent(rect);
+                if (tile != null && tile.Parent != null)
+                {
+                    ContentControl cc = (ContentControl)VisualTreeHelper.GetParent(tile.Parent);
+                    int tag = 0;
+                    if (cc != null && cc.Tag.GetType() == typeof(int)) tag = (int)cc.Tag;
+
+                    if (tag > 0)
+                    {
+                        Debug.WriteLine("Group selected: " + tag.ToString());
+
+
+                    }
+
+
+                }
+
             }
         }
  
