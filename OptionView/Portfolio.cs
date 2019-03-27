@@ -43,7 +43,7 @@ namespace OptionView
         }
     }
 
-    public class Portfolio : List<Underlying>
+    public class Portfolio : Dictionary<int,Underlying>
     {
         public Portfolio()
         {

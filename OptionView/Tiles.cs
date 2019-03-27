@@ -88,7 +88,7 @@ namespace OptionView
             Canvas.SetLeft(cc, left);
             Canvas.SetTop(cc, top);
 
-            cc.Tag = ID.ToString();
+            cc.Tag = ID;
             canvas.Children.Add(cc);
         }
     }

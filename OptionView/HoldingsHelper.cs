@@ -97,7 +97,7 @@ namespace OptionView
                         underlying.Holdings.AddTransaction(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, quantity, amount, 0, "", 0);
                     }
 
-                    portfolio.Add(underlying);
+                    portfolio.Add(underlying.TransactionGroup, underlying);
 
                 }  // end of transaction group loop
             }
