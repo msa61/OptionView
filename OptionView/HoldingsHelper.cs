@@ -109,7 +109,20 @@ namespace OptionView
             return portfolio;
         }
 
-
+        public static void UpdateTransactionGroup(Underlying u)
+        {
+            if (u.TransactionGroup > 0)
+            {
+                // update group
+                string sql = "UPDATE transgroup SET ExitStrategy = @ex, Comments = @cm, CapitalRequired = @ca WHERE ID=@row";
+                SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                cmdUpd.Parameters.AddWithValue("ex", u.ExitStrategy);
+                cmdUpd.Parameters.AddWithValue("cm", u.Comments);
+                cmdUpd.Parameters.AddWithValue("ca", u.CapitalRequired);
+                cmdUpd.Parameters.AddWithValue("row", u.TransactionGroup);
+                cmdUpd.ExecuteNonQuery();
+            }
+        }
 
 
         public static void UpdateNewTransactions()
