@@ -102,6 +102,15 @@
         </Style>
 
 
+
+        <ControlTemplate x:Key="PropertyTile" TargetType="{x:Type ContentControl}">
+            <StackPanel Background="LightGray" Margin="2,0,2,0">
+                <Label Content="Label" Margin="6,0,0,0" />
+                <TextBlock  Text="TextBlock" Background="White" Margin="6,0,6,6" Padding="4,4,4,4"/>
+                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+            </StackPanel>
+        </ControlTemplate>
+
     </Window.Resources>
 
 
@@ -118,7 +127,7 @@
             <ColumnDefinition x:Name="DetailsCol" MaxWidth="200" Width="200*"/>
         </Grid.ColumnDefinitions>
 
-        <Canvas x:Name="MainCanvas" Grid.Row="1" Grid.Column="1"  Background="#FF0D0D0D">
+        <Canvas x:Name="MainCanvas" Grid.Row="1" Grid.Column="1"  Background="#FF0D0D0D" MouseLeftButtonDown="CanvasMouseDown">
 
 
             <!--<ContentControl Canvas.Top="10" Canvas.Left="10" Template="{DynamicResource RedTileTemplate}" Selector.IsSelected="True" >
@@ -135,6 +144,47 @@
             </ContentControl>-->
 
         </Canvas>
+        <StackPanel Grid.Column="2" Grid.Row="1"  Margin="4,0"  >
+            
+                <StackPanel Background="LightGray" Margin="2,0,2,0">
+                    <Label Content="Symbol" Margin="6,0,0,0" />
+                    <TextBlock Name="txtSymbol" Background="White" Margin="6,0,6,6" Padding="5,4,4,4"/>
+                    <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                </StackPanel>
+
+            <StackPanel Background="LightGray" Margin="2,0,2,0">
+                <Label Content="Exit Strategy" Margin="6,0,0,0" />
+                <TextBox Name="txtExit" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent"/>
+                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+            </StackPanel>
+
+            <StackPanel Background="LightGray" Margin="2,0,2,0">
+                <Label Content="Comments" Margin="6,0,0,0" />
+                <TextBox Name="txtComments" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap" Height="94" AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent"/>
+                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+            </StackPanel>
+
+            <StackPanel Background="LightGray" Margin="2,0,2,0">
+                <Label Content="Captial Required" Margin="6,0,0,0" />
+                <TextBox Name="txtCapital" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent"/>
+                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+            </StackPanel>
+            <StackPanel Background="LightGray" Margin="2,0,2,0">
+                <Label Content="Date Initiated" Margin="6,0,0,0" />
+                <TextBox Name="txtStartTime" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
+                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+            </StackPanel>
+            <StackPanel Background="LightGray" Margin="2,0,2,0">
+                <Label Content="Last Adjustment" Margin="6,0,0,0" />
+                <TextBox Name="txtEndTime" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
+                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+            </StackPanel>
+
+
+
+
+
+        </StackPanel>
 
 
     </Grid>

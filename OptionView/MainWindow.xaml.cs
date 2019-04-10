@@ -27,6 +27,9 @@ namespace OptionView
         private int top = 10;
         private bool nextColor = true;
         private Portfolio portfolio;
+        private int selectedTag = 0;
+        private bool detailsDirty = false;
+
 
 
 
@@ -40,6 +43,7 @@ namespace OptionView
             //DataLoader.Load("mar-7.csv");
             //DataLoader.Load("mar-13.csv");
             //DataLoader.Load("mar-25.csv");
+            DataLoader.Load("apr-9.csv");
             //DataLoader.Load("gld.csv");
             //DataLoader.Load("spy.csv");
             //DataLoader.Load("msft.csv");
@@ -58,10 +62,9 @@ namespace OptionView
             foreach (KeyValuePair<int,Underlying> entry in portfolio)
             {
                 Underlying u = entry.Value;
-                Tiles.CreateTile(this, MainCanvas, (u.Cost > 0), u.TransactionGroup, u.Symbol, u.X, u.Y, u.Strategy, u.Cost.ToString(), (u.EarliestExpiration - DateTime.Today).TotalDays.ToString());
+                Tiles.CreateTile(this, MainCanvas, (u.Cost > 0), u.TransactionGroup, u.Symbol, u.X, u.Y, u.Strategy, u.Cost.ToString("C"), (u.EarliestExpiration - DateTime.Today).TotalDays.ToString());
             }
 
-            App.CloseConnection();
         }
 
         private void ResetScreen()
@@ -85,12 +88,18 @@ namespace OptionView
             string scrnProps = ((this.WindowState == WindowState.Maximized) ? "1|" : "0|") + this.Left.ToString() + "|" + this.Top.ToString() + "|" + this.Width.ToString() + "|" + this.Height.ToString();
             Config.SetProp("Screen", scrnProps);
 
+
+            if ((selectedTag != 0)  &&  detailsDirty) SaveChainDetails(selectedTag);
+
             foreach (ContentControl cc in MainCanvas.Children)
             {
                 HoldingsHelper.UpdateTilePosition(cc.Tag.ToString(), (int)Canvas.GetLeft(cc), (int)Canvas.GetTop(cc));
             }
-        }
 
+
+
+            App.CloseConnection();
+        }
 
         AdornerLayer adornerLayer = null;
         TileAdorner tileAdorner = null;
@@ -116,8 +125,19 @@ namespace OptionView
                     if (tag > 0)
                     {
                         Debug.WriteLine("Group selected: " + tag.ToString());
+                        if (selectedTag != 0  &&  tag != selectedTag &&  detailsDirty) SaveChainDetails(selectedTag);
 
+                        Underlying u = portfolio[tag];
+                        txtSymbol.Text = u.Symbol;
 
+                        SetTextBox(txtExit, u.ExitStrategy, true);
+                        SetTextBox(txtComments, u.Comments, true);
+                        SetTextBox(txtCapital, u.CapitalRequired.ToString("C"), true);
+                        SetTextBox(txtStartTime, u.StartTime.ToShortDateString(), false);
+                        SetTextBox(txtEndTime, "", false);
+                        if (u.StartTime != u.EndTime) SetTextBox(txtEndTime, u.EndTime.ToShortDateString(), false);
+
+                        selectedTag = tag;
                     }
 
 
@@ -125,6 +145,53 @@ namespace OptionView
 
             }
         }
- 
+
+        private void SetTextBox( TextBox tb, string txt, bool enable)
+        {
+            tb.Text = txt;
+            tb.IsEnabled = enable;
+        }
+
+        private void CanvasMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (adornerLayer != null && tileAdorner != null) adornerLayer.Remove(tileAdorner);
+            if (selectedTag != 0  &&  detailsDirty) SaveChainDetails(selectedTag);
+            selectedTag = 0;
+
+            txtSymbol.Text = "";
+
+            SetTextBox(txtExit, "", false);
+            SetTextBox(txtComments, "", false);
+            SetTextBox(txtCapital, "", false);
+            SetTextBox(txtStartTime, "", false);
+            SetTextBox(txtEndTime, "", false);
+
+
+        }
+
+
+        private void SaveChainDetails(int tag)
+        {
+            Debug.WriteLine("Savinging... " + tag.ToString());
+            Underlying u = new Underlying();
+            u.TransactionGroup = tag;
+            u.ExitStrategy = txtExit.Text;
+            u.Comments = txtComments.Text;
+            u.CapitalRequired = Convert.ToDecimal(txtCapital.Text.Replace("$", ""));
+
+
+            HoldingsHelper.UpdateTransactionGroup(u);
+            //refresh
+            portfolio = HoldingsHelper.CurrentHoldings();
+
+            detailsDirty = false;
+
+        }
+
+        private void FieldEntryEvent(object sender, KeyEventArgs e)
+        {
+            detailsDirty = true;
+
+        }
     }
 }
