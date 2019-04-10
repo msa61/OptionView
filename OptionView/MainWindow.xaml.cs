@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.ComponentModel;
 using System.Diagnostics;
+using Microsoft.Win32;
 
 
 namespace OptionView
@@ -59,7 +60,7 @@ namespace OptionView
 
 
             portfolio = HoldingsHelper.CurrentHoldings();
-            foreach (KeyValuePair<int,Underlying> entry in portfolio)
+            foreach (KeyValuePair<int, Underlying> entry in portfolio)
             {
                 Underlying u = entry.Value;
                 Tiles.CreateTile(this, MainCanvas, (u.Cost > 0), u.TransactionGroup, u.Symbol, u.X, u.Y, u.Strategy, u.Cost.ToString("C"), (u.EarliestExpiration - DateTime.Today).TotalDays.ToString());
@@ -89,7 +90,7 @@ namespace OptionView
             Config.SetProp("Screen", scrnProps);
 
 
-            if ((selectedTag != 0)  &&  detailsDirty) SaveChainDetails(selectedTag);
+            if ((selectedTag != 0) && detailsDirty) SaveChainDetails(selectedTag);
 
             foreach (ContentControl cc in MainCanvas.Children)
             {
@@ -125,7 +126,7 @@ namespace OptionView
                     if (tag > 0)
                     {
                         Debug.WriteLine("Group selected: " + tag.ToString());
-                        if (selectedTag != 0  &&  tag != selectedTag &&  detailsDirty) SaveChainDetails(selectedTag);
+                        if (selectedTag != 0 && tag != selectedTag && detailsDirty) SaveChainDetails(selectedTag);
 
                         Underlying u = portfolio[tag];
                         txtSymbol.Text = u.Symbol;
@@ -146,7 +147,7 @@ namespace OptionView
             }
         }
 
-        private void SetTextBox( TextBox tb, string txt, bool enable)
+        private void SetTextBox(TextBox tb, string txt, bool enable)
         {
             tb.Text = txt;
             tb.IsEnabled = enable;
@@ -155,7 +156,7 @@ namespace OptionView
         private void CanvasMouseDown(object sender, MouseButtonEventArgs e)
         {
             if (adornerLayer != null && tileAdorner != null) adornerLayer.Remove(tileAdorner);
-            if (selectedTag != 0  &&  detailsDirty) SaveChainDetails(selectedTag);
+            if (selectedTag != 0 && detailsDirty) SaveChainDetails(selectedTag);
             selectedTag = 0;
 
             txtSymbol.Text = "";
@@ -192,6 +193,18 @@ namespace OptionView
         {
             detailsDirty = true;
 
+        }
+
+
+        private void LoadButton(object sender, RoutedEventArgs e)
+        {
+            string filename = "";
+            Debug.WriteLine("LoadButton...");
+            OpenFileDialog opeFileDialog = new OpenFileDialog();
+            if (opeFileDialog.ShowDialog() == true)
+                filename = opeFileDialog.FileName;
+
+            Debug.WriteLine("Load: " + filename);
         }
     }
 }
