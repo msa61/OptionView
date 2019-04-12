@@ -44,7 +44,7 @@ namespace OptionView
             //DataLoader.Load("mar-7.csv");
             //DataLoader.Load("mar-13.csv");
             //DataLoader.Load("mar-25.csv");
-            DataLoader.Load("apr-9.csv");
+            //DataLoader.Load("apr-9.csv");
             //DataLoader.Load("gld.csv");
             //DataLoader.Load("spy.csv");
             //DataLoader.Load("msft.csv");
@@ -52,12 +52,19 @@ namespace OptionView
             //DataLoader.Load("DALcorrection.csv");
 
 
-            HoldingsHelper.UpdateNewTransactions();
 
             InitializeComponent();
             ResetScreen();
 
+            UpdateHoldingsTiles();
+            UpdateResultsGrid();
+           
+           
+        }
 
+        private void UpdateHoldingsTiles()
+        {
+            if (MainCanvas.Children.Count > 0)  MainCanvas.Children.Clear();
 
             portfolio = HoldingsHelper.CurrentHoldings();
             foreach (KeyValuePair<int, Underlying> entry in portfolio)
@@ -65,8 +72,8 @@ namespace OptionView
                 Underlying u = entry.Value;
                 Tiles.CreateTile(this, MainCanvas, (u.Cost > 0), u.TransactionGroup, u.Symbol, u.X, u.Y, u.Strategy, u.Cost.ToString("C"), (u.EarliestExpiration - DateTime.Today).TotalDays.ToString());
             }
-
         }
+
 
         private void ResetScreen()
         {
@@ -131,9 +138,17 @@ namespace OptionView
                         Underlying u = portfolio[tag];
                         txtSymbol.Text = u.Symbol;
 
+                        SetTextBox(txtStrategy, u.Strategy, true);
                         SetTextBox(txtExit, u.ExitStrategy, true);
                         SetTextBox(txtComments, u.Comments, true);
-                        SetTextBox(txtCapital, u.CapitalRequired.ToString("C"), true);
+                        SetTextBox(txtCapital, u.CapitalRequired.ToString("C0"), true);
+                        SetCheckBox(chkEarnings, u.EarningsTrade, true);
+                        SetCheckBox(chkDefinedRisk, u.DefinedRisk, true);
+                        if (u.DefinedRisk )
+                            SetTextBox(txtRisk, u.Risk.ToString("C0"), true);
+                        else
+                            SetTextBox(txtRisk, "", false);
+
                         SetTextBox(txtStartTime, u.StartTime.ToShortDateString(), false);
                         SetTextBox(txtEndTime, "", false);
                         if (u.StartTime != u.EndTime) SetTextBox(txtEndTime, u.EndTime.ToShortDateString(), false);
@@ -152,6 +167,11 @@ namespace OptionView
             tb.Text = txt;
             tb.IsEnabled = enable;
         }
+        private void SetCheckBox(CheckBox cb, bool val, bool enable)
+        {
+            cb.IsChecked = val;
+            cb.IsEnabled = enable;
+        }
 
         private void CanvasMouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -161,25 +181,33 @@ namespace OptionView
 
             txtSymbol.Text = "";
 
+            SetTextBox(txtStrategy, "", false);
             SetTextBox(txtExit, "", false);
             SetTextBox(txtComments, "", false);
             SetTextBox(txtCapital, "", false);
+            SetCheckBox(chkEarnings, false, false);
+            SetCheckBox(chkDefinedRisk, false, false);
+            SetTextBox(txtRisk, "", false);
             SetTextBox(txtStartTime, "", false);
             SetTextBox(txtEndTime, "", false);
-
-
         }
 
 
         private void SaveChainDetails(int tag)
         {
-            Debug.WriteLine("Savinging... " + tag.ToString());
+            Debug.WriteLine("Saving... " + tag.ToString());
             Underlying u = new Underlying();
             u.TransactionGroup = tag;
+            u.Strategy = txtStrategy.Text;
             u.ExitStrategy = txtExit.Text;
             u.Comments = txtComments.Text;
-            u.CapitalRequired = Convert.ToDecimal(txtCapital.Text.Replace("$", ""));
+            Decimal retval = 0;
+            if (Decimal.TryParse(txtCapital.Text.Replace("$", ""), out retval)) u.CapitalRequired = retval;
+            u.EarningsTrade = chkEarnings.IsChecked.HasValue ? chkEarnings.IsChecked.Value : false;
 
+            u.DefinedRisk = chkDefinedRisk.IsChecked.HasValue ? chkDefinedRisk.IsChecked.Value : false;
+            retval = 0;
+            if (Decimal.TryParse(txtRisk.Text.Replace("$", ""), out retval)) u.Risk = retval;
 
             HoldingsHelper.UpdateTransactionGroup(u);
             //refresh
@@ -192,7 +220,27 @@ namespace OptionView
         private void FieldEntryEvent(object sender, KeyEventArgs e)
         {
             detailsDirty = true;
+        }
+        private void CheckBoxMouseEvent(object sender, MouseButtonEventArgs e)
+        {
+            detailsDirty = true;
 
+            if (sender.GetType() == typeof(CheckBox))
+            {
+                CheckBox cb = (CheckBox)sender;
+                if (cb.Name == "chkDefinedRisk")
+                {
+                    if (cb.IsChecked.HasValue ? cb.IsChecked.Value : false )
+                    {
+                        SetTextBox(txtRisk, "", false);
+                    }
+                    else
+                    {
+                        SetTextBox(txtRisk, "$0", true);
+                    }
+                }
+            }
+            
         }
 
 
@@ -204,7 +252,40 @@ namespace OptionView
             if (opeFileDialog.ShowDialog() == true)
                 filename = opeFileDialog.FileName;
 
-            Debug.WriteLine("Load: " + filename);
+            if (filename.Length > 0)
+            {
+                Debug.WriteLine("Load: " + filename);
+                DataLoader.Load(filename);
+                HoldingsHelper.UpdateNewTransactions();
+                UpdateHoldingsTiles();
+            }
         }
+
+
+
+        private void UpdateResultsGrid()
+        {
+            List<UnderlyingGrid> list = new List<UnderlyingGrid>();
+
+
+            portfolio = HoldingsHelper.CurrentHoldings();
+            foreach (KeyValuePair<int, Underlying> entry in portfolio)
+            {
+                Underlying u = entry.Value;
+                UnderlyingGrid ug = new UnderlyingGrid();
+                ug.Symbol = u.Symbol;
+                ug.Strategy = u.Strategy;
+                ug.Cost = u.Cost;
+                ug.StartTime = u.StartTime;
+                ug.EndTime = u.EndTime;
+                list.Add(ug);
+            }
+
+            resultsGrid.ItemsSource = list;
+
+
+
+        }
+
     }
 }
