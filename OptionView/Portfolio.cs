@@ -18,6 +18,9 @@ namespace OptionView
         public string Comments { get; set; }
         public Positions Holdings { get; set; }
         public decimal CapitalRequired { get; set; }
+        public bool EarningsTrade { get; set; }
+        public bool DefinedRisk { get; set; }
+        public decimal Risk { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public DateTime EarliestExpiration { get; set; }

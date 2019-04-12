@@ -89,7 +89,7 @@
             <Setter Property="HorizontalAlignment" Value="Right" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="FontSize" Value="11" />
-            <Setter Property="Canvas.Right" Value="-28" />
+            <Setter Property="Canvas.Right" Value="-30" />
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
         <Style x:Key="TileCanvas" TargetType="{x:Type Canvas}">
@@ -125,17 +125,17 @@
                     <Canvas x:Name="MainCanvas"  Grid.Column="0"  Background="#FF0D0D0D" MouseLeftButtonDown="CanvasMouseDown">
 
                         <!--<ContentControl Canvas.Top="10" Canvas.Left="10" Template="{DynamicResource RedTileTemplate}" Selector.IsSelected="True" >
-                        <Canvas Style="{DynamicResource TileCanvas}" >
-                            <Rectangle Name="SelectedFrame" Stroke="Gray" Visibility="Hidden" StrokeThickness="1" StrokeDashArray="2" IsHitTestVisible="False" Margin="-10,-10,0,0" Width="150" Height="100" />
+                            <Canvas Style="{DynamicResource TileCanvas}" >
+                                <Rectangle Name="SelectedFrame" Stroke="Gray" Visibility="Hidden" StrokeThickness="1" StrokeDashArray="2" IsHitTestVisible="False" Margin="-10,-10,0,0" Width="150" Height="100" />
 
-                            <TextBlock Text="Symbol" Style="{DynamicResource SymbolHeader}"/>
-                            <TextBlock Text="Text" Canvas.Top="14" Style="{DynamicResource SymbolDetails}" Height="24"/>
-                            <TextBlock Text="Text2" Canvas.Top="28" Style="{DynamicResource SymbolDetails}"/>
+                                <TextBlock Text="Symbol" Style="{DynamicResource SymbolHeader}"/>
+                                <TextBlock Text="Text" Canvas.Top="14" Style="{DynamicResource SymbolDetails}" Height="24"/>
+                                <TextBlock Text="Text2" Canvas.Top="28" Style="{DynamicResource SymbolDetails}"/>
 
-                            <TextBlock Text="33" Style="{DynamicResource  DaysTilExpiration}" />
+                                <TextBlock Text="33" Style="{DynamicResource  DaysTilExpiration}"  Canvas.Top="68"  />
 
-                        </Canvas>
-                    </ContentControl>-->
+                            </Canvas>
+                        </ContentControl>-->
 
                     </Canvas>
 
@@ -144,6 +144,12 @@
                         <StackPanel Background="LightGray" Margin="2,0,2,0" DockPanel.Dock="Top">
                             <Label Content="Symbol" Margin="6,0,0,0" />
                             <TextBlock Name="txtSymbol" Background="White" Margin="6,0,6,6" Padding="5,4,4,4"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+
+                        <StackPanel Background="LightGray" Margin="2,0,2,0" DockPanel.Dock="Top">
+                            <Label Content="Strategy" Margin="6,0,0,0" />
+                            <TextBox Name="txtStrategy" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
 
@@ -164,6 +170,30 @@
                             <TextBox Name="txtCapital" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
+
+                        <StackPanel Background="LightGray" Margin="2,0,2,0" DockPanel.Dock="Top">
+                            <DockPanel>
+                                <Label Content="Earnings Trade" Margin="6,0,6,0"  />
+                                <CheckBox Name="chkEarnings" VerticalAlignment="Center" IsEnabled="False" PreviewMouseDown="CheckBoxMouseEvent" />
+                            </DockPanel>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel Background="LightGray" Margin="2,0,2,0" DockPanel.Dock="Top">
+                            <DockPanel>
+                                <Label Content="Defined Risk" Margin="6,0,6,0"  />
+                                <CheckBox Name="chkDefinedRisk" VerticalAlignment="Center" IsEnabled="False" PreviewMouseDown="CheckBoxMouseEvent" />
+                            </DockPanel>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+
+
+                        <StackPanel Background="LightGray" Margin="2,0,2,0" DockPanel.Dock="Top">
+                            <Label Content="Risk" Margin="6,0,0,0" />
+                            <TextBox Name="txtRisk" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+
+
                         <StackPanel Background="LightGray" Margin="2,0,2,0" DockPanel.Dock="Top">
                             <Label Content="Date Initiated" Margin="6,0,0,0" />
                             <TextBox Name="txtStartTime" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
@@ -183,7 +213,7 @@
                 </Grid>
             </TabItem>
             <TabItem Width="150" Height="30" Header="Returns">
-
+<DataGrid Name="resultsGrid"/>
             </TabItem>
 
         </TabControl>

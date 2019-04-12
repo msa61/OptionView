@@ -71,6 +71,9 @@ namespace OptionView
                     if (readerGroup["Strategy"] != DBNull.Value) underlying.Strategy = readerGroup["Strategy"].ToString();
                     if (readerGroup["ExitStrategy"] != DBNull.Value) underlying.ExitStrategy = readerGroup["ExitStrategy"].ToString();
                     if (readerGroup["CapitalRequired"] != DBNull.Value) underlying.CapitalRequired = Convert.ToDecimal(readerGroup["CapitalRequired"]);
+                    if (readerGroup["EarningsTrade"] != DBNull.Value) underlying.EarningsTrade = (Convert.ToInt32(readerGroup["EarningsTrade"]) == 1);
+                    if (readerGroup["DefinedRisk"] != DBNull.Value) underlying.DefinedRisk = (Convert.ToInt32(readerGroup["DefinedRisk"]) == 1);
+                    if (readerGroup["Risk"] != DBNull.Value) underlying.Risk = Convert.ToDecimal(readerGroup["Risk"]);
                     if (readerGroup["startTime"] != DBNull.Value) underlying.StartTime = Convert.ToDateTime(readerGroup["startTime"].ToString());
                     if (readerGroup["endTime"] != DBNull.Value) underlying.EndTime = Convert.ToDateTime(readerGroup["endTime"].ToString());
                     if (readerGroup["EarliestExpiration"] != DBNull.Value) underlying.EarliestExpiration = Convert.ToDateTime(readerGroup["EarliestExpiration"].ToString());
@@ -114,11 +117,14 @@ namespace OptionView
             if (u.TransactionGroup > 0)
             {
                 // update group
-                string sql = "UPDATE transgroup SET ExitStrategy = @ex, Comments = @cm, CapitalRequired = @ca WHERE ID=@row";
+                string sql = "UPDATE transgroup SET ExitStrategy = @ex, Comments = @cm, CapitalRequired = @ca, EarningsTrade = @ea, DefinedRisk = @dr, Risk = @rs WHERE ID=@row";
                 SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
                 cmdUpd.Parameters.AddWithValue("ex", u.ExitStrategy);
                 cmdUpd.Parameters.AddWithValue("cm", u.Comments);
                 cmdUpd.Parameters.AddWithValue("ca", u.CapitalRequired);
+                cmdUpd.Parameters.AddWithValue("ea", u.EarningsTrade);
+                cmdUpd.Parameters.AddWithValue("dr", u.DefinedRisk);
+                cmdUpd.Parameters.AddWithValue("rs", u.Risk);
                 cmdUpd.Parameters.AddWithValue("row", u.TransactionGroup);
                 cmdUpd.ExecuteNonQuery();
             }
@@ -183,7 +189,7 @@ namespace OptionView
             //SELECT type, strike, expiredate, sum(quantity) AS total FROM transactions WHERE symbol = 'GOOG' GROUP BY type, strike, expiredate )
             //WHERE total<> 0
 
-            // aggragates lots that might have separated
+            // aggregates lots that might have separated
             //SELECT  time, type, strike, expiredate, sum(quantity) AS total FROM transactions WHERE symbol = 'GOOG' GROUP BY  time, type, strike, expiredate 
         
         }
