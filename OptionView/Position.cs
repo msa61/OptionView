@@ -10,13 +10,13 @@ namespace OptionView
 {
     public class Position
     {
-        public string Symbol;
-        public DateTime ExpDate;
-        public decimal Strike;
-        public string Type;
-        public decimal Quantity;
-        public decimal Amount;
-        public List<int> Rows;
+        public string Symbol { get; set; }
+        public DateTime ExpDate { get; set; }
+        public decimal Strike { get; set; }
+        public string Type { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal Amount { get; set; }
+        public List<int> Rows { get; set; }
 
         public Position ()
         {

@@ -8,19 +8,19 @@ namespace OptionView
 {
     public class Underlying
     {
-        public string Symbol;
-        public int TransactionGroup;
+        public string Symbol { get; set; }
+        public int TransactionGroup { get; set; }
         public decimal Cost;
-        public int X;
-        public int Y;
-        public string Strategy;
-        public string ExitStrategy;
-        public string Comments;
-        public Positions Holdings;
-        public decimal CapitalRequired;
-        public DateTime StartTime;
-        public DateTime EndTime;
-        public DateTime EarliestExpiration;
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string Strategy { get; set; }
+        public string ExitStrategy { get; set; }
+        public string Comments { get; set; }
+        public Positions Holdings { get; set; }
+        public decimal CapitalRequired { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+        public DateTime EarliestExpiration { get; set; }
 
 
         public Underlying()
@@ -43,7 +43,17 @@ namespace OptionView
         }
     }
 
-    public class Portfolio : Dictionary<int,Underlying>
+    public class UnderlyingGrid
+    {
+        public string Symbol { get; set; }
+        public decimal Cost { get; set; }
+        public string Strategy { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+    }
+
+
+        public class Portfolio : Dictionary<int,Underlying>
     {
         public Portfolio()
         {
