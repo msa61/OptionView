@@ -49,7 +49,8 @@ namespace OptionView
         {
             if (MainCanvas.Children.Count > 0)  MainCanvas.Children.Clear();
 
-            portfolio = HoldingsHelper.CurrentHoldings();
+            portfolio = new Portfolio();
+            portfolio.GetCurrentHoldings();
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
                 TransactionGroup grp = entry.Value;
@@ -199,12 +200,10 @@ namespace OptionView
             retval = 0;
             if (Decimal.TryParse(txtRisk.Text.Replace("$", ""), out retval)) grp.Risk = retval;
 
-            HoldingsHelper.UpdateTransactionGroup(grp);
-            //refresh
-            portfolio = HoldingsHelper.CurrentHoldings();
+            grp.UpdateTransactionGroup();
+            portfolio.GetCurrentHoldings();  //refresh
 
             detailsDirty = false;
-
         }
 
         private void FieldEntryEvent(object sender, KeyEventArgs e)

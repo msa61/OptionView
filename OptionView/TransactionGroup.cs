@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data;
+using System.Data.SQLite;
+using System.Diagnostics;
 
 namespace OptionView
 {
@@ -49,6 +52,28 @@ namespace OptionView
             Holdings = new Positions();
             Transactions = new Transactions();
         }
+
+
+
+        public void UpdateTransactionGroup()
+        {
+            if (this.GroupID > 0)
+            {
+                // update group
+                string sql = "UPDATE transgroup SET Strategy = @st, ExitStrategy = @ex, Comments = @cm, CapitalRequired = @ca, EarningsTrade = @ea, DefinedRisk = @dr, Risk = @rs WHERE ID=@rw";
+                SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                cmdUpd.Parameters.AddWithValue("st", this.Strategy);
+                cmdUpd.Parameters.AddWithValue("ex", this.ExitStrategy);
+                cmdUpd.Parameters.AddWithValue("cm", this.Comments);
+                cmdUpd.Parameters.AddWithValue("ca", this.CapitalRequired);
+                cmdUpd.Parameters.AddWithValue("ea", this.EarningsTrade);
+                cmdUpd.Parameters.AddWithValue("dr", this.DefinedRisk);
+                cmdUpd.Parameters.AddWithValue("rs", this.Risk);
+                cmdUpd.Parameters.AddWithValue("rw", this.GroupID);
+                cmdUpd.ExecuteNonQuery();
+            }
+        }
+
     }
 
 
