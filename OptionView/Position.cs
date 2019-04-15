@@ -8,21 +8,15 @@ using System.Diagnostics;
 
 namespace OptionView
 {
-    public class Position
+    public class Position : Transaction
     {
-        public string Symbol { get; set; }
-        public DateTime ExpDate { get; set; }
-        public decimal Strike { get; set; }
-        public string Type { get; set; }
-        public decimal Quantity { get; set; }
-        public decimal Amount { get; set; }
+        // add property
         public List<int> Rows { get; set; }
 
         public Position ()
         {
-            Quantity = 0;
             Rows = new List<int>();
-
+            TransType = "not used";
         }
  
     }
@@ -37,7 +31,7 @@ namespace OptionView
             
         }
 
-        public string AddTransaction(string symbol, string type, DateTime expDate, decimal strike, decimal quant, decimal amount, int row, string openClose, int grpID)
+        public string Add(string symbol, string type, DateTime expDate, decimal strike, decimal quant, decimal amount, int row, string openClose, int grpID)
         {
             string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMMdd") + type + strike.ToString("#.0");
 
@@ -68,9 +62,9 @@ namespace OptionView
             return key;
         }
 
-        public string AddTransaction(string symbol, string type, DateTime expDate, decimal strike, decimal quant, int row, string openClose, int grpID)
+        public string Add(string symbol, string type, DateTime expDate, decimal strike, decimal quant, int row, string openClose, int grpID)
         {
-            return AddTransaction(symbol, type, expDate, strike, quant, 0.0m, row, openClose, grpID);
+            return Add(symbol, type, expDate, strike, quant, 0.0m, row, openClose, grpID);
         }
 
         public int GroupID()
@@ -113,7 +107,6 @@ namespace OptionView
 
         public void DumpToDebug()
         {
-            bool ret = true;
             foreach (KeyValuePair<string, Position> item in this)
             {
                 if (item.Value.Quantity != 0)

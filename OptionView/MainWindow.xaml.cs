@@ -50,10 +50,10 @@ namespace OptionView
             if (MainCanvas.Children.Count > 0)  MainCanvas.Children.Clear();
 
             portfolio = HoldingsHelper.CurrentHoldings();
-            foreach (KeyValuePair<int, Underlying> entry in portfolio)
+            foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
-                Underlying u = entry.Value;
-                Tiles.CreateTile(this, MainCanvas, (u.Cost > 0), u.TransactionGroup, u.Symbol, u.X, u.Y, u.Strategy, u.Cost.ToString("C"), (u.EarliestExpiration - DateTime.Today).TotalDays.ToString());
+                TransactionGroup grp = entry.Value;
+                Tiles.CreateTile(this, MainCanvas, (grp.Cost > 0), grp.GroupID, grp.Symbol, grp.X, grp.Y, grp.Strategy, grp.Cost.ToString("C"), (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString());
             }
         }
 
@@ -125,23 +125,23 @@ namespace OptionView
                         Debug.WriteLine("Group selected: " + tag.ToString());
                         if (selectedTag != 0 && tag != selectedTag && detailsDirty) SaveTransactionGroupDetails(selectedTag);
 
-                        Underlying u = portfolio[tag];
-                        txtSymbol.Text = u.Symbol;
+                        TransactionGroup grp = portfolio[tag];
+                        txtSymbol.Text = grp.Symbol;
 
-                        SetTextBox(txtStrategy, u.Strategy, true);
-                        SetTextBox(txtExit, u.ExitStrategy, true);
-                        SetTextBox(txtComments, u.Comments, true);
-                        SetTextBox(txtCapital, u.CapitalRequired.ToString("C0"), true);
-                        SetCheckBox(chkEarnings, u.EarningsTrade, true);
-                        SetCheckBox(chkDefinedRisk, u.DefinedRisk, true);
-                        if (u.DefinedRisk )
-                            SetTextBox(txtRisk, u.Risk.ToString("C0"), true);
+                        SetTextBox(txtStrategy, grp.Strategy, true);
+                        SetTextBox(txtExit, grp.ExitStrategy, true);
+                        SetTextBox(txtComments, grp.Comments, true);
+                        SetTextBox(txtCapital, grp.CapitalRequired.ToString("C0"), true);
+                        SetCheckBox(chkEarnings, grp.EarningsTrade, true);
+                        SetCheckBox(chkDefinedRisk, grp.DefinedRisk, true);
+                        if (grp.DefinedRisk )
+                            SetTextBox(txtRisk, grp.Risk.ToString("C0"), true);
                         else
                             SetTextBox(txtRisk, "", false);
 
-                        SetTextBox(txtStartTime, u.StartTime.ToShortDateString(), false);
+                        SetTextBox(txtStartTime, grp.StartTime.ToShortDateString(), false);
                         SetTextBox(txtEndTime, "", false);
-                        if (u.StartTime != u.EndTime) SetTextBox(txtEndTime, u.EndTime.ToShortDateString(), false);
+                        if (grp.StartTime != grp.EndTime) SetTextBox(txtEndTime, grp.EndTime.ToShortDateString(), false);
 
                         selectedTag = tag;
                     }
@@ -186,20 +186,20 @@ namespace OptionView
         private void SaveTransactionGroupDetails(int tag)
         {
             Debug.WriteLine("Saving... " + tag.ToString());
-            Underlying u = new Underlying();
-            u.TransactionGroup = tag;
-            u.Strategy = txtStrategy.Text;
-            u.ExitStrategy = txtExit.Text;
-            u.Comments = txtComments.Text;
+            TransactionGroup grp = new TransactionGroup();
+            grp.GroupID = tag;
+            grp.Strategy = txtStrategy.Text;
+            grp.ExitStrategy = txtExit.Text;
+            grp.Comments = txtComments.Text;
             Decimal retval = 0;
-            if (Decimal.TryParse(txtCapital.Text.Replace("$", ""), out retval)) u.CapitalRequired = retval;
-            u.EarningsTrade = chkEarnings.IsChecked.HasValue ? chkEarnings.IsChecked.Value : false;
+            if (Decimal.TryParse(txtCapital.Text.Replace("$", ""), out retval)) grp.CapitalRequired = retval;
+            grp.EarningsTrade = chkEarnings.IsChecked.HasValue ? chkEarnings.IsChecked.Value : false;
 
-            u.DefinedRisk = chkDefinedRisk.IsChecked.HasValue ? chkDefinedRisk.IsChecked.Value : false;
+            grp.DefinedRisk = chkDefinedRisk.IsChecked.HasValue ? chkDefinedRisk.IsChecked.Value : false;
             retval = 0;
-            if (Decimal.TryParse(txtRisk.Text.Replace("$", ""), out retval)) u.Risk = retval;
+            if (Decimal.TryParse(txtRisk.Text.Replace("$", ""), out retval)) grp.Risk = retval;
 
-            HoldingsHelper.UpdateTransactionGroup(u);
+            HoldingsHelper.UpdateTransactionGroup(grp);
             //refresh
             portfolio = HoldingsHelper.CurrentHoldings();
 
@@ -254,24 +254,24 @@ namespace OptionView
 
         private void UpdateResultsGrid()
         {
-            List<UnderlyingGrid> list = new List<UnderlyingGrid>();
+            //List<UnderlyingGrid> list = new List<UnderlyingGrid>();
 
 
-            portfolio = HoldingsHelper.CurrentHoldings();
-            foreach (KeyValuePair<int, Underlying> entry in portfolio)
-            {
-                Underlying u = entry.Value;
-                UnderlyingGrid ug = new UnderlyingGrid();
-                ug.Symbol = u.Symbol;
-                ug.Strategy = u.Strategy;
-                ug.Cost = u.Cost;
-                ug.Comments = u.Comments;
-                ug.StartTime = u.StartTime;
-                ug.EndTime = u.EndTime;
-                list.Add(ug);
-            }
+            //portfolio = HoldingsHelper.CurrentHoldings();
+            //foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
+            //{
+            //    TransactionGroup grp = entry.Value;
+            //    UnderlyingGrid ug = new UnderlyingGrid();
+            //    ug.Symbol = grp.Symbol;
+            //    ug.Strategy = grp.Strategy;
+            //    ug.Cost = grp.Cost;
+            //    ug.Comments = grp.Comments;
+            //    ug.StartTime = grp.StartTime;
+            //    ug.EndTime = grp.EndTime;
+            //    list.Add(ug);
+            //}
 
-            resultsGrid.ItemsSource = list;
+            //resultsGrid.ItemsSource = list;
 
 
 

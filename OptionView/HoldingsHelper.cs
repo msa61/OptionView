@@ -30,29 +30,29 @@ namespace OptionView
                 SQLiteDataReader readerGroup = cmd.ExecuteReader();
                 while (readerGroup.Read())
                 {
-                    Underlying underlying = new Underlying();
+                    TransactionGroup grp = new TransactionGroup();
 
-                    underlying.Symbol = readerGroup["Symbol"].ToString();
-                    underlying.TransactionGroup = Convert.ToInt32(readerGroup["ID"]); // readerGroup
-                    underlying.Cost = Convert.ToDecimal(readerGroup["Cost"]);
-                    if (readerGroup["X"] != DBNull.Value) underlying.X = Convert.ToInt32(readerGroup["X"]);
-                    if (readerGroup["Y"] != DBNull.Value) underlying.Y = Convert.ToInt32(readerGroup["Y"]);
-                    if (readerGroup["Comments"] != DBNull.Value) underlying.Comments = readerGroup["Comments"].ToString();
-                    if (readerGroup["Strategy"] != DBNull.Value) underlying.Strategy = readerGroup["Strategy"].ToString();
-                    if (readerGroup["ExitStrategy"] != DBNull.Value) underlying.ExitStrategy = readerGroup["ExitStrategy"].ToString();
-                    if (readerGroup["CapitalRequired"] != DBNull.Value) underlying.CapitalRequired = Convert.ToDecimal(readerGroup["CapitalRequired"]);
-                    if (readerGroup["EarningsTrade"] != DBNull.Value) underlying.EarningsTrade = (Convert.ToInt32(readerGroup["EarningsTrade"]) == 1);
-                    if (readerGroup["DefinedRisk"] != DBNull.Value) underlying.DefinedRisk = (Convert.ToInt32(readerGroup["DefinedRisk"]) == 1);
-                    if (readerGroup["Risk"] != DBNull.Value) underlying.Risk = Convert.ToDecimal(readerGroup["Risk"]);
-                    if (readerGroup["startTime"] != DBNull.Value) underlying.StartTime = Convert.ToDateTime(readerGroup["startTime"].ToString());
-                    if (readerGroup["endTime"] != DBNull.Value) underlying.EndTime = Convert.ToDateTime(readerGroup["endTime"].ToString());
-                    if (readerGroup["EarliestExpiration"] != DBNull.Value) underlying.EarliestExpiration = Convert.ToDateTime(readerGroup["EarliestExpiration"].ToString());
+                    grp.Symbol = readerGroup["Symbol"].ToString();
+                    grp.GroupID = Convert.ToInt32(readerGroup["ID"]); // readerGroup
+                    grp.Cost = Convert.ToDecimal(readerGroup["Cost"]);
+                    if (readerGroup["X"] != DBNull.Value) grp.X = Convert.ToInt32(readerGroup["X"]);
+                    if (readerGroup["Y"] != DBNull.Value) grp.Y = Convert.ToInt32(readerGroup["Y"]);
+                    if (readerGroup["Comments"] != DBNull.Value) grp.Comments = readerGroup["Comments"].ToString();
+                    if (readerGroup["Strategy"] != DBNull.Value) grp.Strategy = readerGroup["Strategy"].ToString();
+                    if (readerGroup["ExitStrategy"] != DBNull.Value) grp.ExitStrategy = readerGroup["ExitStrategy"].ToString();
+                    if (readerGroup["CapitalRequired"] != DBNull.Value) grp.CapitalRequired = Convert.ToDecimal(readerGroup["CapitalRequired"]);
+                    if (readerGroup["EarningsTrade"] != DBNull.Value) grp.EarningsTrade = (Convert.ToInt32(readerGroup["EarningsTrade"]) == 1);
+                    if (readerGroup["DefinedRisk"] != DBNull.Value) grp.DefinedRisk = (Convert.ToInt32(readerGroup["DefinedRisk"]) == 1);
+                    if (readerGroup["Risk"] != DBNull.Value) grp.Risk = Convert.ToDecimal(readerGroup["Risk"]);
+                    if (readerGroup["startTime"] != DBNull.Value) grp.StartTime = Convert.ToDateTime(readerGroup["startTime"].ToString());
+                    if (readerGroup["endTime"] != DBNull.Value) grp.EndTime = Convert.ToDateTime(readerGroup["endTime"].ToString());
+                    if (readerGroup["EarliestExpiration"] != DBNull.Value) grp.EarliestExpiration = Convert.ToDateTime(readerGroup["EarliestExpiration"].ToString());
 
                     // step thru open holdings
                     sql = "SELECT * FROM (SELECT symbol, transgroupid, type, datetime(expiredate) AS ExpireDate, strike, sum(quantity) AS total, sum(amount) as amount FROM transactions";
                     sql += " GROUP BY symbol, type, expiredate, strike) WHERE (transgroupid = @gr) and (total <> 0)";
                     cmd = new SQLiteCommand(sql, App.ConnStr);
-                    cmd.Parameters.AddWithValue("gr", underlying.TransactionGroup);
+                    cmd.Parameters.AddWithValue("gr", grp.GroupID);
 
                     SQLiteDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
@@ -67,10 +67,10 @@ namespace OptionView
                         DateTime expDate = DateTime.MinValue;
                         if (reader["ExpireDate"] != DBNull.Value) expDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
 
-                        underlying.Holdings.AddTransaction(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, quantity, amount, 0, "", 0);
+                        grp.Holdings.Add(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, quantity, amount, 0, "", 0);
                     }
 
-                    portfolio.Add(underlying.TransactionGroup, underlying);
+                    portfolio.Add(grp.GroupID, grp);
 
                 }  // end of transaction group loop
             }
@@ -83,20 +83,20 @@ namespace OptionView
         }
 
 
-        public static void UpdateTransactionGroup(Underlying u)
+        public static void UpdateTransactionGroup(TransactionGroup grp)
         {
-            if (u.TransactionGroup > 0)
+            if (grp.GroupID > 0)
             {
                 // update group
                 string sql = "UPDATE transgroup SET ExitStrategy = @ex, Comments = @cm, CapitalRequired = @ca, EarningsTrade = @ea, DefinedRisk = @dr, Risk = @rs WHERE ID=@row";
                 SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
-                cmdUpd.Parameters.AddWithValue("ex", u.ExitStrategy);
-                cmdUpd.Parameters.AddWithValue("cm", u.Comments);
-                cmdUpd.Parameters.AddWithValue("ca", u.CapitalRequired);
-                cmdUpd.Parameters.AddWithValue("ea", u.EarningsTrade);
-                cmdUpd.Parameters.AddWithValue("dr", u.DefinedRisk);
-                cmdUpd.Parameters.AddWithValue("rs", u.Risk);
-                cmdUpd.Parameters.AddWithValue("row", u.TransactionGroup);
+                cmdUpd.Parameters.AddWithValue("ex", grp.ExitStrategy);
+                cmdUpd.Parameters.AddWithValue("cm", grp.Comments);
+                cmdUpd.Parameters.AddWithValue("ca", grp.CapitalRequired);
+                cmdUpd.Parameters.AddWithValue("ea", grp.EarningsTrade);
+                cmdUpd.Parameters.AddWithValue("dr", grp.DefinedRisk);
+                cmdUpd.Parameters.AddWithValue("rs", grp.Risk);
+                cmdUpd.Parameters.AddWithValue("row", grp.GroupID);
                 cmdUpd.ExecuteNonQuery();
             }
         }

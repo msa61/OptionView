@@ -86,6 +86,8 @@
     <Compile Include="TileAdorner.cs" />
     <Compile Include="Tiles.cs" />
     <Compile Include="DataImport\TransactionLoader.cs" />
+    <Compile Include="Transaction.cs" />
+    <Compile Include="TransactionGroup.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

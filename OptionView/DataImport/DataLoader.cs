@@ -487,7 +487,7 @@ namespace OptionView
                     if (process)
                     {
                         // add transaction to the chain
-                        string key = holdings.AddTransaction(symbol, type, expDate, strike, quantity, row, openClose, grpID);
+                        string key = holdings.Add(symbol, type, expDate, strike, quantity, row, openClose, grpID);
                         Debug.WriteLine("    Opening transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString());
 
                         // add the associated time to the hierarchy for chain
@@ -540,7 +540,7 @@ namespace OptionView
                             int grpID = 0;
                             if (r["TransGroupID"] != DBNull.Value) grpID = (int)r.Field<Int64>("TransGroupID");
 
-                            string key = holdings.AddTransaction(p.Symbol, p.Type, p.ExpDate, p.Strike, (Int32)r.Field<Int64>("Quantity"), (Int32)r.Field<Int64>("ID"), r.Field<string>("Open-Close").ToString(), grpID);
+                            string key = holdings.Add(p.Symbol, p.Type, p.ExpDate, p.Strike, (Int32)r.Field<Int64>("Quantity"), (Int32)r.Field<Int64>("ID"), r.Field<string>("Open-Close").ToString(), grpID);
                             Debug.WriteLine("    Closing transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString());
 
                             // add the associated time to the hierarchy for chain
