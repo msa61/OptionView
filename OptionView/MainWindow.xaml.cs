@@ -36,29 +36,12 @@ namespace OptionView
 
         public MainWindow()
         {
-            //DataLoader.Load("all transactions.csv");
-            //DataLoader.Load("feb-19.csv");
-            //DataLoader.Load("feb-22.csv");
-            //DataLoader.Load("feb-24.csv");
-            //DataLoader.Load("mar-5.csv");
-            //DataLoader.Load("mar-7.csv");
-            //DataLoader.Load("mar-13.csv");
-            //DataLoader.Load("mar-25.csv");
-            //DataLoader.Load("apr-9.csv");
-            //DataLoader.Load("gld.csv");
-            //DataLoader.Load("spy.csv");
-            //DataLoader.Load("msft.csv");
-
-            //DataLoader.Load("DALcorrection.csv");
-
-
-
+         
             InitializeComponent();
             ResetScreen();
 
             UpdateHoldingsTiles();
             UpdateResultsGrid();
-           
            
         }
 
@@ -87,6 +70,12 @@ namespace OptionView
             this.Top = Convert.ToDouble(props[2]);
             this.Width = Convert.ToDouble(props[3]);
             this.Height = Convert.ToDouble(props[4]);
+
+            string tab = Config.GetProp("Tab");
+            if (tab.Length > 0)
+            {
+                MainTab.SelectedIndex = Convert.ToInt32(tab);
+            }
         }
 
         void MainWindow_Closing(object sender, CancelEventArgs e)
@@ -95,13 +84,14 @@ namespace OptionView
 
             string scrnProps = ((this.WindowState == WindowState.Maximized) ? "1|" : "0|") + this.Left.ToString() + "|" + this.Top.ToString() + "|" + this.Width.ToString() + "|" + this.Height.ToString();
             Config.SetProp("Screen", scrnProps);
+            Config.SetProp("Tab", MainTab.SelectedIndex.ToString());
 
 
-            if ((selectedTag != 0) && detailsDirty) SaveChainDetails(selectedTag);
+            if ((selectedTag != 0) && detailsDirty) SaveTransactionGroupDetails(selectedTag);
 
             foreach (ContentControl cc in MainCanvas.Children)
             {
-                HoldingsHelper.UpdateTilePosition(cc.Tag.ToString(), (int)Canvas.GetLeft(cc), (int)Canvas.GetTop(cc));
+                Tiles.UpdateTilePosition(cc.Tag.ToString(), (int)Canvas.GetLeft(cc), (int)Canvas.GetTop(cc));
             }
 
 
@@ -133,7 +123,7 @@ namespace OptionView
                     if (tag > 0)
                     {
                         Debug.WriteLine("Group selected: " + tag.ToString());
-                        if (selectedTag != 0 && tag != selectedTag && detailsDirty) SaveChainDetails(selectedTag);
+                        if (selectedTag != 0 && tag != selectedTag && detailsDirty) SaveTransactionGroupDetails(selectedTag);
 
                         Underlying u = portfolio[tag];
                         txtSymbol.Text = u.Symbol;
@@ -176,7 +166,7 @@ namespace OptionView
         private void CanvasMouseDown(object sender, MouseButtonEventArgs e)
         {
             if (adornerLayer != null && tileAdorner != null) adornerLayer.Remove(tileAdorner);
-            if (selectedTag != 0 && detailsDirty) SaveChainDetails(selectedTag);
+            if (selectedTag != 0 && detailsDirty) SaveTransactionGroupDetails(selectedTag);
             selectedTag = 0;
 
             txtSymbol.Text = "";
@@ -193,7 +183,7 @@ namespace OptionView
         }
 
 
-        private void SaveChainDetails(int tag)
+        private void SaveTransactionGroupDetails(int tag)
         {
             Debug.WriteLine("Saving... " + tag.ToString());
             Underlying u = new Underlying();
@@ -256,7 +246,6 @@ namespace OptionView
             {
                 Debug.WriteLine("Load: " + filename);
                 DataLoader.Load(filename);
-                HoldingsHelper.UpdateNewTransactions();
                 UpdateHoldingsTiles();
             }
         }
@@ -276,6 +265,7 @@ namespace OptionView
                 ug.Symbol = u.Symbol;
                 ug.Strategy = u.Strategy;
                 ug.Cost = u.Cost;
+                ug.Comments = u.Comments;
                 ug.StartTime = u.StartTime;
                 ug.EndTime = u.EndTime;
                 list.Add(ug);

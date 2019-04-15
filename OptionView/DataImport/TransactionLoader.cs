@@ -6,7 +6,7 @@ namespace OptionView
 {
     [DelimitedRecord(",")]
     [IgnoreFirst(1)]
-    public class Transaction
+    public class TransactionLoader
     {
         [FieldConverter(typeof(CustomDate))]
         public DateTime Time;

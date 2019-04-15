@@ -77,7 +77,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Config.cs" />
-    <Compile Include="DataLoader.cs" />
+    <Compile Include="DataImport\DataLoader.cs" />
     <Compile Include="DBUtilities.cs" />
     <Compile Include="HoldingsHelper.cs" />
     <Compile Include="MoveTile.cs" />
@@ -85,7 +85,7 @@
     <Compile Include="Position.cs" />
     <Compile Include="TileAdorner.cs" />
     <Compile Include="Tiles.cs" />
-    <Compile Include="Transaction.cs" />
+    <Compile Include="DataImport\TransactionLoader.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

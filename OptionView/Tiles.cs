@@ -7,6 +7,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
 using System.Windows.Media;
+using System.Data;
+using System.Data.SQLite;
+using System.Diagnostics;
+
 
 
 
@@ -78,9 +82,10 @@ namespace OptionView
 
             TextBlock txtDTE = new TextBlock()
             {
-                Text = dte,
+                Text = dte + " days",
                 Style = (Style)window.Resources["DaysTilExpiration"]
             };
+            Canvas.SetTop(txtDTE, 68);
             txtDTE.HorizontalAlignment = HorizontalAlignment.Right;
             tileCanvas.Children.Add(txtDTE);
 
@@ -91,6 +96,32 @@ namespace OptionView
             cc.Tag = ID;
             canvas.Children.Add(cc);
         }
+
+
+        public static void UpdateTilePosition(string tag, int x, int y)
+        {
+            try
+            {
+                // establish connection
+                App.OpenConnection();
+
+                // update all of the rows in the chain
+                string sql = "UPDATE transgroup SET x = @x, y = @y WHERE ID=@row";
+                SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                cmdUpd.Parameters.AddWithValue("x", x);
+                cmdUpd.Parameters.AddWithValue("y", y);
+                cmdUpd.Parameters.AddWithValue("row", tag);
+                cmdUpd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("UpdateTilePosition: " + ex.Message);
+            }
+        }
+
+
+
+
     }
 }
 
