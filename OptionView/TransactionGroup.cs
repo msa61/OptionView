@@ -13,7 +13,7 @@ namespace OptionView
     {
         public string Symbol { get; set; }
         public int GroupID { get; set; }
-        public decimal Cost;
+        public decimal Cost { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
         public string Strategy { get; set; }
@@ -29,6 +29,7 @@ namespace OptionView
 
         public Positions Holdings { get; set; }
         public Transactions Transactions { get; set; }
+        private int shiftAmount = 0; 
 
 
         public TransactionGroup()
@@ -46,11 +47,13 @@ namespace OptionView
         {
             GroupID = 0;
             Cost = 0;
-            X = 13;
-            Y = 13;
+            X = 13 + shiftAmount;
+            Y = 13 + shiftAmount;
             Comments = "";
             Holdings = new Positions();
             Transactions = new Transactions();
+
+            shiftAmount += 15;
         }
 
 

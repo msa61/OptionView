@@ -25,7 +25,7 @@ namespace OptionView
     }
 
 
-    public class Transactions : Dictionary<string, Transaction>
+    public class Transactions : List<Transaction>
     {
         public Transactions()
         {

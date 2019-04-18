@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,31 @@ namespace OptionView
         public Portfolio()
         {
         }
+
+                
+        static public TransactionGroup MapTransactionGroup(SQLiteDataReader reader)
+        {
+            TransactionGroup grp = new TransactionGroup();
+
+            grp.Symbol = reader["Symbol"].ToString();
+            grp.GroupID = Convert.ToInt32(reader["ID"]); // readerGroup
+            grp.Cost = Convert.ToDecimal(reader["Cost"]);
+            if (reader["X"] != DBNull.Value) grp.X = Convert.ToInt32(reader["X"]);
+            if (reader["Y"] != DBNull.Value) grp.Y = Convert.ToInt32(reader["Y"]);
+            if (reader["Comments"] != DBNull.Value) grp.Comments = reader["Comments"].ToString();
+            if (reader["Strategy"] != DBNull.Value) grp.Strategy = reader["Strategy"].ToString();
+            if (reader["ExitStrategy"] != DBNull.Value) grp.ExitStrategy = reader["ExitStrategy"].ToString();
+            if (reader["CapitalRequired"] != DBNull.Value) grp.CapitalRequired = Convert.ToDecimal(reader["CapitalRequired"]);
+            if (reader["EarningsTrade"] != DBNull.Value) grp.EarningsTrade = (Convert.ToInt32(reader["EarningsTrade"]) == 1);
+            if (reader["DefinedRisk"] != DBNull.Value) grp.DefinedRisk = (Convert.ToInt32(reader["DefinedRisk"]) == 1);
+            if (reader["Risk"] != DBNull.Value) grp.Risk = Convert.ToDecimal(reader["Risk"]);
+            if (reader["startTime"] != DBNull.Value) grp.StartTime = Convert.ToDateTime(reader["startTime"].ToString());
+            if (reader["endTime"] != DBNull.Value) grp.EndTime = Convert.ToDateTime(reader["endTime"].ToString());
+            if (reader["EarliestExpiration"] != DBNull.Value) grp.EarliestExpiration = Convert.ToDateTime(reader["EarliestExpiration"].ToString());
+
+            return grp;
+        }
+
 
         public void GetCurrentHoldings()
         {
@@ -35,23 +61,7 @@ namespace OptionView
                 SQLiteDataReader readerGroup = cmd.ExecuteReader();
                 while (readerGroup.Read())
                 {
-                    TransactionGroup grp = new TransactionGroup();
-
-                    grp.Symbol = readerGroup["Symbol"].ToString();
-                    grp.GroupID = Convert.ToInt32(readerGroup["ID"]); // readerGroup
-                    grp.Cost = Convert.ToDecimal(readerGroup["Cost"]);
-                    if (readerGroup["X"] != DBNull.Value) grp.X = Convert.ToInt32(readerGroup["X"]);
-                    if (readerGroup["Y"] != DBNull.Value) grp.Y = Convert.ToInt32(readerGroup["Y"]);
-                    if (readerGroup["Comments"] != DBNull.Value) grp.Comments = readerGroup["Comments"].ToString();
-                    if (readerGroup["Strategy"] != DBNull.Value) grp.Strategy = readerGroup["Strategy"].ToString();
-                    if (readerGroup["ExitStrategy"] != DBNull.Value) grp.ExitStrategy = readerGroup["ExitStrategy"].ToString();
-                    if (readerGroup["CapitalRequired"] != DBNull.Value) grp.CapitalRequired = Convert.ToDecimal(readerGroup["CapitalRequired"]);
-                    if (readerGroup["EarningsTrade"] != DBNull.Value) grp.EarningsTrade = (Convert.ToInt32(readerGroup["EarningsTrade"]) == 1);
-                    if (readerGroup["DefinedRisk"] != DBNull.Value) grp.DefinedRisk = (Convert.ToInt32(readerGroup["DefinedRisk"]) == 1);
-                    if (readerGroup["Risk"] != DBNull.Value) grp.Risk = Convert.ToDecimal(readerGroup["Risk"]);
-                    if (readerGroup["startTime"] != DBNull.Value) grp.StartTime = Convert.ToDateTime(readerGroup["startTime"].ToString());
-                    if (readerGroup["endTime"] != DBNull.Value) grp.EndTime = Convert.ToDateTime(readerGroup["endTime"].ToString());
-                    if (readerGroup["EarliestExpiration"] != DBNull.Value) grp.EarliestExpiration = Convert.ToDateTime(readerGroup["EarliestExpiration"].ToString());
+                    TransactionGroup grp = MapTransactionGroup(readerGroup);
 
                     // step thru open holdings
                     sql = "SELECT * FROM (SELECT symbol, transgroupid, type, datetime(expiredate) AS ExpireDate, strike, sum(quantity) AS total, sum(amount) as amount FROM transactions";
@@ -88,4 +98,70 @@ namespace OptionView
 
     }
 
+
+    public class PortfolioResults : List<TransactionGroup>
+    {
+        public PortfolioResults()
+        {
+        }
+
+        public void GetResults()
+        {
+            try
+            {
+
+                // always start with an empty list
+                this.Clear();
+
+                // establish connection
+                App.OpenConnection();
+
+                string sql = "SELECT * FROM transgroup AS tg LEFT JOIN";
+                sql += " (SELECT transgroupid, SUM(amount) AS Cost, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime, datetime(MIN(expireDate)) AS EarliestExpiration from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
+                sql += " WHERE tg.Open = 0";
+                sql += " ORDER BY transgroupid";
+
+                SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+                SQLiteDataReader readerGroup = cmd.ExecuteReader();
+                while (readerGroup.Read())
+                {
+                    TransactionGroup grp = Portfolio.MapTransactionGroup(readerGroup);
+                    
+
+                    // step thru open holdings
+                    sql = "SELECT datetime(time) AS time, datetime(expiredate) AS ExpireDate, * FROM transactions WHERE (transgroupid = @gr) ORDER BY time";
+                    cmd = new SQLiteCommand(sql, App.ConnStr);
+                    cmd.Parameters.AddWithValue("gr", grp.GroupID);
+
+                    SQLiteDataReader reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        Transaction t = new Transaction();
+
+                        if (reader["Time"] != DBNull.Value) t.TransTime = Convert.ToDateTime(reader["Time"].ToString());
+                        if (reader["TransSubType"] != DBNull.Value) t.TransType = reader["TransSubType"].ToString();
+
+                        if (reader["Strike"] != DBNull.Value) t.Strike = Convert.ToDecimal(reader["Strike"]);
+                        if (reader["Quantity"] != DBNull.Value) t.Quantity = Convert.ToDecimal(reader["Quantity"]);
+                        if (reader["Amount"] != DBNull.Value) t.Amount = Convert.ToDecimal(reader["Amount"]);
+                        if (reader["ExpireDate"] != DBNull.Value) t.ExpDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
+
+                        
+                       
+                        grp.Transactions.Add(t);
+                    }
+
+                    this.Add(grp);
+
+                }  // end of transaction group loop
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("GetResults: " + ex.Message);
+            }
+
+        }
+
+
+    }
 }
