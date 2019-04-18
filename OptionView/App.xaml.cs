@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Data.SQLite;
+using System.IO;
 
 namespace OptionView
 {
@@ -18,8 +19,19 @@ namespace OptionView
 
         public static void OpenConnection()
         {
-            if (ConnStr == null) App.ConnStr = new SQLiteConnection("Data Source=transactions.sqlite;Version=3;");
-            if (ConnStr.State == System.Data.ConnectionState.Closed) App.ConnStr.Open();
+            try
+            {
+                if (! File.Exists("transactions.sqlite"))
+                {
+                    MessageBox.Show("Sqlite database not found", "OpenConnection");
+                }
+                if (ConnStr == null) ConnStr = new SQLiteConnection("Data Source=transactions.sqlite;Version=3;");
+                if (ConnStr.State == System.Data.ConnectionState.Closed) ConnStr.Open();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "OpenConnection");
+            }
         }
 
         public static void CloseConnection()
