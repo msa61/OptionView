@@ -114,7 +114,7 @@
     </Window.Resources>
 
     <Grid>
-        <TabControl>
+        <TabControl Name="MainTab">
             <TabItem Width="150" Height="30" Header="Holdings">
                 <Grid >
                     <Grid.ColumnDefinitions>
@@ -213,7 +213,28 @@
                 </Grid>
             </TabItem>
             <TabItem Width="150" Height="30" Header="Returns">
-<DataGrid Name="resultsGrid"/>
+                <DataGrid Name="resultsGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" AlternatingRowBackground="LightGray" Width="760" HorizontalAlignment="Left">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Origination Date" Binding="{Binding Path=StartTime, StringFormat={}{0:dd MMM yyyy}}" Width="100" />
+                        <DataGridTextColumn Header="End Date" Binding="{Binding Path=EndTime, StringFormat={}{0:dd MMM yyyy}}" Width="100" />
+                        <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="60" />
+                        <DataGridTextColumn Header="Strategy" Binding="{Binding Strategy}" Width="120" />
+                        <DataGridTextColumn Header="Profit" Binding="{Binding Path=Cost, StringFormat=C0}" Width="80">
+                            <DataGridTextColumn.CellStyle>
+                                <Style>
+                                    <Setter Property="FrameworkElement.HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn> 
+                        <DataGridCheckBoxColumn Header="Earnings" Binding="{Binding EarningsTrade}" Width="80" />
+                        <DataGridTextColumn Header="Comments" Binding="{Binding Comments}" Width="180" />
+                    </DataGrid.Columns>
+                    <DataGrid.RowDetailsTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Transactions}" Margin="10" />
+                        </DataTemplate>
+                    </DataGrid.RowDetailsTemplate>
+                </DataGrid>
             </TabItem>
 
         </TabControl>

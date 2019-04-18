@@ -253,26 +253,13 @@ namespace OptionView
 
         private void UpdateResultsGrid()
         {
-            //List<UnderlyingGrid> list = new List<UnderlyingGrid>();
 
 
-            //portfolio = HoldingsHelper.CurrentHoldings();
-            //foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
-            //{
-            //    TransactionGroup grp = entry.Value;
-            //    UnderlyingGrid ug = new UnderlyingGrid();
-            //    ug.Symbol = grp.Symbol;
-            //    ug.Strategy = grp.Strategy;
-            //    ug.Cost = grp.Cost;
-            //    ug.Comments = grp.Comments;
-            //    ug.StartTime = grp.StartTime;
-            //    ug.EndTime = grp.EndTime;
-            //    list.Add(ug);
-            //}
 
-            //resultsGrid.ItemsSource = list;
+            PortfolioResults results = new PortfolioResults();
+            results.GetResults();
 
-
+            resultsGrid.ItemsSource = results;
 
         }
 
