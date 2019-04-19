@@ -69,7 +69,7 @@ namespace OptionView
                 Text = details1,
                 Style = (Style)window.Resources["SymbolDetails"],
             };
-            Canvas.SetTop(txtDetail1, 14);
+            Canvas.SetTop(txtDetail1, 18);
             tileCanvas.Children.Add(txtDetail1);
 
             TextBlock txtDetail2 = new TextBlock()
@@ -77,7 +77,7 @@ namespace OptionView
                 Text = details2,
                 Style = (Style)window.Resources["SymbolDetails"]
             };
-            Canvas.SetTop(txtDetail2, 28);
+            Canvas.SetTop(txtDetail2, 32);
             tileCanvas.Children.Add(txtDetail2);
 
             TextBlock txtDTE = new TextBlock()
