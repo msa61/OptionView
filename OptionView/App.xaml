@@ -1,9 +1,6 @@
-﻿<Application x:Class="OptionView.App"
+﻿<Application
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:OptionView"
-             StartupUri="MainWindow.xaml">
-    <Application.Resources>
-         
-    </Application.Resources>
-</Application>
+             x:Class="OptionView.App"
+             StartupUri="MainWindow.xaml"/>
