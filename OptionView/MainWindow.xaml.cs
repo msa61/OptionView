@@ -77,6 +77,15 @@ namespace OptionView
             {
                 MainTab.SelectedIndex = Convert.ToInt32(tab);
             }
+
+            string[] filters = Config.GetProp("Filters").Split('|');
+            if (filters.Length > 0)
+            {
+                if (filters[0] == "1") chkYearToDateFilter.IsChecked = true;
+                if (filters[1] == "1") chkEarningsFilter.IsChecked = true;
+            }
+
+
         }
 
         void MainWindow_Closing(object sender, CancelEventArgs e)
@@ -86,6 +95,9 @@ namespace OptionView
             string scrnProps = ((this.WindowState == WindowState.Maximized) ? "1|" : "0|") + this.Left.ToString() + "|" + this.Top.ToString() + "|" + this.Width.ToString() + "|" + this.Height.ToString();
             Config.SetProp("Screen", scrnProps);
             Config.SetProp("Tab", MainTab.SelectedIndex.ToString());
+
+            string filters = (chkYearToDateFilter.IsChecked.HasValue && chkYearToDateFilter.IsChecked.Value ? "1|" : "0|") + (chkEarningsFilter.IsChecked.HasValue && chkEarningsFilter.IsChecked.Value ? "1" : "0");
+            Config.SetProp("Filters", filters);
 
 
             if ((selectedTag != 0) && detailsDirty) SaveTransactionGroupDetails(selectedTag);
@@ -127,8 +139,8 @@ namespace OptionView
                         if (selectedTag != 0 && tag != selectedTag && detailsDirty) SaveTransactionGroupDetails(selectedTag);
 
                         TransactionGroup grp = portfolio[tag];
-                        txtSymbol.Text = grp.Symbol;
 
+                        SetTextBlock(txtSymbol, grp.Symbol, true);
                         SetTextBox(txtStrategy, grp.Strategy, true);
                         SetTextBox(txtExit, grp.ExitStrategy, true);
                         SetTextBox(txtComments, grp.Comments, true);
@@ -158,6 +170,15 @@ namespace OptionView
             tb.Text = txt;
             tb.IsEnabled = enable;
         }
+        private void SetTextBlock(TextBlock tb, string txt, bool enable)
+        {
+            tb.Text = txt;
+            tb.IsEnabled = enable;
+            if (enable)
+                tb.Background = Brushes.White;
+            else
+                tb.Background = new SolidColorBrush(Color.FromArgb(0xFF, 0xAD, 0xAD, 0xAD));
+        }
         private void SetCheckBox(CheckBox cb, bool val, bool enable)
         {
             cb.IsChecked = val;
@@ -172,6 +193,7 @@ namespace OptionView
 
             txtSymbol.Text = "";
 
+            SetTextBlock(txtSymbol, "", false);
             SetTextBox(txtStrategy, "", false);
             SetTextBox(txtExit, "", false);
             SetTextBox(txtComments, "", false);
@@ -260,6 +282,18 @@ namespace OptionView
             results.GetResults();
 
             resultsGrid.ItemsSource = results;
+
+            
+
+            //CollectionView cv = new CollectionView(results);
+
+            //resultsGrid.ItemsSource = cv;
+
+
+        }
+
+        private void FilterClick(object sender, RoutedEventArgs e)
+        {
 
         }
 
