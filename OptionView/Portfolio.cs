@@ -120,7 +120,7 @@ namespace OptionView
                 string sql = "SELECT * FROM transgroup AS tg LEFT JOIN";
                 sql += " (SELECT transgroupid, SUM(amount) AS Cost, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime, datetime(MIN(expireDate)) AS EarliestExpiration from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
                 sql += " WHERE tg.Open = 0";
-                sql += " ORDER BY transgroupid";
+                sql += " ORDER BY startTime";
 
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
                 SQLiteDataReader readerGroup = cmd.ExecuteReader();
@@ -140,15 +140,20 @@ namespace OptionView
                         Transaction t = new Transaction();
 
                         if (reader["Time"] != DBNull.Value) t.TransTime = Convert.ToDateTime(reader["Time"].ToString());
+                        if (reader["Type"] != DBNull.Value) t.Type = reader["Type"].ToString();
                         if (reader["TransSubType"] != DBNull.Value) t.TransType = reader["TransSubType"].ToString();
 
                         if (reader["Strike"] != DBNull.Value) t.Strike = Convert.ToDecimal(reader["Strike"]);
                         if (reader["Quantity"] != DBNull.Value) t.Quantity = Convert.ToDecimal(reader["Quantity"]);
                         if (reader["Amount"] != DBNull.Value) t.Amount = Convert.ToDecimal(reader["Amount"]);
-                        if (reader["ExpireDate"] != DBNull.Value) t.ExpDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
+                        if (reader["ExpireDate"] != DBNull.Value)
+                        {
+                            t.ExpDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
+                            if (t.ExpDate > DateTime.MinValue)  t.ExpDateText = t.ExpDate.ToString("dd MMM yyyy");
+                        }
 
-                        
-                       
+                        if (reader["Description"] != DBNull.Value) grp.TransactionText += reader["Description"].ToString() + System.Environment.NewLine;
+
                         grp.Transactions.Add(t);
                     }
 

@@ -285,15 +285,35 @@ namespace OptionView
 
             
 
-            //CollectionView cv = new CollectionView(results);
+            CollectionViewSource cvs = new CollectionViewSource();
+            cvs.Source = results;
 
-            //resultsGrid.ItemsSource = cv;
+            //resultsGrid.ItemsSource = cvs.View();
 
 
         }
 
         private void FilterClick(object sender, RoutedEventArgs e)
         {
+
+        }
+
+        private void ResultsFilter(object sender, FilterEventArgs e)
+        {
+
+        }
+
+
+        private void DataGridRow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            DataGridRow row = sender as DataGridRow;
+            if (row != null)
+            {
+                if (row.DetailsVisibility == Visibility.Visible)
+                    row.DetailsVisibility = Visibility.Collapsed;
+                else
+                    row.DetailsVisibility = Visibility.Visible;
+            }
 
         }
 

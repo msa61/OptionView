@@ -12,6 +12,7 @@ namespace OptionView
         public string TransType { get; set; }
         public string Symbol { get; set; }
         public DateTime ExpDate { get; set; }
+        public string ExpDateText { get; set; }
         public decimal Strike { get; set; }
         public string Type { get; set; }
         public decimal Quantity { get; set; }
