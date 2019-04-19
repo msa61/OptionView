@@ -1,0 +1,202 @@
+﻿<OptionView:PortfolioResults xmlns:OptionView="clr-namespace:OptionView" xmlns:System="clr-namespace:System;assembly=mscorlib" Capacity="11">
+	<OptionView:TransactionGroup Comments="Praesent sed" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Curabitur aptent phasellus" GroupID="93" Strategy="Cras maecenas nullam duis nam" StartTime="04/19/2019 11:47:42" Symbol="Aenean mauris" X="53" Year="20" Y="21">
+		<OptionView:TransactionGroup.Cost>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Cost>
+		<OptionView:TransactionGroup.CapitalRequired>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.CapitalRequired>
+		<OptionView:TransactionGroup.Risk>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Risk>
+		<OptionView:TransactionGroup.Transactions>
+			<OptionView:Transactions Capacity="60">
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Dis class auctor congue" TransTime="04/19/2019 11:47:42" Type="Curae convallis accumsan" TransType="Consequat aliquam"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Dignissim adipiscing hac" TransTime="04/19/2019 11:47:42" Type="Bibendum cursus dictumst eleifend leo" TransType="Est vestibulum nunc integer"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Facilisi etiam amet aliquam lectus" TransTime="04/19/2019 11:47:42" Type="Fusce lorem parturient" TransType="Quisque donec vivamus dictum"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Vestibulum nec elementum" TransTime="04/19/2019 11:47:42" Type="Habitant inceptos libero vestibulum ligula" TransType="Mus morbi faucibus"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Nulla parturient arcu vestibulum diam" TransTime="04/19/2019 11:47:42" Type="Non per" TransType="Litora adipiscing ante interdum"/>
+			</OptionView:Transactions>
+		</OptionView:TransactionGroup.Transactions>
+	</OptionView:TransactionGroup>
+	<OptionView:TransactionGroup Comments="Elit nascetur aliquet" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Sed dolor" GroupID="53" Strategy="Vestibulum lobortis eget" StartTime="04/19/2019 11:47:42" Symbol="Proin augue luctus" X="63" Year="78" Y="41">
+		<OptionView:TransactionGroup.Cost>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Cost>
+		<OptionView:TransactionGroup.CapitalRequired>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.CapitalRequired>
+		<OptionView:TransactionGroup.Risk>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Risk>
+		<OptionView:TransactionGroup.Transactions>
+			<OptionView:Transactions Capacity="76">
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Felis enim pharetra commodo" TransTime="04/19/2019 11:47:42" Type="Adipiscing sem" TransType="Fames blandit magnis"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Sit mattis dapibus" TransTime="04/19/2019 11:47:42" Type="Egestas vestibulum euismod ipsum mauris" TransType="Conubia cubilia parturient"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Parturient mollis montes vel nam" TransTime="04/19/2019 11:47:42" Type="Nostra feugiat" TransType="Erat vestibulum adipiscing"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Pulvinar gravida" TransTime="04/19/2019 11:47:42" Type="Nibh sed sagittis ornare justo" TransType="Eros facilisis placerat fermentum"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Fringilla lorem primis iaculis nisi" TransTime="04/19/2019 11:47:42" Type="Lacinia nisl" TransType="Lacus vestibulum platea"/>
+			</OptionView:Transactions>
+		</OptionView:TransactionGroup.Transactions>
+	</OptionView:TransactionGroup>
+	<OptionView:TransactionGroup Comments="Sapien habitasse" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Massa laoreet" GroupID="92" Strategy="Magna rutrum" StartTime="04/19/2019 11:47:42" Symbol="Senectus vestibulum" X="52" Year="42" Y="35">
+		<OptionView:TransactionGroup.Cost>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Cost>
+		<OptionView:TransactionGroup.CapitalRequired>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.CapitalRequired>
+		<OptionView:TransactionGroup.Risk>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Risk>
+		<OptionView:TransactionGroup.Transactions>
+			<OptionView:Transactions Capacity="95">
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Semper potenti sociis" TransTime="04/19/2019 11:47:42" Type="Sociosqu nunc odio" TransType="Hendrerit natoque posuere"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Parturient himenaeos imperdiet" TransTime="04/19/2019 11:47:42" Type="Dis malesuada" TransType="Suscipit adipiscing taciti"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Rhoncus vestibulum adipiscing" TransTime="04/19/2019 11:47:42" Type="Tellus tempor penatibus tempus" TransType="Vestibulum pretium orci est hac"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Parturient torquent pede" TransTime="04/19/2019 11:47:42" Type="Vestibulum porttitor tincidunt" TransType="Tortor metus"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Quam ultricies quis urna cras" TransTime="04/19/2019 11:47:42" Type="Venenatis nec duis sodales" TransType="Tristique turpis vestibulum leo mus"/>
+			</OptionView:Transactions>
+		</OptionView:TransactionGroup.Transactions>
+	</OptionView:TransactionGroup>
+	<OptionView:TransactionGroup Comments="Curabitur phasellus neque" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Volutpat viverra sed sem vulputate" GroupID="59" Strategy="Morbi ultrices vehicula per" StartTime="04/19/2019 11:47:42" Symbol="Varius non" X="85" Year="44" Y="22">
+		<OptionView:TransactionGroup.Cost>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Cost>
+		<OptionView:TransactionGroup.CapitalRequired>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.CapitalRequired>
+		<OptionView:TransactionGroup.Risk>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Risk>
+		<OptionView:TransactionGroup.Transactions>
+			<OptionView:Transactions Capacity="49">
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Praesent consequat adipiscing netus" TransTime="04/19/2019 11:47:42" Type="Vel aenean" TransType="Sit maecenas"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Bibendum dictumst amet integer" TransTime="04/19/2019 11:47:42" Type="Convallis nulla dignissim" TransType="Aliquam nunc nam parturient accumsan"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Nullam ante facilisis arcu" TransTime="04/19/2019 11:47:42" Type="Porta aptent" TransType="Vestibulum elementum mauris"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Eget auctor vivamus" TransTime="04/19/2019 11:47:42" Type="Adipiscing elit parturient aliquam" TransType="Vestibulum diam purus risus quisque"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Velit vestibulum fringilla" TransTime="04/19/2019 11:47:42" Type="Vestibulum congue" TransType="Sed aliquet dis eleifend fermentum"/>
+			</OptionView:Transactions>
+		</OptionView:TransactionGroup.Transactions>
+	</OptionView:TransactionGroup>
+	<OptionView:TransactionGroup Comments="Conubia nibh" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Habitasse nec commodo adipiscing facilisi" GroupID="25" Strategy="Erat eros blandit leo mus" StartTime="04/19/2019 11:47:42" Symbol="Est cursus hac dictum enim" X="32" Year="58" Y="35">
+		<OptionView:TransactionGroup.Cost>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Cost>
+		<OptionView:TransactionGroup.CapitalRequired>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.CapitalRequired>
+		<OptionView:TransactionGroup.Risk>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Risk>
+		<OptionView:TransactionGroup.Transactions>
+			<OptionView:Transactions Capacity="25">
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Class nisi" TransTime="04/19/2019 11:47:42" Type="Parturient curae donec" TransType="Lectus vitae faucibus cubilia habitant"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Litora dapibus egestas non" TransTime="04/19/2019 11:47:42" Type="Himenaeos nunc odio per etiam" TransType="Hendrerit libero ligula nisl"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Vestibulum sem" TransTime="04/19/2019 11:47:42" Type="Orci sit pede" TransType="Fusce lorem sed imperdiet malesuada"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Luctus urna vestibulum gravida" TransTime="04/19/2019 11:47:42" Type="Adipiscing porttitor magnis cras inceptos" TransType="Quam euismod feugiat quis penatibus"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Vestibulum tincidunt" TransTime="04/19/2019 11:47:42" Type="Mattis adipiscing nulla vel mauris" TransType="Parturient morbi iaculis vestibulum"/>
+			</OptionView:Transactions>
+		</OptionView:TransactionGroup.Transactions>
+	</OptionView:TransactionGroup>
+	<OptionView:TransactionGroup Comments="Proin ultricies natoque interdum" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Arcu laoreet vestibulum" GroupID="36" Strategy="Nunc amet tristique ante" StartTime="04/19/2019 11:47:42" Symbol="Duis lacinia mollis montes parturient" X="33" Year="40" Y="93">
+		<OptionView:TransactionGroup.Cost>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Cost>
+		<OptionView:TransactionGroup.CapitalRequired>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.CapitalRequired>
+		<OptionView:TransactionGroup.Risk>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Risk>
+		<OptionView:TransactionGroup.Transactions>
+			<OptionView:Transactions Capacity="96">
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Eget dolor" TransTime="04/19/2019 11:47:42" Type="Vestibulum ornare platea nam fames" TransType="Augue lobortis diam nostra venenatis"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Posuere curabitur potenti phasellus" TransTime="04/19/2019 11:47:42" Type="Nascetur primis pretium" TransType="Elit vulputate felis enim"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Sed rutrum ipsum" TransTime="04/19/2019 11:47:42" Type="Sapien erat eros" TransType="Pharetra placerat pulvinar"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Dis lacus nisi rhoncus" TransTime="04/19/2019 11:47:42" Type="Sodales est" TransType="Justo nibh"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Parturient viverra lorem" TransTime="04/19/2019 11:47:42" Type="Vestibulum taciti tellus" TransType="Nisl semper adipiscing sociis nunc"/>
+			</OptionView:Transactions>
+		</OptionView:TransactionGroup.Transactions>
+	</OptionView:TransactionGroup>
+	<OptionView:TransactionGroup Comments="Orci leo" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Convallis hac aliquam dignissim" GroupID="18" Strategy="Consequat vestibulum" StartTime="04/19/2019 11:47:42" Symbol="Tempor odio" X="59" Year="80" Y="17">
+		<OptionView:TransactionGroup.Cost>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Cost>
+		<OptionView:TransactionGroup.CapitalRequired>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.CapitalRequired>
+		<OptionView:TransactionGroup.Risk>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Risk>
+		<OptionView:TransactionGroup.Transactions>
+			<OptionView:Transactions Capacity="38">
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Pede elementum nec non senectus" TransTime="04/19/2019 11:47:42" Type="Parturient per vestibulum magna tempus" TransType="Adipiscing sagittis mus"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Quam tortor" TransTime="04/19/2019 11:47:42" Type="Suscipit sed torquent turpis" TransType="Sociosqu massa integer"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Parturient quisque" TransTime="04/19/2019 11:47:42" Type="Metus morbi neque vehicula facilisis" TransType="Vestibulum adipiscing ultrices"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Fringilla quis" TransTime="04/19/2019 11:47:42" Type="Porta vestibulum vivamus" TransType="Netus sem nulla fermentum"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Urna habitasse vel maecenas" TransTime="04/19/2019 11:47:42" Type="Risus hendrerit" TransType="Volutpat sit purus varius"/>
+			</OptionView:Transactions>
+		</OptionView:TransactionGroup.Transactions>
+	</OptionView:TransactionGroup>
+	<OptionView:TransactionGroup Comments="Aliquet vitae est adipiscing" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Mauris vestibulum aliquam accumsan nullam" GroupID="96" Strategy="Praesent dis" StartTime="04/19/2019 11:47:42" Symbol="Nam sed cras velit aenean" X="24" Year="27" Y="22">
+		<OptionView:TransactionGroup.Cost>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Cost>
+		<OptionView:TransactionGroup.CapitalRequired>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.CapitalRequired>
+		<OptionView:TransactionGroup.Risk>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Risk>
+		<OptionView:TransactionGroup.Transactions>
+			<OptionView:Transactions Capacity="16">
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Duis himenaeos" TransTime="04/19/2019 11:47:42" Type="Congue hac cursus" TransType="Aptent class auctor bibendum parturient"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Nunc dictum dictumst" TransTime="04/19/2019 11:47:42" Type="Vestibulum lectus" TransType="Blandit commodo conubia"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Leo facilisi faucibus libero ligula" TransTime="04/19/2019 11:47:42" Type="Penatibus ante litora mus curae" TransType="Cubilia imperdiet amet eleifend malesuada"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Arcu habitant" TransTime="04/19/2019 11:47:42" Type="Tincidunt vestibulum" TransType="Donec luctus porttitor"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Dapibus adipiscing" TransTime="04/19/2019 11:47:42" Type="Tristique elit non" TransType="Diam inceptos etiam nec eget"/>
+			</OptionView:Transactions>
+		</OptionView:TransactionGroup.Transactions>
+	</OptionView:TransactionGroup>
+	<OptionView:TransactionGroup Comments="Mollis egestas venenatis vestibulum euismod" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Erat nascetur" GroupID="27" Strategy="Lobortis mattis mauris parturient" StartTime="04/19/2019 11:47:42" Symbol="Magnis enim ultricies fusce interdum" X="39" Year="53" Y="50">
+		<OptionView:TransactionGroup.Cost>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Cost>
+		<OptionView:TransactionGroup.CapitalRequired>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.CapitalRequired>
+		<OptionView:TransactionGroup.Risk>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Risk>
+		<OptionView:TransactionGroup.Transactions>
+			<OptionView:Transactions Capacity="45">
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Lorem gravida" TransTime="04/19/2019 11:47:42" Type="Pharetra iaculis nostra" TransType="Eros nibh vulputate feugiat montes"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Vestibulum nisi phasellus" TransTime="04/19/2019 11:47:42" Type="Placerat morbi consequat convallis nulla" TransType="Ornare curabitur"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Pulvinar proin dignissim elementum" TransTime="04/19/2019 11:47:42" Type="Sagittis nunc facilisis sed platea" TransType="Nisl per lacinia"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Sociosqu adipiscing laoreet suscipit" TransTime="04/19/2019 11:47:42" Type="Odio natoque orci" TransType="Sem senectus augue"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Ultrices posuere vehicula" TransTime="04/19/2019 11:47:42" Type="Primis sit pede fermentum" TransType="Torquent dolor fames"/>
+			</OptionView:Transactions>
+		</OptionView:TransactionGroup.Transactions>
+	</OptionView:TransactionGroup>
+	<OptionView:TransactionGroup Comments="Quis fringilla dis" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Sapien accumsan justo sed bibendum" GroupID="43" Strategy="Nam ipsum praesent rutrum parturient" StartTime="04/19/2019 11:47:42" Symbol="Vel volutpat felis quam maecenas" X="22" Year="42" Y="79">
+		<OptionView:TransactionGroup.Cost>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Cost>
+		<OptionView:TransactionGroup.CapitalRequired>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.CapitalRequired>
+		<OptionView:TransactionGroup.Risk>
+			<System:Decimal/>
+		</OptionView:TransactionGroup.Risk>
+		<OptionView:TransactionGroup.Transactions>
+			<OptionView:Transactions Capacity="67">
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Potenti facilisi hac" TransTime="04/19/2019 11:47:42" Type="Lacus lorem" TransType="Dictumst eleifend est"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Urna mus habitant massa" TransTime="04/19/2019 11:47:42" Type="Metus sociis morbi cras nec" TransType="Semper faucibus magna leo"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Interdum lobortis vestibulum" TransTime="04/19/2019 11:47:42" Type="Vestibulum netus" TransType="Habitasse neque non inceptos"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Taciti tellus tempor" TransTime="04/19/2019 11:47:42" Type="Nascetur pretium parturient duis" TransType="Adipiscing nulla hendrerit"/>
+				<OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="Rhoncus purus tempus placerat risus" TransTime="04/19/2019 11:47:42" Type="Per sed pulvinar" TransType="Himenaeos porta pharetra"/>
+			</OptionView:Transactions>
+		</OptionView:TransactionGroup.Transactions>
+	</OptionView:TransactionGroup>
+</OptionView:PortfolioResults>
