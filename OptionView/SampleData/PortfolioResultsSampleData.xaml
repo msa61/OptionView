@@ -1,5 +1,5 @@
 ﻿<OptionView:PortfolioResults xmlns:OptionView="clr-namespace:OptionView" xmlns:System="clr-namespace:System;assembly=mscorlib" Capacity="11">
-	<OptionView:TransactionGroup Comments="Praesent sed" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Curabitur aptent phasellus" GroupID="93" Strategy="Cras maecenas nullam duis nam" StartTime="04/19/2019 11:47:42" Symbol="Aenean mauris" X="53" Year="20" Y="21">
+	<OptionView:TransactionGroup Comments="Praesent sed" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Curabitur aptent phasellus" GroupID="93" Strategy="Cras maecenas nullam duis nam" StartTime="04/19/2019 11:47:42" Symbol="AAPL" X="53" Year="20" Y="21">
 		<OptionView:TransactionGroup.Cost>
 			<System:Decimal/>
 		</OptionView:TransactionGroup.Cost>
@@ -19,7 +19,7 @@
 			</OptionView:Transactions>
 		</OptionView:TransactionGroup.Transactions>
 	</OptionView:TransactionGroup>
-	<OptionView:TransactionGroup Comments="Elit nascetur aliquet" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Sed dolor" GroupID="53" Strategy="Vestibulum lobortis eget" StartTime="04/19/2019 11:47:42" Symbol="Proin augue luctus" X="63" Year="78" Y="41">
+    <OptionView:TransactionGroup Comments="Elit nascetur aliquet" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Sed dolor" GroupID="53" Strategy="Vestibulum lobortis eget" StartTime="04/19/2019 11:47:42" Symbol="AAPL" X="63" Year="78" Y="41">
 		<OptionView:TransactionGroup.Cost>
 			<System:Decimal/>
 		</OptionView:TransactionGroup.Cost>
@@ -39,7 +39,7 @@
 			</OptionView:Transactions>
 		</OptionView:TransactionGroup.Transactions>
 	</OptionView:TransactionGroup>
-	<OptionView:TransactionGroup Comments="Sapien habitasse" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Massa laoreet" GroupID="92" Strategy="Magna rutrum" StartTime="04/19/2019 11:47:42" Symbol="Senectus vestibulum" X="52" Year="42" Y="35">
+    <OptionView:TransactionGroup Comments="Sapien habitasse" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Massa laoreet" GroupID="92" Strategy="Magna rutrum" StartTime="04/19/2019 11:47:42" Symbol="AAPL" X="52" Year="42" Y="35">
 		<OptionView:TransactionGroup.Cost>
 			<System:Decimal/>
 		</OptionView:TransactionGroup.Cost>
@@ -59,7 +59,7 @@
 			</OptionView:Transactions>
 		</OptionView:TransactionGroup.Transactions>
 	</OptionView:TransactionGroup>
-	<OptionView:TransactionGroup Comments="Curabitur phasellus neque" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Volutpat viverra sed sem vulputate" GroupID="59" Strategy="Morbi ultrices vehicula per" StartTime="04/19/2019 11:47:42" Symbol="Varius non" X="85" Year="44" Y="22">
+	<OptionView:TransactionGroup Comments="Curabitur phasellus neque" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Volutpat viverra sed sem vulputate" GroupID="59" Strategy="Morbi ultrices vehicula per" StartTime="04/19/2019 11:47:42" Symbol="NVDA" X="85" Year="44" Y="22">
 		<OptionView:TransactionGroup.Cost>
 			<System:Decimal/>
 		</OptionView:TransactionGroup.Cost>
@@ -79,7 +79,7 @@
 			</OptionView:Transactions>
 		</OptionView:TransactionGroup.Transactions>
 	</OptionView:TransactionGroup>
-	<OptionView:TransactionGroup Comments="Conubia nibh" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Habitasse nec commodo adipiscing facilisi" GroupID="25" Strategy="Erat eros blandit leo mus" StartTime="04/19/2019 11:47:42" Symbol="Est cursus hac dictum enim" X="32" Year="58" Y="35">
+    <OptionView:TransactionGroup Comments="Conubia nibh" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Habitasse nec commodo adipiscing facilisi" GroupID="25" Strategy="Erat eros blandit leo mus" StartTime="04/19/2019 11:47:42" Symbol="NVDA" X="32" Year="58" Y="35">
 		<OptionView:TransactionGroup.Cost>
 			<System:Decimal/>
 		</OptionView:TransactionGroup.Cost>
@@ -99,7 +99,7 @@
 			</OptionView:Transactions>
 		</OptionView:TransactionGroup.Transactions>
 	</OptionView:TransactionGroup>
-	<OptionView:TransactionGroup Comments="Proin ultricies natoque interdum" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Arcu laoreet vestibulum" GroupID="36" Strategy="Nunc amet tristique ante" StartTime="04/19/2019 11:47:42" Symbol="Duis lacinia mollis montes parturient" X="33" Year="40" Y="93">
+    <OptionView:TransactionGroup Comments="Proin ultricies natoque interdum" DefinedRisk="False" EarliestExpiration="04/19/2019 11:47:42" EndTime="04/19/2019 11:47:42" EarningsTrade="True" ExitStrategy="Arcu laoreet vestibulum" GroupID="36" Strategy="Nunc amet tristique ante" StartTime="04/19/2019 11:47:42" Symbol="NVDA" X="33" Year="40" Y="93">
 		<OptionView:TransactionGroup.Cost>
 			<System:Decimal/>
 		</OptionView:TransactionGroup.Cost>
