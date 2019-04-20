@@ -38,8 +38,7 @@ namespace OptionView
             if (reader["startTime"] != DBNull.Value) grp.StartTime = Convert.ToDateTime(reader["startTime"].ToString());
             if (reader["endTime"] != DBNull.Value) grp.EndTime = Convert.ToDateTime(reader["endTime"].ToString());
             if (reader["EarliestExpiration"] != DBNull.Value) grp.EarliestExpiration = Convert.ToDateTime(reader["EarliestExpiration"].ToString());
-            grp.Year = grp.StartTime.Year;
-
+            
             return grp;
         }
 
