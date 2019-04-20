@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Globalization;
 using System.ComponentModel;
 using System.Diagnostics;
 using Microsoft.Win32;
@@ -36,18 +37,17 @@ namespace OptionView
 
         public MainWindow()
         {
-         
             InitializeComponent();
-            ResetScreen();
 
             UpdateHoldingsTiles();
             UpdateResultsGrid();
-           
+
+            ResetScreen();
         }
 
         private void UpdateHoldingsTiles()
         {
-            if (MainCanvas.Children.Count > 0)  MainCanvas.Children.Clear();
+            if (MainCanvas.Children.Count > 0) MainCanvas.Children.Clear();
 
             portfolio = new Portfolio();
             portfolio.GetCurrentHoldings();
@@ -64,13 +64,15 @@ namespace OptionView
             string scrnProps = Config.GetProp("Screen");
             string[] props = scrnProps.Split('|');
 
-            if (props.Length < 5) return;
 
-            if (props[0] == "1") this.WindowState = WindowState.Maximized;
-            this.Left = Convert.ToDouble(props[1]);
-            this.Top = Convert.ToDouble(props[2]);
-            this.Width = Convert.ToDouble(props[3]);
-            this.Height = Convert.ToDouble(props[4]);
+            if (props.Length > 4)
+            {
+                if (props[0] == "1") this.WindowState = WindowState.Maximized;
+                this.Left = Convert.ToDouble(props[1]);
+                this.Top = Convert.ToDouble(props[2]);
+                this.Width = Convert.ToDouble(props[3]);
+                this.Height = Convert.ToDouble(props[4]);
+            }
 
             string tab = Config.GetProp("Tab");
             if (tab.Length > 0)
@@ -79,13 +81,19 @@ namespace OptionView
             }
 
             string[] filters = Config.GetProp("Filters").Split('|');
-            if (filters.Length > 0)
+            if (filters.Length > 3)
             {
                 if (filters[0] == "1") chkYearToDateFilter.IsChecked = true;
-                if (filters[1] == "1") chkEarningsFilter.IsChecked = true;
+                if (filters[1] == "1") chkLast30DaysFilter.IsChecked = true;
+                if (filters[2] == "1") chkEarningsFilter.IsChecked = true;
+                if (filters[3] == "1") chkRiskFilter.IsChecked = true;
+                if (filters[3] == "-1") chkRiskFilter.IsChecked = null;
             }
 
-
+            string grouping = Config.GetProp("Grouping");
+            Int32 idx = 0;
+            Int32.TryParse(grouping, out idx);
+            cbGrouping1.SelectedIndex = idx;
         }
 
         void MainWindow_Closing(object sender, CancelEventArgs e)
@@ -96,8 +104,17 @@ namespace OptionView
             Config.SetProp("Screen", scrnProps);
             Config.SetProp("Tab", MainTab.SelectedIndex.ToString());
 
-            string filters = (chkYearToDateFilter.IsChecked.HasValue && chkYearToDateFilter.IsChecked.Value ? "1|" : "0|") + (chkEarningsFilter.IsChecked.HasValue && chkEarningsFilter.IsChecked.Value ? "1" : "0");
+            string filters = (chkYearToDateFilter.IsChecked.HasValue && chkYearToDateFilter.IsChecked.Value ? "1|" : "0|")
+                            + (chkLast30DaysFilter.IsChecked.HasValue && chkLast30DaysFilter.IsChecked.Value ? "1|" : "0|")
+                            + (chkEarningsFilter.IsChecked.HasValue && chkEarningsFilter.IsChecked.Value ? "1|" : "0|");
+
+            if (chkRiskFilter.IsChecked.HasValue)
+                filters += (chkRiskFilter.IsChecked.Value ? "1" : "0");
+            else
+                filters += "-1";
             Config.SetProp("Filters", filters);
+
+            Config.SetProp("Grouping", cbGrouping1.SelectedIndex.ToString());
 
 
             if ((selectedTag != 0) && detailsDirty) SaveTransactionGroupDetails(selectedTag);
@@ -147,7 +164,7 @@ namespace OptionView
                         SetTextBox(txtCapital, grp.CapitalRequired.ToString("C0"), true);
                         SetCheckBox(chkEarnings, grp.EarningsTrade, true);
                         SetCheckBox(chkDefinedRisk, grp.DefinedRisk, true);
-                        if (grp.DefinedRisk )
+                        if (grp.DefinedRisk)
                             SetTextBox(txtRisk, grp.Risk.ToString("C0"), true);
                         else
                             SetTextBox(txtRisk, "", false);
@@ -241,7 +258,7 @@ namespace OptionView
                 CheckBox cb = (CheckBox)sender;
                 if (cb.Name == "chkDefinedRisk")
                 {
-                    if (cb.IsChecked.HasValue ? cb.IsChecked.Value : false )
+                    if (cb.IsChecked.HasValue ? cb.IsChecked.Value : false)
                     {
                         SetTextBox(txtRisk, "", false);
                     }
@@ -251,7 +268,7 @@ namespace OptionView
                     }
                 }
             }
-            
+
         }
 
 
@@ -275,32 +292,61 @@ namespace OptionView
 
         private void UpdateResultsGrid()
         {
-
-
-
             PortfolioResults results = new PortfolioResults();
             results.GetResults();
 
-            resultsGrid.ItemsSource = results;
+            ListCollectionView lcv = (ListCollectionView)CollectionViewSource.GetDefaultView(results);
+            lcv.Filter = ResultsFilter;
 
-            
+            resultsGrid.ItemsSource = lcv;
 
-            CollectionViewSource cvs = new CollectionViewSource();
-            cvs.Source = results;
-
-            //resultsGrid.ItemsSource = cvs.View();
-
-
+            UpdateFilterStats();
         }
 
         private void FilterClick(object sender, RoutedEventArgs e)
         {
+            CollectionViewSource.GetDefaultView(resultsGrid.ItemsSource).Refresh();
 
+            UpdateFilterStats();
         }
 
-        private void ResultsFilter(object sender, FilterEventArgs e)
+        private void UpdateFilterStats()
         {
+            ListCollectionView lcv = (ListCollectionView)resultsGrid.ItemsSource;
+            decimal profit = 0m;
+            foreach (TransactionGroup tg in lcv)
+            {
+                profit += tg.Cost;
+            }
 
+            txtProfit.Text = profit.ToString("C0");
+            txtCount.Text = lcv.Count.ToString();
+
+        }
+        private bool ResultsFilter(object item)
+        {
+            bool ret = false;
+
+            TransactionGroup t = (TransactionGroup)item;
+            if (t != null)
+            // If filter is turned on, filter completed items.
+            {
+                if (this.chkYearToDateFilter.IsChecked == true && t.StartTime.Year != DateTime.Now.Year)
+                    ret = false;
+                else if (this.chkLast30DaysFilter.IsChecked == true && ((DateTime.Now - t.EndTime) > TimeSpan.FromDays(30)))
+                    ret = false;
+                else if (this.chkEarningsFilter.IsChecked == true && !t.EarningsTrade)
+                    ret = false;
+                else if (this.chkRiskFilter.IsChecked == true && !t.DefinedRisk)
+                    ret = false;
+                else if (this.chkRiskFilter.IsChecked == null && t.DefinedRisk)
+                    ret = false;
+                else
+                {
+                    ret = true;
+                }
+            }
+            return ret;
         }
 
 
@@ -317,5 +363,84 @@ namespace OptionView
 
         }
 
+        private void CbGrouping1_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ComboBox cb = (ComboBox)sender;
+            ListCollectionView lcv = (ListCollectionView)resultsGrid.ItemsSource;
+
+            if (lcv != null)
+            {
+                lcv.GroupDescriptions.Clear();
+                lcv.SortDescriptions.Clear();
+
+                string grpName = ((ComboBoxItem)cb.SelectedItem).Tag.ToString();
+
+                if (grpName != "None")
+                {
+                    lcv.GroupDescriptions.Add(new PropertyGroupDescription(grpName));
+                    lcv.SortDescriptions.Add(new SortDescription(grpName, ListSortDirection.Ascending));
+                    lcv.SortDescriptions.Add(new SortDescription("StartTime", ListSortDirection.Ascending));
+                }
+            }
+        }
     }
+
+
+    public class GroupTotalConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            IEnumerable<object> grp = (IEnumerable<object>)value;
+            if (grp == null)
+                return "";
+
+            decimal total = 0;
+
+            foreach (TransactionGroup tg in grp)
+            {
+                total += tg.Cost;
+            }
+            return total.ToString("C0");
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+    public class GroupNameConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            MainWindow mw = (MainWindow)Application.Current.Windows[0];
+
+            string mode = ((ComboBoxItem)mw.cbGrouping1.SelectedItem).Tag.ToString();
+
+            if (mode == "Symbol")
+            {
+                //IEnumerable<object> grp = (IEnumerable<object>)value;
+                //if (grp == null)
+                //    return "";
+
+                return value.ToString();
+            }
+            else if (mode == "EarningsTrade")
+            {
+                return ((bool)value ? "Earnings" : "Regular");
+            }
+
+            return "blah";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
 }
+
+
+
+
