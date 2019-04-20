@@ -26,7 +26,6 @@ namespace OptionView
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public DateTime EarliestExpiration { get; set; }
-        public int Year { get; set; }
         public string TransactionText { get; set; }
 
         public Positions Holdings { get; set; }
