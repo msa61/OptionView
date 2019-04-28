@@ -212,7 +212,7 @@
 
                         <StackPanel >
                             <Label Content="Action Date" Margin="6,0,0,0" />
-                            <DatePicker Name="dateAction" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" IsEnabled="False" 
+                            <DatePicker Name="dateAction" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" IsEnabled="False" CalendarClosed="DateAction_CalendarClosed"
                                         SelectedDateChanged="DateAction_SelectedDateChanged" PreviewKeyDown="FieldEntryEvent" IsEnabledChanged="DateAction_IsEnabledChanged"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>

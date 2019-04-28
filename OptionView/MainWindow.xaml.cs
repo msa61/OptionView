@@ -261,8 +261,24 @@ namespace OptionView
                     }
                 }
             }
-
         }
+        private void DateAction_CalendarClosed(object sender, RoutedEventArgs e)
+        {
+            DatePicker dp = (DatePicker)sender;
+            SetDatePickerForeground(dp);
+
+            //clear out selected text
+            if (Keyboard.PrimaryDevice != null)
+            {
+                if (Keyboard.PrimaryDevice.ActiveSource != null)
+                {
+                    var e1 = new KeyEventArgs(Keyboard.PrimaryDevice, Keyboard.PrimaryDevice.ActiveSource, 0, Key.Down) { RoutedEvent = Keyboard.KeyDownEvent };
+                    InputManager.Current.ProcessInput(e1);
+                }
+            }
+        }
+
+
 
         private void CanvasMouseDown(object sender, MouseButtonEventArgs e)
         {
