@@ -14,13 +14,16 @@ namespace OptionView
         public string Symbol { get; set; }
         public int GroupID { get; set; }
         public decimal Cost { get; set; }
+        public decimal Fees { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
         public string Strategy { get; set; }
         public string ExitStrategy { get; set; }
+        public DateTime ActionDate { get; set; }
         public string Comments { get; set; }
         public decimal CapitalRequired { get; set; }
         public bool EarningsTrade { get; set; }
+        public bool NeutralStrategy { get; set; }
         public bool DefinedRisk { get; set; }
         public decimal Risk { get; set; }
         public DateTime StartTime { get; set; }
@@ -64,13 +67,15 @@ namespace OptionView
             if (this.GroupID > 0)
             {
                 // update group
-                string sql = "UPDATE transgroup SET Strategy = @st, ExitStrategy = @ex, Comments = @cm, CapitalRequired = @ca, EarningsTrade = @ea, DefinedRisk = @dr, Risk = @rs WHERE ID=@rw";
+                string sql = "UPDATE transgroup SET Strategy = @st, ExitStrategy = @ex, ActionDate = @ad, Comments = @cm, CapitalRequired = @ca, EarningsTrade = @ea, NeutralStrategy = @ns, DefinedRisk = @dr, Risk = @rs WHERE ID=@rw";
                 SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
                 cmdUpd.Parameters.AddWithValue("st", this.Strategy);
                 cmdUpd.Parameters.AddWithValue("ex", this.ExitStrategy);
+                cmdUpd.Parameters.AddWithValue("ad", this.ActionDate);
                 cmdUpd.Parameters.AddWithValue("cm", this.Comments);
                 cmdUpd.Parameters.AddWithValue("ca", this.CapitalRequired);
                 cmdUpd.Parameters.AddWithValue("ea", this.EarningsTrade);
+                cmdUpd.Parameters.AddWithValue("ns", this.NeutralStrategy);
                 cmdUpd.Parameters.AddWithValue("dr", this.DefinedRisk);
                 cmdUpd.Parameters.AddWithValue("rs", this.Risk);
                 cmdUpd.Parameters.AddWithValue("rw", this.GroupID);

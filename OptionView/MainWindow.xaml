@@ -7,7 +7,8 @@
         xmlns:local="clr-namespace:OptionView"
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="1200" Left="100" Top="100"
-        Closing="MainWindow_Closing">
+        Closing="MainWindow_Closing"
+        Loaded="Window_Loaded">
 
 
     <Window.Resources>
@@ -210,6 +211,13 @@
                         </StackPanel>
 
                         <StackPanel >
+                            <Label Content="Action Date" Margin="6,0,0,0" />
+                            <DatePicker Name="dateAction" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" IsEnabled="False" 
+                                        SelectedDateChanged="DateAction_SelectedDateChanged" PreviewKeyDown="FieldEntryEvent" IsEnabledChanged="DateAction_IsEnabledChanged"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        
+                        <StackPanel >
                             <Label Content="Comments" Margin="6,0,0,0" />
                             <TextBox Name="txtComments" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap" Height="94" AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
@@ -225,6 +233,13 @@
                             <DockPanel>
                                 <Label Content="Earnings Trade" Margin="6,0,6,0"  />
                                 <CheckBox Name="chkEarnings" VerticalAlignment="Center" IsEnabled="False" PreviewMouseDown="CheckBoxMouseEvent" />
+                            </DockPanel>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <DockPanel>
+                                <Label Content="Neutral Strategy" Margin="6,0,6,0"  />
+                                <CheckBox Name="chkNeutral" VerticalAlignment="Center" IsEnabled="False" PreviewMouseDown="CheckBoxMouseEvent" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
@@ -379,6 +394,16 @@
                                 <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                                 <Label Content="Profit" Margin="6,0,0,0" />
                                 <TextBox Name="txtProfit" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
+                            </StackPanel>
+                            <StackPanel  >
+                                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                                <Label Content="Fees" Margin="6,0,0,0" />
+                                <TextBox Name="txtFees" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
+                            </StackPanel>
+                            <StackPanel  >
+                                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                                <Label Content="Net" Margin="6,0,0,0" />
+                                <TextBox Name="txtNet" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
                             </StackPanel>
                         </StackPanel>
 

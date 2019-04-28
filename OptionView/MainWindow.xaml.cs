@@ -94,6 +94,16 @@ namespace OptionView
             Int32 idx = 0;
             Int32.TryParse(grouping, out idx);
             cbGrouping1.SelectedIndex = idx;
+
+
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            //correct style mismatches
+            txtSymbol.Background = new SolidColorBrush(Color.FromArgb(0xFF, 0xAD, 0xAD, 0xAD));
+            DateAction_IsEnabledChanged(dateAction, new DependencyPropertyChangedEventArgs());
+
         }
 
         void MainWindow_Closing(object sender, CancelEventArgs e)
@@ -160,9 +170,11 @@ namespace OptionView
                         SetTextBlock(txtSymbol, grp.Symbol, true);
                         SetTextBox(txtStrategy, grp.Strategy, true);
                         SetTextBox(txtExit, grp.ExitStrategy, true);
+                        SetDatePicker(dateAction, grp.ActionDate, true);
                         SetTextBox(txtComments, grp.Comments, true);
                         SetTextBox(txtCapital, grp.CapitalRequired.ToString("C0"), true);
                         SetCheckBox(chkEarnings, grp.EarningsTrade, true);
+                        SetCheckBox(chkNeutral, grp.NeutralStrategy, true);
                         SetCheckBox(chkDefinedRisk, grp.DefinedRisk, true);
                         if (grp.DefinedRisk)
                             SetTextBox(txtRisk, grp.Risk.ToString("C0"), true);
@@ -201,6 +213,56 @@ namespace OptionView
             cb.IsChecked = val;
             cb.IsEnabled = enable;
         }
+        private void SetDatePicker(DatePicker dp, DateTime dt, bool enable)
+        {
+            if (dt > DateTime.MinValue)
+            {
+                dp.SelectedDate = dt;
+            }
+            else
+            {
+                dp.SelectedDate = null;
+            }
+            dp.IsEnabled = enable;
+            SetDatePickerForeground(dp);
+
+        }
+        private void SetDatePickerForeground(DatePicker dp)
+        {
+            if (dp.SelectedDate.HasValue)
+                dp.Foreground = Brushes.Black;
+            else
+                dp.Foreground = Brushes.White;
+
+        }
+        private void DateAction_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            DatePicker dp = (DatePicker)sender;
+
+            if (dp.IsEnabled)
+                dp.Background = Brushes.White;
+            else
+                dp.Background = new SolidColorBrush(Color.FromArgb(0xFF, 0xAD, 0xAD, 0xAD));
+
+            Grid grid = UIHelper.FindChild<Grid>(dp, "PART_DisabledVisual");
+            if (grid != null)
+            {
+                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(grid); i++)
+                {
+                    var child = VisualTreeHelper.GetChild(grid, i);
+                    if (child.GetType() == typeof(Rectangle))
+                    {
+                        if (dp.IsEnabled)
+                            ((Rectangle)child).Fill = Brushes.White;
+                        else
+                            ((Rectangle)child).Fill = new SolidColorBrush(Color.FromArgb(0xFF, 0xAD, 0xAD, 0xAD));
+
+                        break;
+                    }
+                }
+            }
+
+        }
 
         private void CanvasMouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -213,9 +275,11 @@ namespace OptionView
             SetTextBlock(txtSymbol, "", false);
             SetTextBox(txtStrategy, "", false);
             SetTextBox(txtExit, "", false);
+            SetDatePicker(dateAction, DateTime.MinValue, false);
             SetTextBox(txtComments, "", false);
             SetTextBox(txtCapital, "", false);
             SetCheckBox(chkEarnings, false, false);
+            SetCheckBox(chkNeutral, false, false);
             SetCheckBox(chkDefinedRisk, false, false);
             SetTextBox(txtRisk, "", false);
             SetTextBox(txtStartTime, "", false);
@@ -230,10 +294,12 @@ namespace OptionView
             grp.GroupID = tag;
             grp.Strategy = txtStrategy.Text;
             grp.ExitStrategy = txtExit.Text;
+            grp.ActionDate = (dateAction.SelectedDate.HasValue && (dateAction.Text !="")) ? dateAction.SelectedDate.Value : DateTime.MinValue;
             grp.Comments = txtComments.Text;
             Decimal retval = 0;
             if (Decimal.TryParse(txtCapital.Text.Replace("$", ""), out retval)) grp.CapitalRequired = retval;
             grp.EarningsTrade = chkEarnings.IsChecked.HasValue ? chkEarnings.IsChecked.Value : false;
+            grp.NeutralStrategy = chkNeutral.IsChecked.HasValue ? chkNeutral.IsChecked.Value : false;
 
             grp.DefinedRisk = chkDefinedRisk.IsChecked.HasValue ? chkDefinedRisk.IsChecked.Value : false;
             retval = 0;
@@ -246,6 +312,10 @@ namespace OptionView
         }
 
         private void FieldEntryEvent(object sender, KeyEventArgs e)
+        {
+            detailsDirty = true;
+        }
+        private void DateAction_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
             detailsDirty = true;
         }
@@ -314,13 +384,17 @@ namespace OptionView
         {
             ListCollectionView lcv = (ListCollectionView)resultsGrid.ItemsSource;
             decimal profit = 0m;
+            decimal fees = 0m;
             foreach (TransactionGroup tg in lcv)
             {
                 profit += tg.Cost;
+                fees += tg.Fees;
             }
 
             txtProfit.Text = profit.ToString("C0");
             txtCount.Text = lcv.Count.ToString();
+            txtFees.Text = fees.ToString("C0");
+            txtNet.Text = (profit - fees).ToString("C");
 
         }
         private bool ResultsFilter(object item)
@@ -383,6 +457,7 @@ namespace OptionView
                 }
             }
         }
+
     }
 
 

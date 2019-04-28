@@ -26,13 +26,16 @@ namespace OptionView
             grp.Symbol = reader["Symbol"].ToString();
             grp.GroupID = Convert.ToInt32(reader["ID"]); // readerGroup
             grp.Cost = Convert.ToDecimal(reader["Cost"]);
+            grp.Fees = Convert.ToDecimal(reader["Fees"]);
             if (reader["X"] != DBNull.Value) grp.X = Convert.ToInt32(reader["X"]);
             if (reader["Y"] != DBNull.Value) grp.Y = Convert.ToInt32(reader["Y"]);
-            if (reader["Comments"] != DBNull.Value) grp.Comments = reader["Comments"].ToString();
             if (reader["Strategy"] != DBNull.Value) grp.Strategy = reader["Strategy"].ToString();
             if (reader["ExitStrategy"] != DBNull.Value) grp.ExitStrategy = reader["ExitStrategy"].ToString();
+            if (reader["TodoDate"] != DBNull.Value) grp.ActionDate = Convert.ToDateTime(reader["TodoDate"].ToString());  // use the "formatted" version date
+            if (reader["Comments"] != DBNull.Value) grp.Comments = reader["Comments"].ToString();
             if (reader["CapitalRequired"] != DBNull.Value) grp.CapitalRequired = Convert.ToDecimal(reader["CapitalRequired"]);
             if (reader["EarningsTrade"] != DBNull.Value) grp.EarningsTrade = (Convert.ToInt32(reader["EarningsTrade"]) == 1);
+            if (reader["NeutralStrategy"] != DBNull.Value) grp.NeutralStrategy = (Convert.ToInt32(reader["NeutralStrategy"]) == 1);
             if (reader["DefinedRisk"] != DBNull.Value) grp.DefinedRisk = (Convert.ToInt32(reader["DefinedRisk"]) == 1);
             if (reader["Risk"] != DBNull.Value) grp.Risk = Convert.ToDecimal(reader["Risk"]);
             if (reader["startTime"] != DBNull.Value) grp.StartTime = Convert.ToDateTime(reader["startTime"].ToString());
@@ -53,8 +56,8 @@ namespace OptionView
                 // establish connection
                 App.OpenConnection();
 
-                string sql = "SELECT * FROM transgroup AS tg LEFT JOIN";
-                sql += " (SELECT transgroupid, SUM(amount) AS Cost, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime, datetime(MIN(expireDate)) AS EarliestExpiration from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
+                string sql = "SELECT *, date(ActionDate) AS TodoDate FROM transgroup AS tg LEFT JOIN";
+                sql += " (SELECT transgroupid, SUM(amount) AS Cost, SUM(Fees) AS Fees, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime, datetime(MIN(expireDate)) AS EarliestExpiration from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
                 sql += " WHERE tg.Open = 1";
 
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
@@ -116,8 +119,8 @@ namespace OptionView
                 // establish connection
                 App.OpenConnection();
 
-                string sql = "SELECT * FROM transgroup AS tg LEFT JOIN";
-                sql += " (SELECT transgroupid, SUM(amount) AS Cost, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime, datetime(MIN(expireDate)) AS EarliestExpiration from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
+                string sql = "SELECT *, date(ActionDate) AS TodoDate FROM transgroup AS tg LEFT JOIN";
+                sql += " (SELECT transgroupid, SUM(amount) AS Cost, SUM(Fees) AS Fees, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime, datetime(MIN(expireDate)) AS EarliestExpiration from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
                 sql += " WHERE tg.Open = 0";
                 sql += " ORDER BY startTime";
 
