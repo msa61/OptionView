@@ -296,7 +296,7 @@
                                     <DataTemplate>
                                         <DockPanel Margin="10,4,12,0"  Background="Gray">
                                             <TextBlock Text="{Binding Path=Name, Converter={StaticResource GroupName}}" VerticalAlignment="Center" Padding="6,3,4,3" Foreground="White" Width="65"/>
-                                            <TextBlock Text="{Binding Path=Items, Converter={StaticResource GroupTotal}}" FontSize="10" Width="40" VerticalAlignment="Center" HorizontalAlignment="Left" TextAlignment="Right" Padding="4,4,4,3" Foreground="White" />
+                                            <TextBlock Text="{Binding Path=Items, Converter={StaticResource GroupTotal}}" FontSize="10" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left" TextAlignment="Right" Padding="4,4,4,3" Foreground="White" />
                                         </DockPanel>
                                     </DataTemplate>
                                 </GroupStyle.HeaderTemplate>
@@ -309,6 +309,7 @@
                             <DataGridTextColumn Header="Strategy" Binding="{Binding Strategy}" Width="140" />
                             <DataGridTextColumn Header="Profit" Binding="{Binding Path=Cost, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
                             <DataGridCheckBoxColumn Header="Earnings" Binding="{Binding EarningsTrade}" Width="80" />
+                            <DataGridCheckBoxColumn Header="Neutral" Binding="{Binding NeutralStrategy}" Width="80" />
                             <DataGridTextColumn Header="Comments" Binding="{Binding Comments}"  />
                         </DataGrid.Columns>
                         <DataGrid.RowDetailsTemplate>
@@ -346,6 +347,13 @@
                         </StackPanel>
                         <StackPanel >
                             <DockPanel>
+                                <Label Content="Last 90 Days:" Margin="6,0,6,0" />
+                                <CheckBox Name="chkLast90DaysFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Click="FilterClick" />
+                            </DockPanel>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <DockPanel>
                                 <Label Content="Last 30 Days:" Margin="6,0,6,0" />
                                 <CheckBox Name="chkLast30DaysFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Click="FilterClick" />
                             </DockPanel>
@@ -356,6 +364,13 @@
                             <DockPanel>
                                 <Label Content="Earnings:" Margin="6,0,6,0"  />
                                 <CheckBox Name="chkEarningsFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Click="FilterClick" />
+                            </DockPanel>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <DockPanel>
+                                <Label Content="Neutral:" Margin="6,0,6,0"  />
+                                <CheckBox Name="chkNeutralFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Click="FilterClick" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
@@ -378,6 +393,7 @@
                                 <ComboBoxItem Content="None" Tag="None" IsSelected="True"/>
                                 <ComboBoxItem Content="By Symbol" Tag="Symbol"/>
                                 <ComboBoxItem Content="By Earnings" Tag="EarningsTrade"/>
+                                <ComboBoxItem Content="By Neutral" Tag="NeutralStrategy"/>
                             </ComboBox>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
