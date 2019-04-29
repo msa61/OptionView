@@ -425,14 +425,13 @@ namespace OptionView
             }
             else
             {
-                groupID = DBUtilities.GetMax("SELECT max(TransGroupID) FROM Transactions") + 1;
-
-                string sql = "INSERT INTO TransGroup(ID, Symbol, Open) Values(@id,@sym,@op)";
+                string sql = "INSERT INTO TransGroup(Symbol, Open) Values(@sym,@op)";
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
-                cmd.Parameters.AddWithValue("id", groupID);
                 cmd.Parameters.AddWithValue("sym", symbol);
                 cmd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
                 cmd.ExecuteNonQuery();
+
+                groupID = DBUtilities.GetMax("SELECT max(id) FROM TransGroup");
             }
 
             List<int> rows = holdings.GetRowNumbers();
