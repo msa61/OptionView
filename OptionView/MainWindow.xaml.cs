@@ -31,6 +31,7 @@ namespace OptionView
         private Portfolio portfolio;
         private int selectedTag = 0;
         private bool detailsDirty = false;
+        private bool uiDirty = false;
 
 
 
@@ -325,17 +326,22 @@ namespace OptionView
 
             grp.UpdateTransactionGroup();
             portfolio.GetCurrentHoldings();  //refresh
+            if (uiDirty) UpdateHoldingsTiles();
 
             detailsDirty = false;
+            uiDirty = false;
         }
 
         private void FieldEntryEvent(object sender, KeyEventArgs e)
         {
             detailsDirty = true;
+
+            if (((Control)sender).Name == "txtStrategy") uiDirty = true;
         }
         private void DateAction_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
             detailsDirty = true;
+            uiDirty = true;
         }
         private void CheckBoxMouseEvent(object sender, MouseButtonEventArgs e)
         {
