@@ -17,7 +17,7 @@ namespace OptionView
             SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
 
             var maxVal = cmd.ExecuteScalar();
-            if (maxVal != DBNull.Value) ret = Convert.ToInt32(maxVal);
+            if ((maxVal != DBNull.Value) && (maxVal.GetType() != typeof(string))) ret = Convert.ToInt32(maxVal);
 
             return ret;
         }
