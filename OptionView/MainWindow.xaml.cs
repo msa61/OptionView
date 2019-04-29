@@ -81,13 +81,14 @@ namespace OptionView
             }
 
             string[] filters = Config.GetProp("Filters").Split('|');
-            if (filters.Length > 3)
+            if (filters.Length > 4)
             {
                 if (filters[0] == "1") chkYearToDateFilter.IsChecked = true;
                 if (filters[1] == "1") chkLast30DaysFilter.IsChecked = true;
                 if (filters[2] == "1") chkEarningsFilter.IsChecked = true;
-                if (filters[3] == "1") chkRiskFilter.IsChecked = true;
-                if (filters[3] == "-1") chkRiskFilter.IsChecked = null;
+                if (filters[3] == "1") chkNeutralFilter.IsChecked = true;
+                if (filters[4] == "1") chkRiskFilter.IsChecked = true;
+                if (filters[4] == "-1") chkRiskFilter.IsChecked = null;
             }
 
             string grouping = Config.GetProp("Grouping");
@@ -116,7 +117,8 @@ namespace OptionView
 
             string filters = (chkYearToDateFilter.IsChecked.HasValue && chkYearToDateFilter.IsChecked.Value ? "1|" : "0|")
                             + (chkLast30DaysFilter.IsChecked.HasValue && chkLast30DaysFilter.IsChecked.Value ? "1|" : "0|")
-                            + (chkEarningsFilter.IsChecked.HasValue && chkEarningsFilter.IsChecked.Value ? "1|" : "0|");
+                            + (chkEarningsFilter.IsChecked.HasValue && chkEarningsFilter.IsChecked.Value ? "1|" : "0|")
+                            + (chkNeutralFilter.IsChecked.HasValue && chkNeutralFilter.IsChecked.Value ? "1|" : "0|");
 
             if (chkRiskFilter.IsChecked.HasValue)
                 filters += (chkRiskFilter.IsChecked.Value ? "1" : "0");
@@ -371,6 +373,8 @@ namespace OptionView
                 Debug.WriteLine("Load: " + filename);
                 DataLoader.Load(filename);
                 UpdateHoldingsTiles();
+                UpdateResultsGrid();
+
             }
         }
 
@@ -423,13 +427,17 @@ namespace OptionView
             {
                 if (this.chkYearToDateFilter.IsChecked == true && t.StartTime.Year != DateTime.Now.Year)
                     ret = false;
+                else if (this.chkLast90DaysFilter.IsChecked == true && ((DateTime.Now - t.EndTime) > TimeSpan.FromDays(90)))
+                    ret = false;
                 else if (this.chkLast30DaysFilter.IsChecked == true && ((DateTime.Now - t.EndTime) > TimeSpan.FromDays(30)))
                     ret = false;
                 else if (this.chkEarningsFilter.IsChecked == true && !t.EarningsTrade)
                     ret = false;
+                else if (this.chkNeutralFilter.IsChecked == true && !t.NeutralStrategy)
+                    ret = false;
                 else if (this.chkRiskFilter.IsChecked == true && !t.DefinedRisk)
                     ret = false;
-                else if (this.chkRiskFilter.IsChecked == null && t.DefinedRisk)
+                else if (this.chkRiskFilter.IsChecked == null && t.DefinedRisk)  // null = "not" defined risk
                     ret = false;
                 else
                 {
@@ -486,12 +494,16 @@ namespace OptionView
                 return "";
 
             decimal total = 0;
+            int count = 0;
+            int winners = 0;
 
             foreach (TransactionGroup tg in grp)
             {
                 total += tg.Cost;
+                count += 1;
+                if (tg.Cost > 0) winners += 1;
             }
-            return total.ToString("C0");
+            return string.Format("{0:C0}  {1:n1}% winners out of {2:n0} positions", total, (decimal)winners * 100m / (decimal)count, count);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -519,6 +531,10 @@ namespace OptionView
             else if (mode == "EarningsTrade")
             {
                 return ((bool)value ? "Earnings" : "Regular");
+            }
+            else if (mode == "NeutralStrategy")
+            {
+                return ((bool)value ? "Neutral" : "Biased");
             }
 
             return "blah";
