@@ -99,7 +99,7 @@ namespace OptionView
                     Width = 16,
                     Source = new BitmapImage(new Uri("pack://application:,,,/icons/alarm.ico"))
                 };
-                Canvas.SetTop(img, 66);
+                Canvas.SetTop(img, 68);
                 tileCanvas.Children.Add(img);
             }
 
