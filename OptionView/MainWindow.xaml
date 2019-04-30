@@ -33,7 +33,7 @@
                                         <TranslateTransform/>
                                     </TransformGroup>
                                 </LinearGradientBrush.RelativeTransform>
-                                <GradientStop Color="#BF538C2B" Offset="0.978"/>
+                                <GradientStop Color="#FF365A1A" Offset="0.978"/>
                                 <GradientStop Color="#FF538C2B" Offset="0.113"/>
                             </LinearGradientBrush>
                         </Rectangle.Fill>
@@ -62,7 +62,7 @@
                                         <TranslateTransform/>
                                     </TransformGroup>
                                 </LinearGradientBrush.RelativeTransform>
-                                <GradientStop Color="#BF99291E" Offset="0.978"/>
+                                <GradientStop Color="#FF6E1A1F" Offset="0.978"/>
                                 <GradientStop Color="#FF99291E" Offset="0.113"/>
                             </LinearGradientBrush>
                         </Rectangle.Fill>
@@ -188,7 +188,6 @@
                                 </Image>
                             </Canvas>
                         </ContentControl>-->
-                        
 
                     </Canvas>
 
