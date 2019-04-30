@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:s="clr-namespace:OptionView"
         xmlns:local="clr-namespace:OptionView"
         mc:Ignorable="d"
         Title="MainWindow" Height="800" Width="1200" Left="100" Top="100"
@@ -14,16 +13,16 @@
     <Window.Resources>
 
         <!-- MoveThumb Template -->
-        <ControlTemplate x:Key="MoveThumbTemplate" TargetType="{x:Type s:MoveTile}">
+        <ControlTemplate x:Key="MoveThumbTemplate" TargetType="{x:Type local:MoveTile}" >
             <Rectangle Fill="Transparent" MouseLeftButtonDown="TileMouseDown"/>
         </ControlTemplate>
 
         <!-- Item Template -->
         <ControlTemplate x:Key="GreenTileTemplate" TargetType="{x:Type ContentControl}">
             <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100">
-                <s:MoveTile Template="{StaticResource MoveThumbTemplate}" />
+                <local:MoveTile Template="{StaticResource MoveThumbTemplate}" DragCompleted="TileDragCompleted" />
                 <Border BorderThickness="3">
-                    <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False" >
+                    <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False">
                         <Rectangle.Fill>
                             <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
                                 <LinearGradientBrush.RelativeTransform>
@@ -50,7 +49,7 @@
         </ControlTemplate>
         <ControlTemplate x:Key="RedTileTemplate" TargetType="{x:Type ContentControl}">
             <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100">
-                <s:MoveTile Template="{StaticResource MoveThumbTemplate}" />
+                <local:MoveTile Template="{StaticResource MoveThumbTemplate}" DragCompleted="TileDragCompleted" />
                 <Border BorderThickness="3" >
                     <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False" >
                         <Rectangle.Fill>

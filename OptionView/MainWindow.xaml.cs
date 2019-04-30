@@ -144,6 +144,19 @@ namespace OptionView
             App.CloseConnection();
         }
 
+        private void TileDragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            Debug.WriteLine("Drag complete");
+            if (sender.GetType() == typeof(MoveTile))
+            {
+                MoveTile tile = (MoveTile)sender;
+                ContentControl cc = (ContentControl)VisualTreeHelper.GetParent(tile.Parent);
+
+                Tiles.UpdateTilePosition(cc.Tag.ToString(), (int)Canvas.GetLeft(cc), (int)Canvas.GetTop(cc));
+            }
+        }
+
+
         AdornerLayer adornerLayer = null;
         TileAdorner tileAdorner = null;
         private void TileMouseDown(object sender, MouseButtonEventArgs e)
@@ -151,7 +164,7 @@ namespace OptionView
             if (sender.GetType() == typeof(Rectangle))
             {
                 if (adornerLayer != null && tileAdorner != null) adornerLayer.Remove(tileAdorner);
-
+                
                 Rectangle rect = (Rectangle)sender;
                 adornerLayer = AdornerLayer.GetAdornerLayer(rect);
                 tileAdorner = new TileAdorner(rect);
@@ -168,7 +181,11 @@ namespace OptionView
                     if (tag > 0)
                     {
                         Debug.WriteLine("Group selected: " + tag.ToString());
-                        if (selectedTag != 0 && tag != selectedTag && detailsDirty) SaveTransactionGroupDetails(selectedTag);
+                        if (selectedTag != 0 && tag != selectedTag && detailsDirty)
+                        {
+                            Debug.WriteLine("Previous group {0} was dirty", selectedTag.ToString());
+                            SaveTransactionGroupDetails(selectedTag);
+                        }
 
                         TransactionGroup grp = portfolio[tag];
 
@@ -191,6 +208,8 @@ namespace OptionView
                         if (grp.StartTime != grp.EndTime) SetTextBox(txtEndTime, grp.EndTime.ToShortDateString(), false);
 
                         selectedTag = tag;
+
+                        detailsDirty = false;  //datepicker gets unavoidably dirty while initializing
                     }
 
 
@@ -489,6 +508,7 @@ namespace OptionView
                 }
             }
         }
+
 
     }
 
