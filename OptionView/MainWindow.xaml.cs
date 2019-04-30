@@ -55,7 +55,9 @@ namespace OptionView
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
                 TransactionGroup grp = entry.Value;
-                Tiles.CreateTile(this, MainCanvas, (grp.Cost > 0), grp.GroupID, grp.Symbol, grp.X, grp.Y, grp.Strategy, grp.Cost.ToString("C"), (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString());
+                Tiles.CreateTile(this, MainCanvas, (grp.Cost > 0), grp.GroupID, grp.Symbol, grp.X, grp.Y, grp.Strategy, grp.Cost.ToString("C"), 
+                    (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
+                    (grp.ActionDate > DateTime.MinValue));
             }
         }
 

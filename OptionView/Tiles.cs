@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
@@ -20,13 +21,14 @@ namespace OptionView
     public class Tiles
     {
 
-        public static void CreateTile(Window window, Canvas canvas, bool green, int ID, string symbol, int left, int top, string details1, string details2, string dte)
+        public static void CreateTile(Window window, Canvas canvas, bool green, int ID, string symbol, int left, int top, string details1, string details2, string dte, bool alarm)
         {
             //<ContentControl Canvas.Top = "10" Canvas.Left = "10" Template = "{StaticResource DesignerItemTemplate}" >
             //  <Canvas Style = "{DynamicResource TileCanvas}" >
             //     < TextBlock Text = "Symbol" Style = "{DynamicResource SymbolHeader}" />
             //     < TextBlock Text = "Text" Canvas.Top = "19" Style = "{DynamicResource SymbolDetails}" />
             //     < TextBlock Text = "Text2" Canvas.Top = "38" Style = "{DynamicResource SymbolDetails}" />
+            //     < Image Height = "16" Canvas.Top = "68" Width = "16" Source = "Icons/Alarm.ico" >
             //  </ Canvas >
             //</ ContentControl > 
 
@@ -89,6 +91,17 @@ namespace OptionView
             txtDTE.HorizontalAlignment = HorizontalAlignment.Right;
             tileCanvas.Children.Add(txtDTE);
 
+            if (alarm)
+            {
+                Image img = new Image()
+                {
+                    Height = 16,
+                    Width = 16,
+                    Source = new BitmapImage(new Uri("pack://application:,,,/icons/alarm.ico"))
+                };
+                Canvas.SetTop(img, 66);
+                tileCanvas.Children.Add(img);
+            }
 
             Canvas.SetLeft(cc, left);
             Canvas.SetTop(cc, top);

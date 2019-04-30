@@ -184,9 +184,12 @@
                                 <TextBlock Text="Text2" Canvas.Top="32" Style="{DynamicResource SymbolDetails}"/>
 
                                 <TextBlock Text="33" Style="{DynamicResource  DaysTilExpiration}"  Canvas.Top="68"  />
-
+                                <Image Height="16" Canvas.Top="68" Width="16" Source="Icons/Alarm.ico">
+                                    
+                                </Image>
                             </Canvas>
                         </ContentControl>-->
+                        
 
                     </Canvas>
 
