@@ -84,14 +84,16 @@ namespace OptionView
             }
 
             string[] filters = Config.GetProp("Filters").Split('|');
-            if (filters.Length > 4)
+            if (filters.Length > 2)
             {
-                if (filters[0] == "1") chkYearToDateFilter.IsChecked = true;
-                if (filters[1] == "1") chkLast30DaysFilter.IsChecked = true;
-                if (filters[2] == "1") chkEarningsFilter.IsChecked = true;
-                if (filters[3] == "1") chkNeutralFilter.IsChecked = true;
-                if (filters[4] == "1") chkRiskFilter.IsChecked = true;
-                if (filters[4] == "-1") chkRiskFilter.IsChecked = null;
+                Int32 fIdx = 0;
+                Int32.TryParse(filters[0], out fIdx);
+                cbDateFilter.SelectedIndex = fIdx;
+
+                if (filters[1] == "1") chkEarningsFilter.IsChecked = true;
+                if (filters[2] == "1") chkNeutralFilter.IsChecked = true;
+                if (filters[3] == "1") chkRiskFilter.IsChecked = true;
+                if (filters[3] == "-1") chkRiskFilter.IsChecked = null;
             }
 
             string grouping = Config.GetProp("Grouping");
@@ -118,10 +120,9 @@ namespace OptionView
             Config.SetProp("Screen", scrnProps);
             Config.SetProp("Tab", MainTab.SelectedIndex.ToString());
 
-            string filters = (chkYearToDateFilter.IsChecked.HasValue && chkYearToDateFilter.IsChecked.Value ? "1|" : "0|")
-                            + (chkLast30DaysFilter.IsChecked.HasValue && chkLast30DaysFilter.IsChecked.Value ? "1|" : "0|")
-                            + (chkEarningsFilter.IsChecked.HasValue && chkEarningsFilter.IsChecked.Value ? "1|" : "0|")
-                            + (chkNeutralFilter.IsChecked.HasValue && chkNeutralFilter.IsChecked.Value ? "1|" : "0|");
+            string filters = cbDateFilter.SelectedIndex.ToString() + "|";
+            filters += (chkEarningsFilter.IsChecked.HasValue && chkEarningsFilter.IsChecked.Value ? "1|" : "0|")
+                       + (chkNeutralFilter.IsChecked.HasValue && chkNeutralFilter.IsChecked.Value ? "1|" : "0|");
 
             if (chkRiskFilter.IsChecked.HasValue)
                 filters += (chkRiskFilter.IsChecked.Value ? "1" : "0");
@@ -426,6 +427,11 @@ namespace OptionView
 
             UpdateFilterStats();
         }
+        private void CbDateFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (resultsGrid.ItemsSource != null)   // grid not initialized yet
+                FilterClick(null, new RoutedEventArgs());  
+        }
 
         private void UpdateFilterStats()
         {
@@ -448,15 +454,17 @@ namespace OptionView
         {
             bool ret = false;
 
+            string dateTag = ((ComboBoxItem)cbDateFilter.SelectedItem).Tag.ToString();
+
             TransactionGroup t = (TransactionGroup)item;
             if (t != null)
             // If filter is turned on, filter completed items.
             {
-                if (this.chkYearToDateFilter.IsChecked == true && t.StartTime.Year != DateTime.Now.Year)
+                if ((dateTag == "YTD") && (t.EndTime < new DateTime(DateTime.Now.Year,1,1)))
                     ret = false;
-                else if (this.chkLast90DaysFilter.IsChecked == true && ((DateTime.Now - t.EndTime) > TimeSpan.FromDays(90)))
+                else if ((dateTag == "90Days") && ((DateTime.Now - t.EndTime) > TimeSpan.FromDays(90)))
                     ret = false;
-                else if (this.chkLast30DaysFilter.IsChecked == true && ((DateTime.Now - t.EndTime) > TimeSpan.FromDays(30)))
+                else if ((dateTag == "30Days") && ((DateTime.Now - t.EndTime) > TimeSpan.FromDays(30)))
                     ret = false;
                 else if (this.chkEarningsFilter.IsChecked == true && !t.EarningsTrade)
                     ret = false;

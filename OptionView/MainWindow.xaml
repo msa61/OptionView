@@ -33,8 +33,8 @@
                                         <TranslateTransform/>
                                     </TransformGroup>
                                 </LinearGradientBrush.RelativeTransform>
-                                <GradientStop Color="#FF365A1A" Offset="0.978"/>
-                                <GradientStop Color="#FF538C2B" Offset="0.113"/>
+                                <GradientStop Color="#FF538C2B" Offset="0.978"/>
+                                <GradientStop Color="#FF45761F" Offset="0.113"/>
                             </LinearGradientBrush>
                         </Rectangle.Fill>
                     </Rectangle>
@@ -62,8 +62,8 @@
                                         <TranslateTransform/>
                                     </TransformGroup>
                                 </LinearGradientBrush.RelativeTransform>
-                                <GradientStop Color="#FF6E1A1F" Offset="0.978"/>
-                                <GradientStop Color="#FF99291E" Offset="0.113"/>
+                                <GradientStop Color="#FFAE2C20" Offset="0.974"/>
+                                <GradientStop Color="#FF91151D" Offset="0.113"/>
                             </LinearGradientBrush>
                         </Rectangle.Fill>
                     </Rectangle>
@@ -174,7 +174,7 @@
 
                     <Canvas x:Name="MainCanvas"  Grid.Column="0"  Background="#FF454545" MouseLeftButtonDown="CanvasMouseDown" Margin="4,4,0,4" >
 
-                        <!--<ContentControl Canvas.Top="10" Canvas.Left="10" Template="{DynamicResource RedTileTemplate}" Selector.IsSelected="True" >
+                        <ContentControl Canvas.Top="10" Canvas.Left="80" Template="{DynamicResource GreenTileTemplate}" Selector.IsSelected="True" >
                             <Canvas Style="{DynamicResource TileCanvas}" >
                                 <Rectangle Name="SelectedFrame" Stroke="Gray" Visibility="Hidden" StrokeThickness="1" StrokeDashArray="2" IsHitTestVisible="False" Margin="-10,-10,0,0" Width="150" Height="100" />
 
@@ -187,7 +187,21 @@
                                     
                                 </Image>
                             </Canvas>
-                        </ContentControl>-->
+                        </ContentControl>
+                        <ContentControl Canvas.Top="10" Canvas.Left="290" Template="{DynamicResource RedTileTemplate}" Selector.IsSelected="True" >
+                            <Canvas Style="{DynamicResource TileCanvas}" >
+                                <Rectangle  Stroke="Gray" Visibility="Hidden" StrokeThickness="1" StrokeDashArray="2" IsHitTestVisible="False" Margin="-10,-10,0,0" Width="150" Height="100" />
+
+                                <TextBlock Text="Symbol" Style="{DynamicResource SymbolHeader}"/>
+                                <TextBlock Text="Text" Canvas.Top="18" Style="{DynamicResource SymbolDetails}" Height="24"/>
+                                <TextBlock Text="Text2" Canvas.Top="32" Style="{DynamicResource SymbolDetails}"/>
+
+                                <TextBlock Text="33" Style="{DynamicResource  DaysTilExpiration}"  Canvas.Top="68"  />
+                                <Image Height="16" Canvas.Top="68" Width="16" Source="Icons/Alarm.ico">
+
+                                </Image>
+                            </Canvas>
+                        </ContentControl>
 
                     </Canvas>
 
@@ -340,45 +354,33 @@
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
-                            <DockPanel>
-                                <Label Content="Year to date:" Margin="6,0,6,0" />
-                                <CheckBox Name="chkYearToDateFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Click="FilterClick" />
-                            </DockPanel>
-                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
-                        </StackPanel>
-                        <StackPanel >
-                            <DockPanel>
-                                <Label Content="Last 90 Days:" Margin="6,0,6,0" />
-                                <CheckBox Name="chkLast90DaysFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Click="FilterClick" />
-                            </DockPanel>
-                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
-                        </StackPanel>
-                        <StackPanel >
-                            <DockPanel>
-                                <Label Content="Last 30 Days:" Margin="6,0,6,0" />
-                                <CheckBox Name="chkLast30DaysFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Click="FilterClick" />
-                            </DockPanel>
+                            <ComboBox Name="cbDateFilter" Margin="6" Text="None" SelectionChanged="CbDateFilter_SelectionChanged" >
+                                <ComboBoxItem Content="All" Tag="All" IsSelected="True"/>
+                                <ComboBoxItem Content="Year to Date" Tag="YTD"/>
+                                <ComboBoxItem Content="Last 90 Days" Tag="90Days"/>
+                                <ComboBoxItem Content="Last 30 Days" Tag="30Days"/>
+                            </ComboBox>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
 
                         <StackPanel >
                             <DockPanel>
                                 <Label Content="Earnings:" Margin="6,0,6,0"  />
-                                <CheckBox Name="chkEarningsFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Click="FilterClick" />
+                                <CheckBox Name="chkEarningsFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
                             <DockPanel>
                                 <Label Content="Neutral:" Margin="6,0,6,0"  />
-                                <CheckBox Name="chkNeutralFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Click="FilterClick" />
+                                <CheckBox Name="chkNeutralFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
                             <DockPanel>
                                 <Label Content="Defined Risk:" Margin="6,0,6,0"  />
-                                <CheckBox Name="chkRiskFilter" IsThreeState="True" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Click="FilterClick" />
+                                <CheckBox Name="chkRiskFilter" IsThreeState="True" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
@@ -390,7 +392,7 @@
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
-                            <ComboBox Name="cbGrouping1" Margin="6" Text="None" SelectionChanged="CbGrouping1_SelectionChanged" x:FieldModifier="public">
+                            <ComboBox Name="cbGrouping1" Margin="6" SelectionChanged="CbGrouping1_SelectionChanged" x:FieldModifier="public">
                                 <ComboBoxItem Content="None" Tag="None" IsSelected="True"/>
                                 <ComboBoxItem Content="By Symbol" Tag="Symbol"/>
                                 <ComboBoxItem Content="By Earnings" Tag="EarningsTrade"/>
