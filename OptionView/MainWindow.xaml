@@ -39,11 +39,6 @@
                         </Rectangle.Fill>
                     </Rectangle>
                 </Border>
-                <Popup Name="pop" IsOpen="False"  Width="150" Height="60" Placement="Bottom">
-                    <Rectangle Margin="4,0,0,0" Fill="#FFEAE4E4" Stroke="#FFF93F3F" >
-                        
-                    </Rectangle>
-                </Popup>
                 <ContentPresenter Content="{TemplateBinding Content}"/>
             </Grid>
             <ControlTemplate.Triggers>

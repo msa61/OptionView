@@ -222,11 +222,7 @@ namespace OptionView
                         }
                         SetTextBox(txtDetails, details, true);
 
-                        //Popup pu = (Popup)VisualTreeHelper.GetChild(tile.Parent, 2);
-                        //    pu.IsOpen = true;
                     }
-
-
                 }
 
             }
