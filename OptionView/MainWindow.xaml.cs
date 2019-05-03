@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -211,6 +212,18 @@ namespace OptionView
                         selectedTag = tag;
 
                         detailsDirty = false;  //datepicker gets unavoidably dirty while initializing
+
+
+                        string details = "";
+                        foreach(KeyValuePair<string, Position> item in grp.Holdings)
+                        {
+                            Position p = item.Value;
+                            details += String.Format("{0,2} {1} {2} {3:MMMd}", p.Quantity, p.Type.Substring(0, 1), p.Strike, p.ExpDate) + System.Environment.NewLine;
+                        }
+                        SetTextBox(txtDetails, details, true);
+
+                        //Popup pu = (Popup)VisualTreeHelper.GetChild(tile.Parent, 2);
+                        //    pu.IsOpen = true;
                     }
 
 
@@ -323,6 +336,7 @@ namespace OptionView
             SetCheckBox(chkNeutral, false, false);
             SetCheckBox(chkDefinedRisk, false, false);
             SetTextBox(txtRisk, "", false);
+            SetTextBox(txtDetails, "", false);
             SetTextBox(txtStartTime, "", false);
             SetTextBox(txtEndTime, "", false);
         }

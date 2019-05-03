@@ -39,6 +39,11 @@
                         </Rectangle.Fill>
                     </Rectangle>
                 </Border>
+                <Popup Name="pop" IsOpen="False"  Width="150" Height="60" Placement="Bottom">
+                    <Rectangle Margin="4,0,0,0" Fill="#FFEAE4E4" Stroke="#FFF93F3F" >
+                        
+                    </Rectangle>
+                </Popup>
                 <ContentPresenter Content="{TemplateBinding Content}"/>
             </Grid>
             <ControlTemplate.Triggers>
@@ -269,6 +274,12 @@
                         <StackPanel >
                             <Label Content="Risk" Margin="6,0,0,0" />
                             <TextBox Name="txtRisk" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+
+                        <StackPanel >
+                            <Label Content="Details" Margin="6,0,0,0" />
+                            <TextBox Name="txtDetails" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap" Height="94" AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent" FontFamily="Courier New" FontWeight="Bold"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
 
