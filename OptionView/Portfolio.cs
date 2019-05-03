@@ -40,7 +40,6 @@ namespace OptionView
             if (reader["Risk"] != DBNull.Value) grp.Risk = Convert.ToDecimal(reader["Risk"]);
             if (reader["startTime"] != DBNull.Value) grp.StartTime = Convert.ToDateTime(reader["startTime"].ToString());
             if (reader["endTime"] != DBNull.Value) grp.EndTime = Convert.ToDateTime(reader["endTime"].ToString());
-            if (reader["EarliestExpiration"] != DBNull.Value) grp.EarliestExpiration = Convert.ToDateTime(reader["EarliestExpiration"].ToString());
             
             return grp;
         }
@@ -57,7 +56,7 @@ namespace OptionView
                 App.OpenConnection();
 
                 string sql = "SELECT *, date(ActionDate) AS TodoDate FROM transgroup AS tg LEFT JOIN";
-                sql += " (SELECT transgroupid, SUM(amount) AS Cost, SUM(Fees) AS Fees, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime, datetime(MIN(expireDate)) AS EarliestExpiration from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
+                sql += " (SELECT transgroupid, SUM(amount) AS Cost, SUM(Fees) AS Fees, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
                 sql += " WHERE tg.Open = 1";
 
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
@@ -68,7 +67,7 @@ namespace OptionView
 
                     // step thru open holdings
                     sql = "SELECT * FROM (SELECT symbol, transgroupid, type, datetime(expiredate) AS ExpireDate, strike, sum(quantity) AS total, sum(amount) as amount FROM transactions";
-                    sql += " GROUP BY symbol, type, expiredate, strike) WHERE (transgroupid = @gr) and (total <> 0)";
+                    sql += " WHERE (transgroupid = @gr) GROUP BY symbol, type, expiredate, strike) WHERE (total <> 0)";
                     cmd = new SQLiteCommand(sql, App.ConnStr);
                     cmd.Parameters.AddWithValue("gr", grp.GroupID);
 
@@ -88,15 +87,30 @@ namespace OptionView
                         grp.Holdings.Add(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, quantity, amount, 0, "", 0);
                     }
 
-                    this.Add(grp.GroupID, grp);
+                    grp.EarliestExpiration = FindEarliestDate(grp.Holdings);
 
+                    this.Add(grp.GroupID, grp);
                 }  // end of transaction group loop
+
             }
             catch (Exception ex)
             {
                 Debug.WriteLine("CurrentHoldings: " + ex.Message);
             }
 
+        }
+
+        private DateTime FindEarliestDate(Positions positions)
+        {
+            DateTime ret = DateTime.MaxValue;
+
+            foreach(KeyValuePair<string, Position> item in positions)
+            {
+                Position p = item.Value;
+                if (p.ExpDate < ret) ret = p.ExpDate;
+            }
+
+            return ret;
         }
 
     }
@@ -120,7 +134,7 @@ namespace OptionView
                 App.OpenConnection();
 
                 string sql = "SELECT *, date(ActionDate) AS TodoDate FROM transgroup AS tg LEFT JOIN";
-                sql += " (SELECT transgroupid, SUM(amount) AS Cost, SUM(Fees) AS Fees, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime, datetime(MIN(expireDate)) AS EarliestExpiration from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
+                sql += " (SELECT transgroupid, SUM(amount) AS Cost, SUM(Fees) AS Fees, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
                 sql += " WHERE tg.Open = 0";
                 sql += " ORDER BY startTime";
 
