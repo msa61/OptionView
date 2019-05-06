@@ -43,6 +43,7 @@ namespace OptionView
 
             UpdateHoldingsTiles();
             UpdateResultsGrid();
+            UpdateTodosGrid();
 
             ResetScreen();
         }
@@ -412,13 +413,12 @@ namespace OptionView
                 DataLoader.Load(filename);
                 UpdateHoldingsTiles();
                 UpdateResultsGrid();
+                UpdateTodosGrid();
 
             }
         }
 
-
-
-        private void UpdateResultsGrid()
+        private void UpdateTodosGrid()
         {
             PortfolioResults results = new PortfolioResults();
             results.GetResults();
@@ -427,8 +427,14 @@ namespace OptionView
             lcv.Filter = ResultsFilter;
 
             resultsGrid.ItemsSource = lcv;
+        }
 
-            UpdateFilterStats();
+            private void UpdateResultsGrid()
+        {
+            PortfolioTodos todos = new PortfolioTodos();
+            todos.GetTodos();
+
+            todoGrid.ItemsSource = todos;
         }
 
         private void FilterClick(object sender, RoutedEventArgs e)

@@ -186,4 +186,66 @@ namespace OptionView
 
 
     }
+
+
+
+    public class PortfolioTodos : List<TransactionGroup>
+    {
+        public PortfolioTodos()
+        {
+        }
+
+        public void GetTodos()
+        {
+            try
+            {
+
+                // always start with an empty list
+                this.Clear();
+
+                // establish connection
+                App.OpenConnection();
+
+                string sql = "SELECT *, date(ActionDate) AS TodoDate FROM transgroup ";
+                sql += " WHERE Open = 1";
+                sql += " ORDER BY TodoDate";
+
+                SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+                SQLiteDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    DateTime todoDate = DateTime.MinValue;
+
+                    if (reader["TodoDate"] != DBNull.Value)
+                        todoDate = Convert.ToDateTime(reader["TodoDate"].ToString());  // use the "formatted" version date
+
+                    if (todoDate > DateTime.MinValue)
+                    {
+                        TransactionGroup grp = new TransactionGroup();
+
+                        grp.ActionDate = todoDate;
+
+                        grp.Symbol = reader["Symbol"].ToString();
+                        if (reader["Strategy"] != DBNull.Value) grp.Strategy = reader["Strategy"].ToString();
+                        if (reader["ExitStrategy"] != DBNull.Value) grp.ExitStrategy = reader["ExitStrategy"].ToString();
+                        if (reader["EarningsTrade"] != DBNull.Value) grp.EarningsTrade = (Convert.ToInt32(reader["EarningsTrade"]) == 1);
+                        if (reader["NeutralStrategy"] != DBNull.Value) grp.NeutralStrategy = (Convert.ToInt32(reader["NeutralStrategy"]) == 1);
+                        if (reader["Comments"] != DBNull.Value) grp.Comments = reader["Comments"].ToString();
+
+                        this.Add(grp);
+                    }
+
+                }  // end of transaction group loop
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("GetTodos: " + ex.Message);
+            }
+
+        }
+
+
+    }
+
+
 }
