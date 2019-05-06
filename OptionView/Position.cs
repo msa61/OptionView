@@ -22,7 +22,7 @@ namespace OptionView
     }
 
 
-    public class Positions : Dictionary<string,Position>
+    public class Positions : SortedDictionary<string,Position>
     {
         private int groupID = 0;
 
@@ -33,8 +33,7 @@ namespace OptionView
 
         public string Add(string symbol, string type, DateTime expDate, decimal strike, decimal quant, decimal amount, int row, string openClose, int grpID)
         {
-            string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMMdd") + type + strike.ToString("#.0");
-
+            string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMdd") + strike.ToString("0000.0") + type;
 
             Position p = null;
             if (this.ContainsKey(key))
