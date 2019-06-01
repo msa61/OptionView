@@ -133,7 +133,7 @@
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
-        <Style x:Key="DaysTilExpiration" TargetType="{x:Type TextBlock}">
+        <Style x:Key="SymbolDetailsRight" TargetType="{x:Type TextBlock}">
             <Setter Property="HorizontalAlignment" Value="Right" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="FontSize" Value="11" />
@@ -182,7 +182,7 @@
                                 <TextBlock Text="Text" Canvas.Top="18" Style="{DynamicResource SymbolDetails}" Height="24"/>
                                 <TextBlock Text="Text2" Canvas.Top="32" Style="{DynamicResource SymbolDetails}"/>
 
-                                <TextBlock Text="33" Style="{DynamicResource  DaysTilExpiration}"  Canvas.Top="68"  />
+                                <TextBlock Text="33" Style="{DynamicResource SymbolDetailsRight}"  Canvas.Top="68"  />
                                 <Image Height="16" Canvas.Top="68" Width="16" Source="Icons/Alarm.ico">
                                     
                                 </Image>
@@ -193,10 +193,11 @@
                                 <Rectangle  Stroke="Gray" Visibility="Hidden" StrokeThickness="1" StrokeDashArray="2" IsHitTestVisible="False" Margin="-10,-10,0,0" Width="150" Height="100" />
 
                                 <TextBlock Text="Symbol" Style="{DynamicResource SymbolHeader}"/>
+                                <TextBlock Text="Text2" Style="{DynamicResource SymbolDetailsRight}"/>
                                 <TextBlock Text="Text" Canvas.Top="18" Style="{DynamicResource SymbolDetails}" Height="24"/>
                                 <TextBlock Text="Text2" Canvas.Top="32" Style="{DynamicResource SymbolDetails}"/>
 
-                                <TextBlock Text="33" Style="{DynamicResource  DaysTilExpiration}"  Canvas.Top="68"  />
+                                <TextBlock Text="33" Style="{DynamicResource SymbolDetailsRight}"  Canvas.Top="68"  />
                                 <Image Height="16" Canvas.Top="68" Width="16" Source="Icons/Alarm.ico">
 
                                 </Image>
@@ -326,7 +327,8 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Origin. Date" Binding="{Binding Path=StartTime, StringFormat={}{0:dd MMM yyyy}}" Width="100" />
                             <DataGridTextColumn Header="End Date" Binding="{Binding Path=EndTime, StringFormat={}{0:dd MMM yyyy}}" Width="100" />
-                            <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="60" />
+                            <DataGridTextColumn Header="Account" Binding="{Binding Account}" Width="70" />
+                            <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="70" />
                             <DataGridTextColumn Header="Strategy" Binding="{Binding Strategy}" Width="140" />
                             <DataGridTextColumn Header="Profit" Binding="{Binding Path=Cost, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
                             <DataGridCheckBoxColumn Header="Earnings" Binding="{Binding EarningsTrade}" Width="80" />
@@ -360,7 +362,13 @@
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
-                            <ComboBox Name="cbDateFilter" Margin="6" Text="None" SelectionChanged="CbDateFilter_SelectionChanged" >
+                            <ComboBox Name="cbAccount" Margin="6" Text="None" SelectionChanged="ComboBox_SelectionChanged" >
+                                <ComboBoxItem Content="All" Tag="All" IsSelected="True"/>
+                            </ComboBox>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <ComboBox Name="cbDateFilter" Margin="6" Text="None" SelectionChanged="ComboBox_SelectionChanged" >
                                 <ComboBoxItem Content="All" Tag="All" IsSelected="True"/>
                                 <ComboBoxItem Content="Year to Date" Tag="YTD"/>
                                 <ComboBoxItem Content="Last 90 Days" Tag="90Days"/>
@@ -400,6 +408,7 @@
                         <StackPanel >
                             <ComboBox Name="cbGrouping1" Margin="6" SelectionChanged="CbGrouping1_SelectionChanged" x:FieldModifier="public">
                                 <ComboBoxItem Content="None" Tag="None" IsSelected="True"/>
+                                <ComboBoxItem Content="By Account" Tag="Account"/>
                                 <ComboBoxItem Content="By Symbol" Tag="Symbol"/>
                                 <ComboBoxItem Content="By Earnings" Tag="EarningsTrade"/>
                                 <ComboBoxItem Content="By Neutral" Tag="NeutralStrategy"/>
@@ -450,7 +459,8 @@
                               >
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Todo Date" Binding="{Binding Path=ActionDate, StringFormat={}{0:dd MMM yyyy}}" Width="100" />
-                            <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="60" />
+                            <DataGridTextColumn Header="Account" Binding="{Binding Account}" Width="70" />
+                            <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="70" />
                             <DataGridTextColumn Header="Strategy" Binding="{Binding Strategy}" Width="140" />
                             <DataGridTextColumn Header="Exit Strategy" Binding="{Binding ExitStrategy}" Width="140" />
                             <DataGridCheckBoxColumn Header="Earnings" Binding="{Binding EarningsTrade}" Width="80" />
@@ -465,7 +475,6 @@
                 </Grid>
 
             </TabItem>
-
         </TabControl>
     </Grid>
 

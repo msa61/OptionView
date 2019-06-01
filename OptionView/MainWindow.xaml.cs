@@ -26,10 +26,8 @@ namespace OptionView
     /// </summary>
     public partial class MainWindow : Window
     {
-        private int left = 10;
-        private int top = 10;
-        private bool nextColor = true;
         private Portfolio portfolio;
+        public Accounts accounts { get; set; }
         private int selectedTag = 0;
         private bool detailsDirty = false;
         private bool uiDirty = false;
@@ -40,6 +38,7 @@ namespace OptionView
         public MainWindow()
         {
             InitializeComponent();
+            accounts = new Accounts();
 
             UpdateHoldingsTiles();
             UpdateResultsGrid();
@@ -57,7 +56,7 @@ namespace OptionView
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
                 TransactionGroup grp = entry.Value;
-                Tiles.CreateTile(this, MainCanvas, (grp.Cost > 0), grp.GroupID, grp.Symbol, grp.X, grp.Y, grp.Strategy, grp.Cost.ToString("C"), 
+                Tiles.CreateTile(this, MainCanvas, (grp.Cost > 0), grp.GroupID, grp.Symbol, accounts[grp.Account].Substring(0,4), grp.X, grp.Y, grp.Strategy, grp.Cost.ToString("C"), 
                     (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
                     (grp.ActionDate > DateTime.MinValue));
             }
@@ -86,16 +85,20 @@ namespace OptionView
             }
 
             string[] filters = Config.GetProp("Filters").Split('|');
-            if (filters.Length > 2)
+            if (filters.Length > 4)
             {
                 Int32 fIdx = 0;
+                //account
                 Int32.TryParse(filters[0], out fIdx);
+                cbAccount.SelectedIndex = fIdx;
+                //date
+                Int32.TryParse(filters[1], out fIdx);
                 cbDateFilter.SelectedIndex = fIdx;
 
-                if (filters[1] == "1") chkEarningsFilter.IsChecked = true;
-                if (filters[2] == "1") chkNeutralFilter.IsChecked = true;
-                if (filters[3] == "1") chkRiskFilter.IsChecked = true;
-                if (filters[3] == "-1") chkRiskFilter.IsChecked = null;
+                if (filters[2] == "1") chkEarningsFilter.IsChecked = true;
+                if (filters[3] == "1") chkNeutralFilter.IsChecked = true;
+                if (filters[4] == "1") chkRiskFilter.IsChecked = true;
+                if (filters[4] == "-1") chkRiskFilter.IsChecked = null;
             }
 
             string grouping = Config.GetProp("Grouping");
@@ -112,6 +115,11 @@ namespace OptionView
             txtSymbol.Background = new SolidColorBrush(Color.FromArgb(0xFF, 0xAD, 0xAD, 0xAD));
             DateAction_IsEnabledChanged(dateAction, new DependencyPropertyChangedEventArgs());
 
+
+            foreach (KeyValuePair<int, string> a in accounts)
+            {
+                cbAccount.Items.Add(a.Value);
+            }
         }
 
         void MainWindow_Closing(object sender, CancelEventArgs e)
@@ -122,7 +130,8 @@ namespace OptionView
             Config.SetProp("Screen", scrnProps);
             Config.SetProp("Tab", MainTab.SelectedIndex.ToString());
 
-            string filters = cbDateFilter.SelectedIndex.ToString() + "|";
+            string filters = cbAccount.SelectedIndex.ToString() + "|";
+            filters += cbDateFilter.SelectedIndex.ToString() + "|";
             filters += (chkEarningsFilter.IsChecked.HasValue && chkEarningsFilter.IsChecked.Value ? "1|" : "0|")
                        + (chkNeutralFilter.IsChecked.HasValue && chkNeutralFilter.IsChecked.Value ? "1|" : "0|");
 
@@ -418,7 +427,7 @@ namespace OptionView
             }
         }
 
-        private void UpdateTodosGrid()
+        private void UpdateResultsGrid()
         {
             PortfolioResults results = new PortfolioResults();
             results.GetResults();
@@ -429,7 +438,7 @@ namespace OptionView
             resultsGrid.ItemsSource = lcv;
         }
 
-            private void UpdateResultsGrid()
+        private void UpdateTodosGrid()
         {
             PortfolioTodos todos = new PortfolioTodos();
             todos.GetTodos();
@@ -443,7 +452,7 @@ namespace OptionView
 
             UpdateFilterStats();
         }
-        private void CbDateFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (resultsGrid.ItemsSource != null)   // grid not initialized yet
                 FilterClick(null, new RoutedEventArgs());  
@@ -471,12 +480,16 @@ namespace OptionView
             bool ret = false;
 
             string dateTag = ((ComboBoxItem)cbDateFilter.SelectedItem).Tag.ToString();
+            int accnt = 0;
+            if (cbAccount.SelectedIndex != 0) accnt= accounts.Keys.ElementAt(cbAccount.SelectedIndex - 1);
 
             TransactionGroup t = (TransactionGroup)item;
             if (t != null)
             // If filter is turned on, filter completed items.
             {
-                if ((dateTag == "YTD") && (t.EndTime < new DateTime(DateTime.Now.Year,1,1)))
+                if ((accnt != 0) && (t.Account != accnt))
+                    ret = false;
+                else if ((dateTag == "YTD") && (t.EndTime < new DateTime(DateTime.Now.Year, 1, 1)))
                     ret = false;
                 else if ((dateTag == "90Days") && ((DateTime.Now - t.EndTime) > TimeSpan.FromDays(90)))
                     ret = false;
@@ -572,13 +585,17 @@ namespace OptionView
 
             string mode = ((ComboBoxItem)mw.cbGrouping1.SelectedItem).Tag.ToString();
 
-            if (mode == "Symbol")
+            if (mode == "Symbol") 
             {
                 //IEnumerable<object> grp = (IEnumerable<object>)value;
                 //if (grp == null)
                 //    return "";
 
                 return value.ToString();
+            }
+            else if (mode == "Account")
+            {
+                return mw.accounts[(Int32)value];
             }
             else if (mode == "EarningsTrade")
             {

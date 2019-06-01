@@ -30,6 +30,7 @@ namespace OptionView
         public DateTime EndTime { get; set; }
         public DateTime EarliestExpiration { get; set; }
         public string TransactionText { get; set; }
+        public int Account { get; set; }
 
         public Positions Holdings { get; set; }
         public Transactions Transactions { get; set; }
