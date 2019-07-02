@@ -17,9 +17,14 @@
             <Rectangle Fill="Transparent" MouseLeftButtonDown="TileMouseDown"/>
         </ControlTemplate>
 
+        <!-- Context menu for tiles -->
+        <ContextMenu x:Key="TileContextMenu" HorizontalOffset="150" >
+            <MenuItem Header="Combine" Click="CombineClick"></MenuItem>
+        </ContextMenu>
+
         <!-- Item Template -->
         <ControlTemplate x:Key="GreenTileTemplate" TargetType="{x:Type ContentControl}">
-            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100">
+            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100" ContextMenuOpening="ContextMenuValidationCheck" ContextMenu="{StaticResource TileContextMenu}">
                 <local:MoveTile Template="{StaticResource MoveThumbTemplate}" DragCompleted="TileDragCompleted" />
                 <Border BorderThickness="3">
                     <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False">
@@ -48,7 +53,7 @@
             </ControlTemplate.Triggers>
         </ControlTemplate>
         <ControlTemplate x:Key="RedTileTemplate" TargetType="{x:Type ContentControl}">
-            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100">
+            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100" ContextMenuOpening="ContextMenuValidationCheck" ContextMenu="{StaticResource TileContextMenu}">
                 <local:MoveTile Template="{StaticResource MoveThumbTemplate}" DragCompleted="TileDragCompleted" />
                 <Border BorderThickness="3" >
                     <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False" >

@@ -29,6 +29,7 @@ namespace OptionView
         private Portfolio portfolio;
         public Accounts accounts { get; set; }
         private int selectedTag = 0;
+        private int combineRequestTag = 0;
         private bool detailsDirty = false;
         private bool uiDirty = false;
 
@@ -188,7 +189,7 @@ namespace OptionView
                 {
                     ContentControl cc = (ContentControl)VisualTreeHelper.GetParent(tile.Parent);
                     int tag = 0;
-                    if (cc != null && cc.Tag.GetType() == typeof(int)) tag = (int)cc.Tag;
+                    if ((cc != null) && (cc.Tag.GetType() == typeof(int))) tag = (int)cc.Tag;
 
                     if (tag > 0)
                     {
@@ -366,7 +367,7 @@ namespace OptionView
             retval = 0;
             if (Decimal.TryParse(txtRisk.Text.Replace("$", ""), out retval)) grp.Risk = retval;
 
-            grp.UpdateTransactionGroup();
+            grp.Update();
             portfolio.GetCurrentHoldings();  //refresh
             if (uiDirty) UpdateHoldingsTiles();
 
@@ -426,6 +427,44 @@ namespace OptionView
 
             }
         }
+
+        private void CombineClick(object sender, RoutedEventArgs e)
+        {
+            Debug.WriteLine("Combine selected - tile id: " + combineRequestTag.ToString());
+
+            if (TransactionGroup.Combine(selectedTag, combineRequestTag) == 1)
+                UpdateHoldingsTiles();
+        }
+
+        private void ContextMenuValidationCheck(object sender, ContextMenuEventArgs e)
+        {
+            if (sender.GetType() == typeof(Grid))
+            {
+                Grid grid = (Grid)sender;
+                var ctrl = VisualTreeHelper.GetParent(grid);
+                if (ctrl.GetType() == typeof(ContentControl))
+                {
+                    ContentControl cc = (ContentControl)ctrl;
+
+                    int tag = 0;
+                    if ((cc != null) && (cc.Tag.GetType() == typeof(int))) tag = (int)cc.Tag;
+
+                    if (tag > 0)
+                    {
+                        Debug.WriteLine("contextmenu tile id: " + tag.ToString());
+                        combineRequestTag = tag;
+                        // don't bother showing combine menu for any of these reasons
+                        if ((combineRequestTag == selectedTag) || (portfolio[selectedTag].Symbol != portfolio[tag].Symbol) || (portfolio[selectedTag].Account != portfolio[tag].Account))
+                        {
+                            e.Handled = true;
+                        }
+                    }
+                }
+            }
+        }
+
+
+
 
         private void UpdateResultsGrid()
         {
@@ -545,7 +584,6 @@ namespace OptionView
                 }
             }
         }
-
 
     }
 

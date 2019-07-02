@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
+using System.Windows;
 
 namespace OptionView
 {
@@ -34,7 +35,7 @@ namespace OptionView
 
         public Positions Holdings { get; set; }
         public Transactions Transactions { get; set; }
-        private int shiftAmount = 0; 
+        private int shiftAmount = 0;
 
 
         public TransactionGroup()
@@ -63,7 +64,7 @@ namespace OptionView
 
 
 
-        public void UpdateTransactionGroup()
+        public void Update()
         {
             if (this.GroupID > 0)
             {
@@ -84,8 +85,34 @@ namespace OptionView
             }
         }
 
+
+        public static int Combine(int destinationGroup, int combineGroup)
+        {
+            Debug.WriteLine("Combine {0} into {1}", combineGroup, destinationGroup);
+
+            if ((destinationGroup == 0) || (combineGroup == 0))
+            {
+                MessageBox.Show("Missing ID(s). Combine failed.", "Combine Error", MessageBoxButton.OK, MessageBoxImage.Hand);
+                return 0;  // nothing happened
+            }
+
+
+            // move any transaction from group to new group
+            string sql = "UPDATE Transactions SET TransGroupID = @new WHERE TransGroupID=@grp";
+            SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+            cmdUpd.Parameters.AddWithValue("new", destinationGroup);
+            cmdUpd.Parameters.AddWithValue("grp", combineGroup);
+            int retval = cmdUpd.ExecuteNonQuery();
+
+            // no reason to keep the old group around - may change to save but with some comments appended
+            sql = "DELETE FROM TransGroup Where ID = @id";
+            cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+            cmdUpd.Parameters.AddWithValue("id", combineGroup);
+            retval = cmdUpd.ExecuteNonQuery();
+
+            return 1; // combine completed
+        }
+
     }
-
-
 
 }
