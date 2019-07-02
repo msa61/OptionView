@@ -8,6 +8,7 @@ using System.Diagnostics;
 using FileHelpers;
 using System.Data;
 using System.Data.SQLite;
+using System.Windows;
 
 namespace OptionView
 {
@@ -25,17 +26,20 @@ namespace OptionView
                 // establish connection
                 App.OpenConnection();
 
-                SaveTransactions();  // transfer transaction array to database
+                Int32 accountNum = SaveTransactions();  // transfer transaction array to database
                 UpdateNewTransactions();  // matches unassociated asignments and exercises
 
                 // save latest transaction for next upload
-                SQLiteCommand cmd = new SQLiteCommand("SELECT max(time) FROM transactions", App.ConnStr);
+                SQLiteCommand cmd = new SQLiteCommand("SELECT max(time) FROM transactions WHERE Account = @ac", App.ConnStr);
+                cmd.Parameters.AddWithValue("ac", accountNum);
                 SQLiteDataReader rdr = cmd.ExecuteReader();
-                if (rdr.Read()) Config.SetProp("LastDate", rdr[0].ToString());
+                string propName = "LastDate-" + accountNum;
+                if (rdr.Read()) Config.SetProp(propName, rdr[0].ToString());
             }
             catch (Exception ex)
             {
                 Console.WriteLine("ERROR DataLoader: " + ex.Message);
+                MessageBox.Show(ex.Message, "Load Error");
             }
         }
 
@@ -122,13 +126,30 @@ namespace OptionView
 
         // write transactions loaded from cvs into the database
         //
-        private static void SaveTransactions()
+        private static Int32 SaveTransactions()
         {
+            Int32 accountNum = 0;
             try
             {
                 SQLiteCommand cmd;
 
-                DateTime lastDate = Config.GetDateProp("LastDate");
+                if (transactions.Count() == 0) return 0;
+
+                if (transactions[0].AccountRef == "Individual...89")
+                {
+                    accountNum = 6789;
+                }
+                else if (transactions[0].AccountRef == "Roth IRA...60")
+                {
+                    accountNum = 1760;
+                }
+                else
+                {
+                    accountNum = Convert.ToInt32(transactions[0].AccountRef.Substring(transactions[0].AccountRef.Length - 2));
+                }
+
+                string propName = "LastDate-" + accountNum;
+                DateTime lastDate = Config.GetDateProp(propName);
 
                 int maxLoadID = DBUtilities.GetMax("SELECT Max(LoadGroupID) FROM transactions");
                 int newLoadID = maxLoadID + 1; 
@@ -161,7 +182,7 @@ namespace OptionView
                         cmd.Parameters.AddWithValue("fe", record.Fees);
                         cmd.Parameters.AddWithValue("am", record.Amount);
                         cmd.Parameters.AddWithValue("des", record.Description);
-                        cmd.Parameters.AddWithValue("acc", record.AccountRef);
+                        cmd.Parameters.AddWithValue("acc", accountNum);
 
                         cmd.ExecuteNonQuery();
                     }
@@ -175,7 +196,7 @@ namespace OptionView
                 Debug.WriteLine("ERROR: Save Transaction: " + ex.Message);
             }
 
-
+            return accountNum;
         }
 
 
@@ -209,14 +230,16 @@ namespace OptionView
                 // save props of controlling record
                 Int32 row = reader.GetInt32(0);
                 DateTime date = reader.GetDateTime(1);
+                Int32 account = Convert.ToInt32(reader["Account"]);
                 string symbol = reader["Symbol"].ToString();
                 string type = reader["Type"].ToString();
                 string tranType = reader["TransSubType"].ToString();
                 Int32 quantity = reader.GetInt32(2);
-                Debug.WriteLine(tranType + " found " + tranType + " -> " + symbol + ":" + type + " on " + date.ToString() + " (row:" + row + ")");
+                Debug.WriteLine(tranType + " found " + tranType + " -> " + account + "/" + symbol + ":" + type + " on " + date.ToString() + " (row:" + row + ")");
 
                 // find out how many other matching transactions might have happened on the same day as the Assignment/Exercise in question
-                SQLiteCommand cmdStk = new SQLiteCommand("SELECT Count(*) FROM transactions WHERE Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
+                SQLiteCommand cmdStk = new SQLiteCommand("SELECT Count(*) FROM transactions WHERE Account = @ac AND Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
+                cmdStk.Parameters.AddWithValue("ac", account);
                 cmdStk.Parameters.AddWithValue("sym", symbol);
                 cmdStk.Parameters.AddWithValue("tt", ((tranType == "Assignment") ^ (type == "Call")) ? "Buy" : "Sell");
                 cmdStk.Parameters.AddWithValue("tm", date);
@@ -228,7 +251,8 @@ namespace OptionView
                 if (rows == 1)
                 {
                     // retrieve the strike from the cooresponding transaction to use to find originating transaction
-                    cmdStk = new SQLiteCommand("SELECT price FROM transactions WHERE Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
+                    cmdStk = new SQLiteCommand("SELECT price FROM transactions WHERE Account = @ac AND Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
+                    cmdStk.Parameters.AddWithValue("ac", account);
                     cmdStk.Parameters.AddWithValue("sym", symbol);
                     cmdStk.Parameters.AddWithValue("tt", ((tranType == "Assignment") ^ (type == "Call")) ? "Buy" : "Sell");
                     cmdStk.Parameters.AddWithValue("tm", date);
@@ -237,10 +261,11 @@ namespace OptionView
                     stk.Read();
 
                     decimal price = stk.GetDecimal(0);
-                    Debug.WriteLine("  found a " + tranType == "Assignment" ? "Buy" : "Sell" + " for " + symbol + " price: " + price.ToString());
+                    Debug.WriteLine("  found a " + (tranType == "Assignment" ? "Buy" : "Sell") + " for " + symbol + " price: " + price.ToString());
 
                     // Find originating transaction for that strike/type in order to get the right expiration date
-                    cmdStk = new SQLiteCommand("SELECT datetime(expireDate) AS ExpireDate FROM transactions WHERE Symbol = @sym AND Type = @ty AND Strike = @st", App.ConnStr);
+                    cmdStk = new SQLiteCommand("SELECT datetime(expireDate) AS ExpireDate FROM transactions WHERE Account = @ac AND Symbol = @sym AND Type = @ty AND Strike = @st", App.ConnStr);
+                    cmdStk.Parameters.AddWithValue("ac", account);
                     cmdStk.Parameters.AddWithValue("sym", symbol);
                     cmdStk.Parameters.AddWithValue("st", price);
                     cmdStk.Parameters.AddWithValue("ty", type);
@@ -294,7 +319,7 @@ namespace OptionView
         //
         private static void MatchExpirations()
         {
-            string sql = "SELECT id, time, ExpireDate, Strike, Quantity, * FROM transactions WHERE TransSubType = 'Expiration' ORDER BY time";
+            string sql = "SELECT id, time, ExpireDate, Strike, Quantity, * FROM transactions WHERE TransGroupID is NULL AND TransSubType = 'Expiration' ORDER BY time";
             SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
             SQLiteDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -305,11 +330,13 @@ namespace OptionView
                 DateTime expDate = reader.GetDateTime(2);
                 decimal strike = reader.GetDecimal(3);
                 decimal quantity = reader.GetDecimal(4);
+                Int32 account = Convert.ToInt32(reader["Account"]);
                 string symbol = reader["Symbol"].ToString();
                 string type = reader["Type"].ToString();
 
 
-                SQLiteCommand cmdStk = new SQLiteCommand("SELECT [Buy-Sell] FROM transactions WHERE Symbol = @sym AND TransType = 'Trade' AND Type = @ty AND ExpireDate = @ex AND Strike = @st and Time < @tm AND [Open-Close] = 'Open' ORDER BY Time DESC", App.ConnStr);
+                SQLiteCommand cmdStk = new SQLiteCommand("SELECT [Buy-Sell] FROM transactions WHERE Account = @ac AND Symbol = @sym AND TransType = 'Trade' AND Type = @ty AND ExpireDate = @ex AND Strike = @st and Time < @tm AND [Open-Close] = 'Open' ORDER BY Time DESC", App.ConnStr);
+                cmdStk.Parameters.AddWithValue("ac", account);
                 cmdStk.Parameters.AddWithValue("sym", symbol);
                 cmdStk.Parameters.AddWithValue("ty", type);
                 cmdStk.Parameters.AddWithValue("ex", expDate);
@@ -344,13 +371,14 @@ namespace OptionView
         private static void UpdateTransactionGroups()
         {
             string symbol = "";
+            Int32 account = 0;
 
             try
             {
                 // establish connection
                 App.OpenConnection();
 
-                string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol != '' AND TransType != 'Money Movement' ORDER BY symbol";
+                string sql = "SELECT DISTINCT account, symbol from Transactions WHERE TransGroupID is NULL AND symbol != '' AND TransType != 'Money Movement' ORDER BY symbol";
                 //string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol = 'AMD' ORDER BY symbol";
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
                 SQLiteDataReader reader = cmd.ExecuteReader();
@@ -358,16 +386,19 @@ namespace OptionView
                 {
 
                     // save props of controlling record
+                    account = Convert.ToInt32(reader["Account"]);
                     symbol = reader["Symbol"].ToString();
-                    Debug.WriteLine("Found -> " + symbol);
+                    Debug.WriteLine("Found -> " + account + "/" + symbol);
 
+
+                    // query all of the transactions in this account, for given symbol that are either part of an open chain or not part of chain yet
                     sql = "SELECT transactions.ID AS ID, transgroup.ID as tID, datetime(Time) AS TransTime, TransType, TransGroupID, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, [Open-Close]";
                     sql += " FROM transactions";
                     sql += " LEFT JOIN transgroup ON transgroupid = transgroup.id";
-                    sql += " WHERE transactions.symbol = @sym AND (transgroup.Open = 1 OR transgroup.Open IS NULL)";
+                    sql += " WHERE transactions.account = @ac AND transactions.symbol = @sym AND (transgroup.Open = 1 OR transgroup.Open IS NULL)";
                     sql += " ORDER BY Time";
-
                     SQLiteCommand cmdTrans = new SQLiteCommand(sql, App.ConnStr);
+                    cmdTrans.Parameters.AddWithValue("ac", account);
                     cmdTrans.Parameters.AddWithValue("sym", symbol);
 
                     // 
@@ -379,7 +410,7 @@ namespace OptionView
                     {
                         int numOfRows = dt.Rows.Count;
                         string t = dt.Rows[0]["TransTime"].ToString(); // maintain sqlite date format as a string 
-                        ProcessTransactionChain(symbol, dt, t);
+                        ProcessTransactionChain(account, symbol, dt, t);
 
                         if (dt.Rows.Count == numOfRows) break;  // nothing happened, so avoid endless loop
                     }
@@ -398,16 +429,16 @@ namespace OptionView
 
         //
         // Header function for setting up recursion
-        // starts with data table of all possible transaction, symbol and a particular transaction time
+        // starts with data table of all possible transaction, account/symbol and a particular transaction time
         // chain is built from there
         //
-        private static void ProcessTransactionChain(string symbol, DataTable dt, string time)
+        private static void ProcessTransactionChain(Int32 account, string symbol, DataTable dt, string time)
         {
             Positions holdings = new Positions();
             SortedList<string, string> times = new SortedList<string, string>();
 
             // start recursion
-            ProcessTransactionGroup(symbol, dt, time, holdings, times);
+            ProcessTransactionGroup(account, symbol, dt, time, holdings, times);
             Debug.WriteLine("Chain completed");
 
 
@@ -425,8 +456,9 @@ namespace OptionView
             }
             else
             {
-                string sql = "INSERT INTO TransGroup(Symbol, Open) Values(@sym,@op)";
+                string sql = "INSERT INTO TransGroup(Account, Symbol, Open) Values(@ac,@sym,@op)";
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+                cmd.Parameters.AddWithValue("ac", account);
                 cmd.Parameters.AddWithValue("sym", symbol);
                 cmd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
                 cmd.ExecuteNonQuery();
@@ -449,7 +481,7 @@ namespace OptionView
 
 
 
-        private static void ProcessTransactionGroup(string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
+        private static void ProcessTransactionGroup(Int32 account, string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
         {
             // Collect all 'opens' for the selected time
             DataRow[] rows = dt.Select("TransTime = '" + time + "'");
@@ -567,7 +599,7 @@ namespace OptionView
             {
                 string t = times[times.Keys[i]];
                 if (Convert.ToDateTime(t) > Convert.ToDateTime(time))
-                    ProcessTransactionGroup(symbol, dt, t, holdings, times);
+                    ProcessTransactionGroup(account, symbol, dt, t, holdings, times);
             }
 
 
