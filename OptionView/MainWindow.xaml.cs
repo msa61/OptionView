@@ -413,9 +413,10 @@ namespace OptionView
         {
             string filename = "";
             Debug.WriteLine("LoadButton...");
-            OpenFileDialog opeFileDialog = new OpenFileDialog();
-            if (opeFileDialog.ShowDialog() == true)
-                filename = opeFileDialog.FileName;
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Data files (*.csv)|*.csv|All files (*.*)|*.*";
+            if (openFileDialog.ShowDialog() == true)
+                filename = openFileDialog.FileName;
 
             if (filename.Length > 0)
             {
