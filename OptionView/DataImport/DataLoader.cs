@@ -348,7 +348,7 @@ namespace OptionView
                 if (stk.Read())
                 {
                     string buySell = stk["Buy-Sell"].ToString();
-                    Debug.WriteLine("found " + buySell + " related to the " + symbol + " " + type + " " + strike.ToString() + " " + expDate.ToString("MMM-d"));
+                    Debug.WriteLine("MatchExpirations: found " + buySell + " related to the " + symbol + " " + type + " " + strike.ToString() + " " + expDate.ToString("MMM-d"));
 
                     if (buySell == "Buy")
                     {
@@ -388,14 +388,14 @@ namespace OptionView
                     // save props of controlling record
                     account = Convert.ToInt32(reader["Account"]);
                     symbol = reader["Symbol"].ToString();
-                    Debug.WriteLine("Found -> " + account + "/" + symbol);
+                    Debug.WriteLine("UpdateTransactionGroups: Found -> " + account + "/" + symbol);
 
 
                     // query all of the transactions in this account, for given symbol that are either part of an open chain or not part of chain yet
                     sql = "SELECT transactions.ID AS ID, transgroup.ID as tID, datetime(Time) AS TransTime, TransType, TransGroupID, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, [Open-Close]";
                     sql += " FROM transactions";
                     sql += " LEFT JOIN transgroup ON transgroupid = transgroup.id";
-                    sql += " WHERE transactions.account = @ac AND transactions.symbol = @sym AND (transgroup.Open = 1 OR transgroup.Open IS NULL)";
+                    sql += " WHERE transactions.account = @ac AND transactions.symbol = @sym AND (transgroup.Open = 1 OR transgroup.Open IS NULL) AND Transactions.TransType != 'Money Movement'";  // the money movement filter removes dividends
                     sql += " ORDER BY Time";
                     SQLiteCommand cmdTrans = new SQLiteCommand(sql, App.ConnStr);
                     cmdTrans.Parameters.AddWithValue("ac", account);
@@ -439,11 +439,27 @@ namespace OptionView
 
             // start recursion
             ProcessTransactionGroup(account, symbol, dt, time, holdings, times);
-            Debug.WriteLine("Chain completed");
+            Debug.WriteLine("First pass of chain completed.  Retrieving manually matched transactions...");
 
 
             // retrieve existing group id
             int groupID = holdings.GroupID();
+
+            // Collect remaining transactions that have been manually merged
+            if (groupID > 0)
+            {
+                DataRow[] remainingRows = dt.Select("TransGroupID = " + groupID.ToString());
+                while (remainingRows.Length > 0)
+                {
+                    string t = remainingRows[0]["TransTime"].ToString(); // maintain sqlite date format as a string 
+                    ProcessTransactionGroup(account, symbol, dt, t, holdings, times);
+
+                    //refresh
+                    remainingRows = dt.Select("TransGroupID = " + groupID.ToString());
+                }
+            }
+            Debug.WriteLine("Chain completed.");
+
 
             if (groupID > 0)
             {
