@@ -134,6 +134,7 @@ namespace OptionView
                 // establish connection
                 App.OpenConnection();
 
+                // step thru defined groups
                 string sql = "SELECT *, date(ActionDate) AS TodoDate FROM transgroup AS tg LEFT JOIN";
                 sql += " (SELECT transgroupid, SUM(amount) AS Cost, SUM(Fees) AS Fees, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
                 sql += " WHERE tg.Open = 0";
@@ -144,7 +145,7 @@ namespace OptionView
                 while (readerGroup.Read())
                 {
                     TransactionGroup grp = Portfolio.MapTransactionGroup(readerGroup);
-                    
+                 
 
                     // step thru open holdings
                     sql = "SELECT datetime(time) AS time, datetime(expiredate) AS ExpireDate, * FROM transactions WHERE (transgroupid = @gr) ORDER BY time";
