@@ -92,7 +92,7 @@ namespace OptionView
 
             TextBlock txtDTE = new TextBlock()
             {
-                Text = dte + " days",
+                Text = (dte.Length > 0) ? dte + " days" : "",
                 Style = (Style)window.Resources["SymbolDetailsRight"]
             };
             Canvas.SetTop(txtDTE, 68);

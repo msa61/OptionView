@@ -108,7 +108,7 @@ namespace OptionView
             foreach(KeyValuePair<string, Position> item in positions)
             {
                 Position p = item.Value;
-                if (p.ExpDate < ret) ret = p.ExpDate;
+                if ((p.ExpDate > DateTime.MinValue) && (p.ExpDate < ret)) ret = p.ExpDate;
             }
 
             return ret;

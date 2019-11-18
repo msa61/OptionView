@@ -58,7 +58,7 @@ namespace OptionView
             {
                 TransactionGroup grp = entry.Value;
                 Tiles.CreateTile(this, MainCanvas, (grp.Cost > 0), grp.GroupID, grp.Symbol, accounts[grp.Account].Substring(0,4), grp.X, grp.Y, grp.Strategy, grp.Cost.ToString("C"), 
-                    (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
+                    (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
                     (grp.ActionDate > DateTime.MinValue));
             }
         }
