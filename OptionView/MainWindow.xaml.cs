@@ -229,7 +229,10 @@ namespace OptionView
                         foreach(KeyValuePair<string, Position> item in grp.Holdings)
                         {
                             Position p = item.Value;
-                            details += String.Format("{0,2} {1} {2} {3:MMMd}", p.Quantity, p.Type.Substring(0, 1), p.Strike, p.ExpDate) + System.Environment.NewLine;
+                            if (p.Type == "Stock")
+                                details += String.Format("{0,2} {1}", p.Quantity, p.Type) + System.Environment.NewLine;
+                            else
+                                details += String.Format("{0,2} {1} {2} {3:MMMd}", p.Quantity, p.Type.Substring(0, 1), p.Strike, p.ExpDate) + System.Environment.NewLine;
                         }
                         SetTextBox(txtDetails, details, true);
 
