@@ -468,7 +468,11 @@ namespace OptionView
         }
 
 
-
+        // 
+        //
+        // code for second tab
+        // 
+        //
 
         private void UpdateResultsGrid()
         {
@@ -479,14 +483,6 @@ namespace OptionView
             lcv.Filter = ResultsFilter;
 
             resultsGrid.ItemsSource = lcv;
-        }
-
-        private void UpdateTodosGrid()
-        {
-            PortfolioTodos todos = new PortfolioTodos();
-            todos.GetTodos();
-
-            todoGrid.ItemsSource = todos;
         }
 
         private void FilterClick(object sender, RoutedEventArgs e)
@@ -589,8 +585,28 @@ namespace OptionView
             }
         }
 
+        // 
+        //
+        // code for third tab
+        // 
+        //
+
+        private void UpdateTodosGrid()
+        {
+            PortfolioTodos todos = new PortfolioTodos();
+            todos.GetTodos();
+
+            todoGrid.ItemsSource = todos;
+        }
+
     }
 
+
+    // 
+    //
+    // supporting classes for grouping headers
+    // 
+    //
 
     public class GroupTotalConverter : IValueConverter
     {
@@ -656,6 +672,33 @@ namespace OptionView
             throw new System.NotImplementedException();
         }
     }
+
+    public class PercentToBlank : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value.GetType() == typeof(decimal))
+            {
+                decimal v = (decimal)value;
+                if (v == 0)
+                {
+                    return "";
+                }
+                else
+                {
+                    return string.Format("{0:P1}", v);
+                }
+            }
+            return value;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return 0;
+        }
+    }
+
+
 
 }
 

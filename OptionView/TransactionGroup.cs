@@ -23,6 +23,8 @@ namespace OptionView
         public DateTime ActionDate { get; set; }
         public string Comments { get; set; }
         public decimal CapitalRequired { get; set; }
+        public decimal Return { get; set; }
+        public decimal AnnualReturn { get; set; }
         public bool EarningsTrade { get; set; }
         public bool NeutralStrategy { get; set; }
         public bool DefinedRisk { get; set; }

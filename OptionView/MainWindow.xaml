@@ -316,6 +316,7 @@
                         <DataGrid.Resources>
                             <local:GroupTotalConverter x:Key="GroupTotal"/>
                             <local:GroupNameConverter x:Key="GroupName"/>
+                            <local:PercentToBlank x:Key="PercentBlank"/>
                         </DataGrid.Resources>
                         <DataGrid.GroupStyle>
                             <GroupStyle>
@@ -336,6 +337,8 @@
                             <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="70" />
                             <DataGridTextColumn Header="Strategy" Binding="{Binding Strategy}" Width="140" />
                             <DataGridTextColumn Header="Profit" Binding="{Binding Path=Cost, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
+                            <DataGridTextColumn Header="Return" Binding="{Binding Path=Return, Converter={StaticResource PercentBlank}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
+                            <DataGridTextColumn Header="AnnRet" Binding="{Binding Path=AnnualReturn, Converter={StaticResource PercentBlank}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
                             <DataGridCheckBoxColumn Header="Earnings" Binding="{Binding EarningsTrade}" Width="80" />
                             <DataGridCheckBoxColumn Header="Neutral" Binding="{Binding NeutralStrategy}" Width="80" />
                             <DataGridTextColumn Header="Comments" Binding="{Binding Comments}"  />

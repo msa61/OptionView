@@ -173,6 +173,18 @@ namespace OptionView
                         if (reader["Description"] != DBNull.Value) grp.TransactionText += reader["Description"].ToString() + System.Environment.NewLine;
 
                         grp.Transactions.Add(t);
+
+
+                        // add some transaction stats
+                        if ((grp.CapitalRequired > 0) && (grp.Strategy.Substring(0, 8).ToUpper() != "CALENDAR"))
+                        {
+                            // don't bother if CapReq not defined
+                            grp.Return = grp.Cost / grp.CapitalRequired;
+
+                            // annualize it
+                            TimeSpan span = grp.EndTime - grp.StartTime;
+                            grp.AnnualReturn = grp.Return * 525600m / (decimal)span.TotalMinutes;
+                        }
                     }
 
                     this.Add(grp);
