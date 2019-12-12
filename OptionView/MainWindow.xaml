@@ -189,7 +189,7 @@
 
                                 <TextBlock Text="33" Style="{DynamicResource SymbolDetailsRight}"  Canvas.Top="68"  />
                                 <Image Height="16" Canvas.Top="68" Width="16" Source="Icons/Alarm.ico">
-                                    
+
                                 </Image>
                             </Canvas>
                         </ContentControl>
@@ -211,7 +211,7 @@
 
                     </Canvas>
 
-                    <DockPanel Grid.Column="1" Margin="4,4,4,0" >
+                    <DockPanel Grid.Column="1" Margin="4,4,4,4" >
 
                         <StackPanel >
                             <Label Content="Symbol" Margin="6,0,0,0" />
@@ -237,7 +237,7 @@
                                         SelectedDateChanged="DateAction_SelectedDateChanged" PreviewKeyDown="FieldEntryEvent" IsEnabledChanged="DateAction_IsEnabledChanged"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
-                        
+
                         <StackPanel >
                             <Label Content="Comments" Margin="6,0,0,0" />
                             <TextBox Name="txtComments" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap" Height="94" AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent"/>
@@ -310,7 +310,7 @@
 
 
                     <DataGrid Name="resultsGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" Background="#FF454545" RowBackground="#FF454545"
-                              Width="900" HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,4,0,4" HeadersVisibility="Column"
+                              HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,4,0,4" HeadersVisibility="Column"
                               VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
                               >
                         <DataGrid.Resources>
@@ -341,7 +341,7 @@
                             <DataGridTextColumn Header="AnnRet" Binding="{Binding Path=AnnualReturn, Converter={StaticResource PercentBlank}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
                             <DataGridCheckBoxColumn Header="Earnings" Binding="{Binding EarningsTrade}" Width="80" />
                             <DataGridCheckBoxColumn Header="Neutral" Binding="{Binding NeutralStrategy}" Width="80" />
-                            <DataGridTextColumn Header="Comments" Binding="{Binding Comments}"  />
+                            <DataGridTextColumn Header="Comments" Binding="{Binding Comments}" Width="140*" />
                         </DataGrid.Columns>
                         <DataGrid.RowDetailsTemplate>
                             <DataTemplate>
@@ -361,7 +361,7 @@
                         </DataGrid.RowDetailsTemplate>
 
                     </DataGrid>
-                    <DockPanel  Background="#FF454545" Margin="4,4,5,0" Grid.Column="1">
+                    <DockPanel  Background="#FF454545" Margin="4,4,5,5" Grid.Column="2">
 
                         <StackPanel Background="Black" Margin="2,4,2,0">
                             <DockPanel>
