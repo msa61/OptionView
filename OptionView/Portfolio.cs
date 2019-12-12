@@ -174,9 +174,6 @@ namespace OptionView
 
                         grp.Transactions.Add(t);
 
-                        Debug.WriteLine(grp.GroupID.ToString() + ":" + grp.Symbol + ": " + grp.Strategy);
-                        if (grp.GroupID == 329)
-                            Debug.WriteLine("stop");
                         // add some transaction stats
                         if ((grp.CapitalRequired > 0) && (grp.Strategy.SafeSubstring(0, 8).ToUpper() != "CALENDAR"))
                         {
