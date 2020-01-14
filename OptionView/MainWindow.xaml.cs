@@ -528,6 +528,8 @@ namespace OptionView
             {
                 if ((accnt != 0) && (t.Account != accnt))
                     ret = false;
+                else if ((dateTag == "LastYear") && ((t.EndTime < new DateTime(DateTime.Now.Year-1, 1, 1)) || (t.EndTime >= new DateTime(DateTime.Now.Year, 1, 1))) )
+                    ret = false;
                 else if ((dateTag == "YTD") && (t.EndTime < new DateTime(DateTime.Now.Year, 1, 1)))
                     ret = false;
                 else if ((dateTag == "90Days") && ((DateTime.Now - t.EndTime) > TimeSpan.FromDays(90)))
@@ -536,7 +538,11 @@ namespace OptionView
                     ret = false;
                 else if (this.chkEarningsFilter.IsChecked == true && !t.EarningsTrade)
                     ret = false;
+                else if (this.chkEarningsFilter.IsChecked == null && t.EarningsTrade)
+                    ret = false;
                 else if (this.chkNeutralFilter.IsChecked == true && !t.NeutralStrategy)
+                    ret = false;
+                else if (this.chkNeutralFilter.IsChecked == null && t.NeutralStrategy)
                     ret = false;
                 else if (this.chkRiskFilter.IsChecked == true && !t.DefinedRisk)
                     ret = false;
@@ -580,7 +586,7 @@ namespace OptionView
                 {
                     lcv.GroupDescriptions.Add(new PropertyGroupDescription(grpName));
                     lcv.SortDescriptions.Add(new SortDescription(grpName, ListSortDirection.Ascending));
-                    lcv.SortDescriptions.Add(new SortDescription("StartTime", ListSortDirection.Ascending));
+                    lcv.SortDescriptions.Add(new SortDescription("EndTime", ListSortDirection.Ascending));
                 }
             }
         }
@@ -643,7 +649,7 @@ namespace OptionView
 
             string mode = ((ComboBoxItem)mw.cbGrouping1.SelectedItem).Tag.ToString();
 
-            if (mode == "Symbol") 
+            if ((mode == "Symbol") || (mode == "Year"))
             {
                 //IEnumerable<object> grp = (IEnumerable<object>)value;
                 //if (grp == null)

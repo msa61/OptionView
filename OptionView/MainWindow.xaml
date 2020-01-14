@@ -338,7 +338,7 @@
                             <DataGridTextColumn Header="Strategy" Binding="{Binding Strategy}" Width="140" />
                             <DataGridTextColumn Header="Profit" Binding="{Binding Path=Cost, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
                             <DataGridTextColumn Header="Return" Binding="{Binding Path=Return, Converter={StaticResource PercentBlank}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
-                            <DataGridTextColumn Header="AnnRet" Binding="{Binding Path=AnnualReturn, Converter={StaticResource PercentBlank}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
+                            <DataGridTextColumn Header="Annual Ret" Binding="{Binding Path=AnnualReturn, Converter={StaticResource PercentBlank}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
                             <DataGridCheckBoxColumn Header="Earnings" Binding="{Binding EarningsTrade}" Width="80" />
                             <DataGridCheckBoxColumn Header="Neutral" Binding="{Binding NeutralStrategy}" Width="80" />
                             <DataGridTextColumn Header="Comments" Binding="{Binding Comments}" Width="140*" />
@@ -378,6 +378,7 @@
                         <StackPanel >
                             <ComboBox Name="cbDateFilter" Margin="6" Text="None" SelectionChanged="ComboBox_SelectionChanged" >
                                 <ComboBoxItem Content="All" Tag="All" IsSelected="True"/>
+                                <ComboBoxItem Content="Last Year" Tag="LastYear"/>
                                 <ComboBoxItem Content="Year to Date" Tag="YTD"/>
                                 <ComboBoxItem Content="Last 90 Days" Tag="90Days"/>
                                 <ComboBoxItem Content="Last 30 Days" Tag="30Days"/>
@@ -388,21 +389,21 @@
                         <StackPanel >
                             <DockPanel>
                                 <Label Content="Earnings:" Margin="6,0,6,0"  />
-                                <CheckBox Name="chkEarningsFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
+                                <CheckBox Name="chkEarningsFilter" IsThreeState="True" IsEnabled="True" ToolTip="Yes/No/All" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
                             <DockPanel>
                                 <Label Content="Neutral:" Margin="6,0,6,0"  />
-                                <CheckBox Name="chkNeutralFilter" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
+                                <CheckBox Name="chkNeutralFilter" IsThreeState="True" IsEnabled="True" ToolTip="Yes/No/All" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
                             <DockPanel>
-                                <Label Content="Defined Risk:" Margin="6,0,6,0"  />
-                                <CheckBox Name="chkRiskFilter" IsThreeState="True" IsEnabled="True" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
+                                <Label Content="Defined Risk:" Margin="6,0,6,0" />
+                                <CheckBox Name="chkRiskFilter" IsThreeState="True" IsEnabled="True" ToolTip="Yes/No/All" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
@@ -420,6 +421,7 @@
                                 <ComboBoxItem Content="By Symbol" Tag="Symbol"/>
                                 <ComboBoxItem Content="By Earnings" Tag="EarningsTrade"/>
                                 <ComboBoxItem Content="By Neutral" Tag="NeutralStrategy"/>
+                                <ComboBoxItem Content="By Year" Tag="Year"/>
                             </ComboBox>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
