@@ -31,6 +31,7 @@ namespace OptionView
         public decimal Risk { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+        public int Year { get; set; }
         public DateTime EarliestExpiration { get; set; }
         public string TransactionText { get; set; }
         public int Account { get; set; }
