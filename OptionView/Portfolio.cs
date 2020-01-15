@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data;
+using System.Data.Common;
 using System.Data.SQLite;
 using System.Diagnostics;
 
@@ -41,11 +42,15 @@ namespace OptionView
             if (reader["Risk"] != DBNull.Value) grp.Risk = Convert.ToDecimal(reader["Risk"]);
             if (reader["startTime"] != DBNull.Value) grp.StartTime = Convert.ToDateTime(reader["startTime"].ToString());
             if (reader["endTime"] != DBNull.Value) grp.EndTime = Convert.ToDateTime(reader["endTime"].ToString());
-            if (reader["Year"] != DBNull.Value) grp.Year = Convert.ToInt32(reader["Year"]);
+            if (HasColumn(reader, "Year") && (reader["Year"] != DBNull.Value)) grp.Year = Convert.ToInt32(reader["Year"]);
 
             return grp;
         }
 
+        private static bool HasColumn (DbDataReader reader, string column)
+        {
+            return (reader.GetOrdinal(column) >= 0);
+        }
 
         public void GetCurrentHoldings()
         {
