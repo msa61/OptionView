@@ -32,7 +32,11 @@ namespace OptionView
             if (reader["X"] != DBNull.Value) grp.X = Convert.ToInt32(reader["X"]);
             if (reader["Y"] != DBNull.Value) grp.Y = Convert.ToInt32(reader["Y"]);
             if (reader["Strategy"] != DBNull.Value) grp.Strategy = reader["Strategy"].ToString();
-            if (reader["ExitStrategy"] != DBNull.Value) grp.ExitStrategy = reader["ExitStrategy"].ToString();
+            // set default value when read for the first time
+            if (reader["ExitStrategy"] == DBNull.Value)
+                grp.ExitStrategy = "50% profit";
+            else
+                grp.ExitStrategy = reader["ExitStrategy"].ToString();
             if (reader["TodoDate"] != DBNull.Value) grp.ActionDate = Convert.ToDateTime(reader["TodoDate"].ToString());  // use the "formatted" version date
             if (reader["Comments"] != DBNull.Value) grp.Comments = reader["Comments"].ToString();
             if (reader["CapitalRequired"] != DBNull.Value) grp.CapitalRequired = Convert.ToDecimal(reader["CapitalRequired"]);
@@ -95,6 +99,7 @@ namespace OptionView
                     }
 
                     grp.EarliestExpiration = FindEarliestDate(grp.Holdings);
+                    if ((grp.X == 0) && (grp.Strategy.Length == 0)) grp.Strategy = GuessStrategy(grp.Holdings);
 
                     this.Add(grp.GroupID, grp);
                 }  // end of transaction group loop
@@ -118,6 +123,65 @@ namespace OptionView
             }
 
             return ret;
+        }
+
+        private string GuessStrategy(Positions positions)
+        {
+            string retval = "";
+
+            if (positions.Count == 2)
+            {
+                if (positions.ElementAt(0).Value.ExpDate != positions.ElementAt(1).Value.ExpDate)
+                {
+                    retval = "Calendar Spread";
+                }
+                else if (positions.ElementAt(0).Value.Type == positions.ElementAt(1).Value.Type)
+                {
+                    if ((positions.ElementAt(0).Value.Quantity + positions.ElementAt(1).Value.Quantity) != 0)
+                    {
+                        retval = "Ratio " + positions.ElementAt(0).Value.Type + " Spread";
+                    }
+                    else
+                    {
+                        retval = "Vertical " + positions.ElementAt(0).Value.Type + " Spread";
+                    }
+                }
+                else if (positions.ElementAt(0).Value.Strike == positions.ElementAt(1).Value.Strike)
+                {
+                    retval = "Straddle";
+                }
+                else
+                {
+                    retval = "Strangle";
+                }
+            }
+            else if (positions.Count == 4)
+            {
+                decimal sum = 0;
+                DateTime expDate = DateTime.MinValue;
+                bool dateError = false;
+
+                foreach (KeyValuePair<string, Position> item in positions)
+                {
+                    Position p = item.Value;
+                    sum += p.Quantity;
+                    if (expDate == DateTime.MinValue)
+                        expDate = p.ExpDate;  // set date first time thru
+                    else if (expDate != p.ExpDate)
+                        dateError = true;   // set flag if any dates don't match
+
+                    if (sum == 0)
+                    {
+                        if (dateError)
+                            retval = "Calendar Spread";
+                        else
+                            retval = "Iron Condor";
+                    }
+                }
+
+            }
+
+            return (retval += "?");
         }
 
     }
