@@ -122,8 +122,11 @@
         <Style BasedOn="{StaticResource DefaultCell}" TargetType="DataGridCell" x:Key="RightJustifiedCell" >
             <Setter Property="FrameworkElement.HorizontalAlignment" Value="Right"/>
         </Style>
-
-
+<!--
+        <Style TargetType="Expander">
+            <Setter Property="BorderBrush" Value="Yellow"></Setter>
+        </Style>
+-->
 
 
 
@@ -170,11 +173,12 @@
 
     <Grid d:DataContext="{d:DesignData /SampleData/PortfolioResultsSampleData.xaml}">
         <TabControl Name="MainTab" Background="Black">
+            <!-- Holdings tab -->
             <TabItem Width="150" Height="30" Header="Holdings">
                 <Grid Background="Black" >
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition x:Name="ContentCol" MinWidth="200" />
-                        <ColumnDefinition x:Name="DetailsCol" MaxWidth="200" Width="200*"/>
+                        <ColumnDefinition x:Name="ContentCol" MinWidth="350" />
+                        <ColumnDefinition x:Name="DetailsCol" MaxWidth="200" Width="200"/>
                     </Grid.ColumnDefinitions>
 
                     <Canvas x:Name="MainCanvas"  Grid.Column="0"  Background="#FF454545" MouseLeftButtonDown="CanvasMouseDown" Margin="4,4,0,4" >
@@ -301,18 +305,20 @@
                     </DockPanel>
                 </Grid>
             </TabItem>
+            
+            <!-- Returns tab -->
             <TabItem Width="150" Height="30" Header="Returns">
-                <Grid Background="Black" >
+                <Grid Background="Black" SizeChanged="ResultsGrid_SizeChanged" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition x:Name="ResultsCol" MinWidth="400" />
-                        <ColumnDefinition x:Name="ControlsCol" MaxWidth="150" Width="150*"/>
+                        <ColumnDefinition x:Name="ControlsCol" MaxWidth="150" Width="150"/>
                     </Grid.ColumnDefinitions>
 
 
                     <DataGrid Name="resultsGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" Background="#FF454545" RowBackground="#FF454545"
                               HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,4,0,4" HeadersVisibility="Column"
                               VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
-                              >
+                              Width="1000" RowDetailsVisibilityChanged="ResultsGrid_RowDetailsVisibilityChanged">
                         <DataGrid.Resources>
                             <local:GroupTotalConverter x:Key="GroupTotal"/>
                             <local:GroupNameConverter x:Key="GroupName"/>
@@ -320,14 +326,28 @@
                         </DataGrid.Resources>
                         <DataGrid.GroupStyle>
                             <GroupStyle>
-                                <GroupStyle.HeaderTemplate>
-                                    <DataTemplate>
-                                        <DockPanel Margin="10,4,12,0"  Background="Gray">
-                                            <TextBlock Text="{Binding Path=Name, Converter={StaticResource GroupName}}" VerticalAlignment="Center" Padding="6,3,4,3" Foreground="White" Width="65"/>
-                                            <TextBlock Text="{Binding Path=Items, Converter={StaticResource GroupTotal}}" FontSize="10" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left" TextAlignment="Right" Padding="4,4,4,3" Foreground="White" />
-                                        </DockPanel>
-                                    </DataTemplate>
-                                </GroupStyle.HeaderTemplate>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="{x:Type GroupItem}">
+                                        <Setter Property="Margin" Value="0,0,0,5"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type GroupItem}" >
+                                                    <Expander IsExpanded="True" Background="Gray" >
+                                                        <Expander.Header>
+                                                            <DockPanel >
+                                                                <TextBlock Text="{Binding Path=Name, Converter={StaticResource GroupName}}" VerticalAlignment="Center" Padding="6,3,4,3" Foreground="White" Width="65"/>
+                                                                <TextBlock Text="{Binding Path=Items, Converter={StaticResource GroupTotal}}" FontSize="10" Width="200" VerticalAlignment="Center" HorizontalAlignment="Left" TextAlignment="Right" Padding="4,4,4,3" Foreground="White" />
+                                                            </DockPanel>
+                                                        </Expander.Header>
+                                                        <Expander.Content>
+                                                            <ItemsPresenter />
+                                                        </Expander.Content>
+                                                    </Expander> 
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
                             </GroupStyle>
                         </DataGrid.GroupStyle>
                         <DataGrid.Columns>
@@ -361,7 +381,7 @@
                         </DataGrid.RowDetailsTemplate>
 
                     </DataGrid>
-                    <DockPanel  Background="#FF454545" Margin="4,4,5,5" Grid.Column="2">
+                    <DockPanel  Background="#FF454545" Margin="4,4,5,5" Grid.Column="1">
 
                         <StackPanel Background="Black" Margin="2,4,2,0">
                             <DockPanel>

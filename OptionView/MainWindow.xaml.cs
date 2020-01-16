@@ -605,6 +605,18 @@ namespace OptionView
             todoGrid.ItemsSource = todos;
         }
 
+        private void ResultsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            resultsGrid.Width = ((Grid)sender).ActualWidth - 156;
+        }
+
+        private void ResultsGrid_RowDetailsVisibilityChanged(object sender, DataGridRowDetailsEventArgs e)
+        {
+            if (((DataGridRowDetailsEventArgs)e).Row.DetailsVisibility == Visibility.Collapsed)
+            {
+                ((DataGrid)sender).SelectedIndex = -1;
+            }
+        }
     }
 
 
