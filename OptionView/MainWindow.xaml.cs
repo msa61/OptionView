@@ -174,10 +174,11 @@ namespace OptionView
         TileAdorner tileAdorner = null;
         private void TileMouseDown(object sender, MouseButtonEventArgs e)
         {
+            Debug.WriteLine("TileMouseDown");
             if (sender.GetType() == typeof(Rectangle))
             {
                 if (adornerLayer != null && tileAdorner != null) adornerLayer.Remove(tileAdorner);
-                
+
                 Rectangle rect = (Rectangle)sender;
                 adornerLayer = AdornerLayer.GetAdornerLayer(rect);
                 tileAdorner = new TileAdorner(rect);
@@ -194,9 +195,9 @@ namespace OptionView
                     if (tag > 0)
                     {
                         Debug.WriteLine("Group selected: " + tag.ToString());
-                        if (selectedTag != 0 && tag != selectedTag && detailsDirty)
+                        if (selectedTag != 0 && detailsDirty)
                         {
-                            Debug.WriteLine("Previous group {0} was dirty", selectedTag.ToString());
+                            Debug.WriteLine("Previous group {0} was dirty", selectedTag);
                             SaveTransactionGroupDetails(selectedTag);
                         }
 
@@ -330,6 +331,7 @@ namespace OptionView
 
         private void CanvasMouseDown(object sender, MouseButtonEventArgs e)
         {
+            Debug.WriteLine("CanvasMouseDown: " + selectedTag + ": " + detailsDirty.ToString());
             if (adornerLayer != null && tileAdorner != null) adornerLayer.Remove(tileAdorner);
             if (selectedTag != 0 && detailsDirty) SaveTransactionGroupDetails(selectedTag);
             selectedTag = 0;
@@ -372,7 +374,7 @@ namespace OptionView
 
             grp.Update();
             portfolio.GetCurrentHoldings();  //refresh
-            if (uiDirty) UpdateHoldingsTiles();
+            if (uiDirty) UpdateHoldingsTiles();   // can i only refresh one tile instead?
 
             detailsDirty = false;
             uiDirty = false;
