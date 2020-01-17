@@ -99,17 +99,15 @@ namespace OptionView
             txtDTE.HorizontalAlignment = HorizontalAlignment.Right;
             tileCanvas.Children.Add(txtDTE);
 
-            if (alarm)
+            Image img = new Image()
             {
-                Image img = new Image()
-                {
-                    Height = 16,
-                    Width = 16,
-                    Source = new BitmapImage(new Uri("pack://application:,,,/icons/alarm.ico"))
-                };
-                Canvas.SetTop(img, 68);
-                tileCanvas.Children.Add(img);
-            }
+                Height = 16,
+                Width = 16,
+                Source = new BitmapImage(new Uri("pack://application:,,,/icons/alarm.ico")),
+                Visibility = alarm ? Visibility.Visible : Visibility.Hidden
+            };
+            Canvas.SetTop(img, 68);
+            tileCanvas.Children.Add(img);
 
             Canvas.SetLeft(cc, left);
             Canvas.SetTop(cc, top);
@@ -118,6 +116,19 @@ namespace OptionView
             canvas.Children.Add(cc);
         }
 
+        public static void UpdateTile(int tag, Canvas canvas, string strategy, bool alarm)
+        {
+            foreach (ContentControl cc in canvas.Children)
+            {
+                if ((int)cc.Tag == tag)
+                {
+                    Debug.WriteLine("UpdateTile found: " + tag.ToString());
+                    UIElementCollection children = ((Canvas)cc.Content).Children;
+                    ((TextBlock)children[3]).Text = strategy;
+                    ((Image)children[6]).Visibility = alarm ? Visibility.Visible : Visibility.Hidden;
+                }
+            }
+        }
 
         public static void UpdateTilePosition(string tag, int x, int y)
         {
