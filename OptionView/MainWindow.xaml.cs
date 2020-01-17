@@ -39,14 +39,21 @@ namespace OptionView
         public MainWindow()
         {
             InitializeComponent();
+            UpdateAppVersionLabel();
             accounts = new Accounts();
 
             UpdateHoldingsTiles();
             UpdateResultsGrid();
             UpdateTodosGrid();
 
-            ResetScreen();
+            RestorePreviousSession();
         }
+
+        private void UpdateAppVersionLabel()
+        {
+            this.Title += " - " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(); 
+        }
+
 
         private void UpdateHoldingsTiles()
         {
@@ -62,9 +69,9 @@ namespace OptionView
                     (grp.ActionDate > DateTime.MinValue));
             }
         }
+        
 
-
-        private void ResetScreen()
+        private void RestorePreviousSession()
         {
             string scrnProps = Config.GetProp("Screen");
             string[] props = scrnProps.Split('|');
@@ -374,7 +381,11 @@ namespace OptionView
 
             grp.Update();
             portfolio.GetCurrentHoldings();  //refresh
-            if (uiDirty) UpdateHoldingsTiles();   // can i only refresh one tile instead?
+            if (uiDirty)
+            {
+                grp = portfolio[tag];
+                Tiles.UpdateTile(tag, MainCanvas, grp.Strategy, (grp.ActionDate > DateTime.MinValue));  // only fields that can be manually changed
+            }
 
             detailsDirty = false;
             uiDirty = false;
