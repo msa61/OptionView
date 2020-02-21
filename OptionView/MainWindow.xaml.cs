@@ -64,13 +64,17 @@ namespace OptionView
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
                 TransactionGroup grp = entry.Value;
-                Tiles.CreateTile(this, MainCanvas, (grp.Cost > 0), grp.GroupID, grp.Symbol, accounts[grp.Account].Substring(0,4), grp.X, grp.Y, grp.Strategy, grp.Cost.ToString("C"), 
+
+                // massage cost to incude per lot value as well
+                string cost = grp.Cost.ToString("C0") + grp.GetPerLotCost();
+
+                Tiles.CreateTile(this, MainCanvas, (grp.Cost > 0), grp.GroupID, grp.Symbol, accounts[grp.Account].Substring(0,4), grp.X, grp.Y, grp.Strategy, cost, 
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
                     (grp.ActionDate > DateTime.MinValue));
             }
         }
-        
 
+ 
         private void RestorePreviousSession()
         {
             string scrnProps = Config.GetProp("Screen");

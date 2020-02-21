@@ -116,6 +116,28 @@ namespace OptionView
             return 1; // combine completed
         }
 
+        public string GetPerLotCost()
+        {
+            decimal defaultAmount = 0;
+
+            foreach (KeyValuePair<string, Position> item in this.Holdings)
+            {
+                Position p = item.Value;
+                if (defaultAmount == 0)
+                {
+                    defaultAmount = Math.Abs(p.Quantity);
+                }
+                else
+                {
+                    if (Math.Abs(p.Quantity) != defaultAmount) return " *";
+                }
+            }
+
+            if (defaultAmount == 0) return " oopsie";
+            if (defaultAmount == 1) return "";
+
+            return " - " + String.Format("{0:C0}", this.Cost / defaultAmount) + "/lot";
+        }
     }
 
 }
