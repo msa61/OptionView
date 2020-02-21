@@ -392,7 +392,7 @@ namespace OptionView
 
 
                     // query all of the transactions in this account, for given symbol that are either part of an open chain or not part of chain yet
-                    sql = "SELECT transactions.ID AS ID, transgroup.ID as tID, datetime(Time) AS TransTime, TransType, TransGroupID, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, [Open-Close]";
+                    sql = "SELECT transactions.ID AS ID, transgroup.ID as tID, datetime(Time) AS TransTime, TransType, TransGroupID, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, [Open-Close], Amount";
                     sql += " FROM transactions";
                     sql += " LEFT JOIN transgroup ON transgroupid = transgroup.id";
                     sql += " WHERE transactions.account = @ac AND transactions.symbol = @sym AND (transgroup.Open = 1 OR transgroup.Open IS NULL) AND Transactions.TransType != 'Money Movement'";  // the money movement filter removes dividends
@@ -472,11 +472,18 @@ namespace OptionView
             }
             else
             {
-                string sql = "INSERT INTO TransGroup(Account, Symbol, Open) Values(@ac,@sym,@op)";
+                string sql = "INSERT INTO TransGroup(Account, Symbol, Open, Strategy, DefinedRisk, NeutralStrategy, CapitalRequired, Risk) Values(@ac,@sym,@op,@str,@dr,@ns,@cap,@rsk)";
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
                 cmd.Parameters.AddWithValue("ac", account);
                 cmd.Parameters.AddWithValue("sym", symbol);
                 cmd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
+                string strat = GuessStrategy(holdings);
+                cmd.Parameters.AddWithValue("str", strat);
+                cmd.Parameters.AddWithValue("dr", DefaultDefinedRisk(strat));
+                cmd.Parameters.AddWithValue("ns", DefaultNeutralStrategy(strat));
+                decimal capital = DefaultCapital(strat, holdings);
+                cmd.Parameters.AddWithValue("cap", capital);
+                cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, capital, holdings));
                 cmd.ExecuteNonQuery();
 
                 groupID = DBUtilities.GetMax("SELECT max(id) FROM TransGroup");
@@ -494,6 +501,124 @@ namespace OptionView
             }
 
         }
+
+        private static string GuessStrategy(Positions positions)
+        {
+            string retval = "";
+
+            if (positions.Count == 2)
+            {
+                if (positions.ElementAt(0).Value.ExpDate != positions.ElementAt(1).Value.ExpDate)
+                {
+                    retval = "Calendar Spread";
+                }
+                else if (positions.ElementAt(0).Value.Type == positions.ElementAt(1).Value.Type)
+                {
+                    if ((positions.ElementAt(0).Value.Quantity + positions.ElementAt(1).Value.Quantity) != 0)
+                    {
+                        retval = "Ratio " + positions.ElementAt(0).Value.Type + " Spread";
+                    }
+                    else
+                    {
+                        retval = "Vertical " + positions.ElementAt(0).Value.Type + " Spread";
+                    }
+                }
+                else if (positions.ElementAt(0).Value.Strike == positions.ElementAt(1).Value.Strike)
+                {
+                    retval = "Straddle";
+                }
+                else
+                {
+                    retval = "Strangle";
+                }
+            }
+            else if (positions.Count == 4)
+            {
+                decimal sum = 0;
+                DateTime expDate = DateTime.MinValue;
+                bool dateError = false;
+
+                foreach (KeyValuePair<string, Position> item in positions)
+                {
+                    Position p = item.Value;
+                    sum += p.Quantity;
+                    if (expDate == DateTime.MinValue)
+                        expDate = p.ExpDate;  // set date first time thru
+                    else if (expDate != p.ExpDate)
+                        dateError = true;   // set flag if any dates don't match
+
+                    if (sum == 0)
+                    {
+                        if (dateError)
+                            retval = "Calendar Spread";
+                        else
+                            retval = "Iron Condor";
+                    }
+                }
+
+            }
+
+            return (retval += "?");
+        }
+
+
+        private static int DefaultDefinedRisk(string strat)
+        {
+            strat = strat.Substring(0, 8);
+            if ((strat == "Iron Con") || (strat == "Vertical")) return 1;
+
+            return 0;
+        }
+
+        private static int DefaultNeutralStrategy(string strat)
+        {
+            strat = strat.Substring(0, 8);
+            if ((strat == "Iron Con") || (strat == "Straddle") || (strat == "Strangle")) return 1;
+
+            return 0;
+        }
+
+        private static decimal DefaultCapital(string strat, Positions positions)
+        {
+            strat = strat.Substring(0, 8);
+            if ((strat == "Iron Con") || (strat == "Vertical"))
+            {
+                Dictionary<string, decimal> strikeRange = new Dictionary<string, decimal> { { "Call", 0 }, { "Put", 0 } };
+
+                foreach (KeyValuePair<string, Position> item in positions)
+                {
+                    Position p = item.Value;
+                    strikeRange[p.Type] += (p.Strike * p.Quantity);
+                }
+                if (Math.Abs(strikeRange["Put"]) > Math.Abs(strikeRange["Call"]))
+                {
+                    return Math.Abs(strikeRange["Put"]) * 100;
+                }
+                else
+                {
+                    return Math.Abs(strikeRange["Call"]) * 100;
+                }
+            }
+
+            return 0;
+        }
+        private static decimal DefaultRisk(string strat, decimal capital, Positions positions)
+        {
+            strat = strat.Substring(0, 8);
+            if ((strat == "Iron Con") || (strat == "Vertical"))
+            {
+                decimal total = 0;
+                foreach (KeyValuePair<string, Position> item in positions)
+                {
+                    Position p = item.Value;
+                    total += p.Amount;
+                }
+                return (capital - total);
+            }
+
+            return 0;
+        }
+
 
 
 
@@ -514,6 +639,8 @@ namespace OptionView
                 decimal strike = 0;
                 if (r["Strike"] != DBNull.Value) strike = (decimal)r.Field<Double>("Strike");
                 Int32 quantity = (Int32)r.Field<Int64>("Quantity");
+                decimal amount = 0;
+                if (r["Amount"] != DBNull.Value) amount = (decimal)r.Field<Double>("Amount");
                 Int32 row = (Int32)r.Field<Int64>("ID");
                 string openClose = r.Field<string>("Open-Close").ToString();
                 int grpID = 0;
@@ -534,7 +661,7 @@ namespace OptionView
                     if (process)
                     {
                         // add transaction to the chain
-                        string key = holdings.Add(symbol, type, expDate, strike, quantity, row, openClose, grpID);
+                        string key = holdings.Add(symbol, type, expDate, strike, quantity, amount, row, openClose, grpID);
                         Debug.WriteLine("    Opening transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString());
 
                         // add the associated time to the hierarchy for chain
