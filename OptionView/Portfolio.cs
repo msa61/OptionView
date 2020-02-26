@@ -156,8 +156,9 @@ namespace OptionView
                 SQLiteDataReader readerGroup = cmd.ExecuteReader();
                 while (readerGroup.Read())
                 {
+                    Debug.WriteLine("GetResults/Group: " + readerGroup["ID"].ToString());
+
                     TransactionGroup grp = Portfolio.MapTransactionGroup(readerGroup);
-                 
 
                     // step thru open holdings
                     sql = "SELECT datetime(time) AS time, datetime(expiredate) AS ExpireDate, * FROM transactions WHERE (transgroupid = @gr) ORDER BY time";
@@ -167,6 +168,9 @@ namespace OptionView
                     SQLiteDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
+                        Debug.WriteLine("GetResults/Transactions: " + reader["ID"].ToString());
+                        string x = reader["ID"].ToString();
+
                         Transaction t = new Transaction();
 
                         if (reader["Time"] != DBNull.Value) t.TransTime = Convert.ToDateTime(reader["Time"].ToString());
@@ -194,7 +198,7 @@ namespace OptionView
 
                             // annualize it
                             TimeSpan span = grp.EndTime - grp.StartTime;
-                            grp.AnnualReturn = grp.Return * 525600m / (decimal)span.TotalMinutes;
+                            if (span.TotalMinutes > 0) grp.AnnualReturn = grp.Return * 525600m / (decimal)span.TotalMinutes;  // this error happens when data is corrupted and group is flagged as closed when it only has initial opening transactions
                         }
                     }
 
