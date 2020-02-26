@@ -98,13 +98,28 @@ namespace OptionView
                     if (record.InsType == "Call" || record.InsType == "Put")
                     {
                         // Find matches.
-                        string pattern = @"(\w+)\s(\d+)\s(\w+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
+                        //string pattern = @"(\w+)\s(\d+)\s(\w+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
+                        //string pattern = @"(\w+)\s(\d+)\s([a-zA-Z0-9_\/]+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
+                        string pattern = @"(\w+)\s(\d+)\s([a-zA-Z0-9_\/]+)(\s\w+)*\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
                         string[] substrings = Regex.Split(record.Description, pattern, RegexOptions.IgnoreCase);
 
-                        if (substrings.Count() != 9) Console.Write("ERROR");
-
-                        record.ExpireDate = Convert.ToDateTime(substrings[4]);
-                        record.Strike = Convert.ToDecimal(substrings[6]);
+                        int strs = substrings.Count();
+                        if (strs == 9)
+                        {
+                            // equity
+                            record.ExpireDate = Convert.ToDateTime(substrings[4]);
+                            record.Strike = Convert.ToDecimal(substrings[6]);
+                        }
+                        else if (strs == 10)
+                        {
+                            // future
+                            record.ExpireDate = Convert.ToDateTime(substrings[5]);
+                            record.Strike = Convert.ToDecimal(substrings[7]);
+                        }
+                        else
+                        {
+                            Console.WriteLine(record.Description + " failed regex parse");
+                        }
                     }
                     else
                     {
@@ -444,6 +459,7 @@ namespace OptionView
 
             // retrieve existing group id
             int groupID = holdings.GroupID();
+            Debug.WriteLine("GroupID: " + groupID.ToString());
 
             // Collect remaining transactions that have been manually merged
             if (groupID > 0)
@@ -458,49 +474,63 @@ namespace OptionView
                     remainingRows = dt.Select("TransGroupID = " + groupID.ToString());
                 }
             }
-            Debug.WriteLine("Chain completed.");
+            Debug.WriteLine("Chain completed for GroupID: " + groupID.ToString());
 
-
-            if (groupID > 0)
+            try
             {
-                // update chain status
-                string sql = "UPDATE TransGroup SET Open = @op WHERE ID=@row";
-                SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
-                cmdUpd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
-                cmdUpd.Parameters.AddWithValue("row", groupID);
-                cmdUpd.ExecuteNonQuery();
+                if (groupID > 0)
+                {
+                    // update chain status
+                    string sql = "UPDATE TransGroup SET Open = @op WHERE ID=@row";
+                    SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                    cmdUpd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
+                    cmdUpd.Parameters.AddWithValue("row", groupID);
+                    cmdUpd.ExecuteNonQuery();
+                }
+                else
+                {
+                    string sql = "INSERT INTO TransGroup(Account, Symbol, Open, Strategy, DefinedRisk, NeutralStrategy, CapitalRequired, Risk) Values(@ac,@sym,@op,@str,@dr,@ns,@cap,@rsk)";
+                    SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+                    cmd.Parameters.AddWithValue("ac", account);
+                    cmd.Parameters.AddWithValue("sym", symbol);
+                    cmd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
+                    string strat = GuessStrategy(holdings);
+                    cmd.Parameters.AddWithValue("str", strat);
+                    cmd.Parameters.AddWithValue("dr", DefaultDefinedRisk(strat));
+                    cmd.Parameters.AddWithValue("ns", DefaultNeutralStrategy(strat));
+                    decimal capital = DefaultCapital(strat, holdings);
+                    cmd.Parameters.AddWithValue("cap", capital);
+                    cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, capital, holdings));
+                    cmd.ExecuteNonQuery();
+
+                    groupID = DBUtilities.GetMax("SELECT max(id) FROM TransGroup");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                string sql = "INSERT INTO TransGroup(Account, Symbol, Open, Strategy, DefinedRisk, NeutralStrategy, CapitalRequired, Risk) Values(@ac,@sym,@op,@str,@dr,@ns,@cap,@rsk)";
-                SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
-                cmd.Parameters.AddWithValue("ac", account);
-                cmd.Parameters.AddWithValue("sym", symbol);
-                cmd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
-                string strat = GuessStrategy(holdings);
-                cmd.Parameters.AddWithValue("str", strat);
-                cmd.Parameters.AddWithValue("dr", DefaultDefinedRisk(strat));
-                cmd.Parameters.AddWithValue("ns", DefaultNeutralStrategy(strat));
-                decimal capital = DefaultCapital(strat, holdings);
-                cmd.Parameters.AddWithValue("cap", capital);
-                cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, capital, holdings));
-                cmd.ExecuteNonQuery();
-
-                groupID = DBUtilities.GetMax("SELECT max(id) FROM TransGroup");
-            }
-
-            List<int> rows = holdings.GetRowNumbers();
-            foreach (int r in rows)
-            {
-                // update all of the rows in the chain
-                string sql = "UPDATE transactions SET TransGroupID = @id WHERE ID=@row";
-                SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
-                cmdUpd.Parameters.AddWithValue("id", groupID);
-                cmdUpd.Parameters.AddWithValue("row", r);
-                cmdUpd.ExecuteNonQuery();
+                Debug.WriteLine("ProcessTransactionChain (Update/insert TransGroup): " + ex.Message + "(groupID: " + groupID.ToString() + ")");
             }
 
+
+            try
+            {
+                List<int> rows = holdings.GetRowNumbers();
+                foreach (int r in rows)
+                {
+                    // update all of the rows in the chain
+                    string sql = "UPDATE transactions SET TransGroupID = @id WHERE ID=@row";
+                    SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                    cmdUpd.Parameters.AddWithValue("id", groupID);
+                    cmdUpd.Parameters.AddWithValue("row", r);
+                    cmdUpd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("ProcessTransactionChain (Updating transactions): " + ex.Message );
+            }
         }
+
 
         private static string GuessStrategy(Positions positions)
         {
@@ -564,58 +594,66 @@ namespace OptionView
 
         private static int DefaultDefinedRisk(string strat)
         {
-            strat = strat.Substring(0, 8);
-            if ((strat == "Iron Con") || (strat == "Vertical")) return 1;
-
+            if (strat.Length >= 8)
+            {
+                strat = strat.Substring(0, 8);
+                if ((strat == "Iron Con") || (strat == "Vertical")) return 1;
+            }
             return 0;
         }
 
         private static int DefaultNeutralStrategy(string strat)
         {
-            strat = strat.Substring(0, 8);
-            if ((strat == "Iron Con") || (strat == "Straddle") || (strat == "Strangle")) return 1;
-
+            if (strat.Length >= 8)
+            {
+                strat = strat.Substring(0, 8);
+                if ((strat == "Iron Con") || (strat == "Straddle") || (strat == "Strangle")) return 1;
+            }
             return 0;
         }
 
         private static decimal DefaultCapital(string strat, Positions positions)
         {
-            strat = strat.Substring(0, 8);
-            if ((strat == "Iron Con") || (strat == "Vertical"))
+            if (strat.Length >= 8)
             {
-                Dictionary<string, decimal> strikeRange = new Dictionary<string, decimal> { { "Call", 0 }, { "Put", 0 } };
+                strat = strat.Substring(0, 8);
+                if ((strat == "Iron Con") || (strat == "Vertical"))
+                {
+                    Dictionary<string, decimal> strikeRange = new Dictionary<string, decimal> { { "Call", 0 }, { "Put", 0 } };
 
-                foreach (KeyValuePair<string, Position> item in positions)
-                {
-                    Position p = item.Value;
-                    strikeRange[p.Type] += (p.Strike * p.Quantity);
-                }
-                if (Math.Abs(strikeRange["Put"]) > Math.Abs(strikeRange["Call"]))
-                {
-                    return Math.Abs(strikeRange["Put"]) * 100;
-                }
-                else
-                {
-                    return Math.Abs(strikeRange["Call"]) * 100;
+                    foreach (KeyValuePair<string, Position> item in positions)
+                    {
+                        Position p = item.Value;
+                        strikeRange[p.Type] += (p.Strike * p.Quantity);
+                    }
+                    if (Math.Abs(strikeRange["Put"]) > Math.Abs(strikeRange["Call"]))
+                    {
+                        return Math.Abs(strikeRange["Put"]) * 100;
+                    }
+                    else
+                    {
+                        return Math.Abs(strikeRange["Call"]) * 100;
+                    }
                 }
             }
-
             return 0;
         }
         private static decimal DefaultRisk(string strat, decimal capital, Positions positions)
         {
-            strat = strat.Substring(0, 8);
-            if ((strat == "Iron Con") || (strat == "Vertical"))
+            if (strat.Length >= 8)
             {
-                decimal total = 0;
-                foreach (KeyValuePair<string, Position> item in positions)
+                strat = strat.Substring(0, 8);
+                if ((strat == "Iron Con") || (strat == "Vertical"))
                 {
-                    Position p = item.Value;
-                    total += p.Amount;
+                    decimal total = 0;
+                    foreach (KeyValuePair<string, Position> item in positions)
+                    {
+                        Position p = item.Value;
+                        total += p.Amount;
+                    }
+                    return (capital - total);
                 }
-                return (capital - total);
             }
-
             return 0;
         }
 
@@ -624,6 +662,8 @@ namespace OptionView
 
         private static void ProcessTransactionGroup(Int32 account, string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
         {
+            Debug.WriteLine("Entering ProcessTransactionGroup (" + symbol + ")");
+
             // Collect all 'opens' for the selected time
             DataRow[] rows = dt.Select("TransTime = '" + time + "'");
 
@@ -745,6 +785,7 @@ namespace OptionView
                     ProcessTransactionGroup(account, symbol, dt, t, holdings, times);
             }
 
+            Debug.WriteLine("Exiting ProcessTransactionGroup (" + symbol + ")");
 
         }
     }
