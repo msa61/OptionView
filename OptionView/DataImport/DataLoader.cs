@@ -101,6 +101,13 @@ namespace OptionView
                         //string pattern = @"(\w+)\s(\d+)\s(\w+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
                         //string pattern = @"(\w+)\s(\d+)\s([a-zA-Z0-9_\/]+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
                         string pattern = @"(\w+)\s(\d+)\s([a-zA-Z0-9_\/]+)(\s\w+)*\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
+                        // (\w+)  \s      (\d+)          \s      ([a-zA-Z0-9_\/]+) (\s\w+)*        \s      ([0-9\/]+) \s      (\w+)  \s      ([0-9\.]+) \s     \@ \s      ([0-9\.]+)
+                        // {verb} {space} {#ofContracts} {space} {symbol}          {optional word} {space} {date}     {space} {type} {space} {strike}   {space} @ {space} {strike}
+
+                        // examples
+                        // Bought 1 ROKU 03/20/20 Put 105.00 @ 8.20
+                        // Bought 1 /CLK0 LOK0 04/16/20 Put 46.00 @ 1.1
+
                         string[] substrings = Regex.Split(record.Description, pattern, RegexOptions.IgnoreCase);
 
                         int strs = substrings.Count();
