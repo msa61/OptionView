@@ -149,14 +149,14 @@ namespace OptionView
                 // step thru defined groups
                 string sql = "SELECT *, date(ActionDate) AS TodoDate FROM transgroup AS tg LEFT JOIN";
                 sql += " (SELECT transgroupid, SUM(amount) AS Cost, SUM(Fees) AS Fees, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime, STRFTIME(\"%Y\", MIN(time)) AS Year FROM transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
-                sql += " WHERE tg.Open = 0";
+                sql += " WHERE tg.Open = 0 AND Cost IS NOT NULL";
                 sql += " ORDER BY endTime";
 
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
                 SQLiteDataReader readerGroup = cmd.ExecuteReader();
                 while (readerGroup.Read())
                 {
-                    Debug.WriteLine("GetResults/Group: " + readerGroup["ID"].ToString());
+                    //Debug.WriteLine("GetResults/Group: " + readerGroup["ID"].ToString());
 
                     TransactionGroup grp = Portfolio.MapTransactionGroup(readerGroup);
 
@@ -168,7 +168,7 @@ namespace OptionView
                     SQLiteDataReader reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
-                        Debug.WriteLine("GetResults/Transactions: " + reader["ID"].ToString());
+                        //Debug.WriteLine("GetResults/Transactions: " + reader["ID"].ToString());
                         string x = reader["ID"].ToString();
 
                         Transaction t = new Transaction();
