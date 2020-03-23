@@ -336,7 +336,8 @@ namespace OptionView
             }
         }
 
-        // by default, expiration transactions do not include the cooresponding quantity
+        // by default, expiration transactions do not include the correct quantity
+        // the quantity is always positive regardless of whether a long or short is being removed
         // this function will search for originating transaction to determine quantity
         //
         private static void MatchExpirations()
