@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.Diagnostics;
+using System.Security.Cryptography;
 
 namespace OptionView
 {
@@ -73,7 +74,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-
+                Debug.WriteLine(ex.Message);
             }
 
             return ret;
@@ -84,16 +85,39 @@ namespace OptionView
             try
             {
                 string value = GetProp(prop);
-                if (value.Length > 0)  ret = Convert.ToDateTime(value);
+                if (value.Length > 0) ret = Convert.ToDateTime(value);
             }
             catch (Exception ex)
             {
-
+                Debug.WriteLine(ex.Message);
             }
 
             return ret;
         }
 
+        static byte[] entropy = { 9, 8, 7, 6, 5 };
+
+        public static bool SetEncryptedProp(string prop, string value)
+        {
+            byte[] encryptedString = ProtectedData.Protect(System.Text.Encoding.UTF8.GetBytes(value), entropy, DataProtectionScope.CurrentUser);
+            string encodedString = Convert.ToBase64String(encryptedString);
+
+            return SetProp(prop, encodedString);
+        }
+
+        public static string GetEncryptedProp(string prop)
+        {
+            string value = GetProp(prop);
+            if (value.Length > 0)
+            {
+                byte[] decodedString = Convert.FromBase64String(value);
+                byte[] decryptedString = ProtectedData.Unprotect(decodedString, entropy, DataProtectionScope.CurrentUser);
+
+                return System.Text.Encoding.UTF8.GetString(decryptedString);
+            }
+
+            return "";
+        }
     }
 }
 
