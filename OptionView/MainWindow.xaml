@@ -353,7 +353,7 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Origin. Date" Binding="{Binding Path=StartTime, StringFormat={}{0:dd MMM yyyy}}" Width="100" />
                             <DataGridTextColumn Header="End Date" Binding="{Binding Path=EndTime, StringFormat={}{0:dd MMM yyyy}}" Width="100" />
-                            <DataGridTextColumn Header="Account" Binding="{Binding Account}" Width="70" />
+                            <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" Width="70" />
                             <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="70" />
                             <DataGridTextColumn Header="Strategy" Binding="{Binding Strategy}" Width="140" />
                             <DataGridTextColumn Header="Profit" Binding="{Binding Path=Cost, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
@@ -489,7 +489,7 @@
                               >
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Todo Date" Binding="{Binding Path=ActionDate, StringFormat={}{0:dd MMM yyyy}}" Width="100" />
-                            <DataGridTextColumn Header="Account" Binding="{Binding Account}" Width="70" />
+                            <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" Width="70" />
                             <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="70" />
                             <DataGridTextColumn Header="Strategy" Binding="{Binding Strategy}" Width="140" />
                             <DataGridTextColumn Header="Exit Strategy" Binding="{Binding ExitStrategy}" Width="140" />

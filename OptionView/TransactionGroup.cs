@@ -35,6 +35,7 @@ namespace OptionView
         public DateTime EarliestExpiration { get; set; }
         public string TransactionText { get; set; }
         public string Account { get; set; }
+        public string AccountName { get; set; }
 
         public Positions Holdings { get; set; }
         public Transactions Transactions { get; set; }

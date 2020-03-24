@@ -68,7 +68,7 @@ namespace OptionView
                 // massage cost to incude per lot value as well
                 string cost = grp.Cost.ToString("C0") + grp.GetPerLotCost();
 
-                Tiles.CreateTile(this, MainCanvas, (grp.Cost > 0), grp.GroupID, grp.Symbol, accounts[grp.Account].Substring(0,4), grp.X, grp.Y, grp.Strategy, cost, 
+                Tiles.CreateTile(this, MainCanvas, (grp.Cost > 0), grp.GroupID, grp.Symbol, grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, 
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
                     (grp.ActionDate > DateTime.MinValue));
             }

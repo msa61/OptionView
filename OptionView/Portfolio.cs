@@ -25,6 +25,7 @@ namespace OptionView
             TransactionGroup grp = new TransactionGroup();
 
             grp.Account = reader["Account"].ToString();
+            grp.AccountName = reader["Name"].ToString().SafeSubstring(0, 4);
             grp.Symbol = reader["Symbol"].ToString();
             grp.GroupID = Convert.ToInt32(reader["ID"]); // readerGroup
             grp.Cost = Convert.ToDecimal(reader["Cost"]);
@@ -68,6 +69,7 @@ namespace OptionView
 
                 string sql = "SELECT *, date(ActionDate) AS TodoDate FROM transgroup AS tg LEFT JOIN";
                 sql += " (SELECT transgroupid, SUM(amount) AS Cost, SUM(Fees) AS Fees, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
+                sql += " LEFT JOIN accounts AS a ON tg.Account = a.ID";
                 sql += " WHERE tg.Open = 1";
 
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
@@ -149,6 +151,7 @@ namespace OptionView
                 // step thru defined groups
                 string sql = "SELECT *, date(ActionDate) AS TodoDate FROM transgroup AS tg LEFT JOIN";
                 sql += " (SELECT transgroupid, SUM(amount) AS Cost, SUM(Fees) AS Fees, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime, STRFTIME(\"%Y\", MIN(time)) AS Year FROM transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
+                sql += " LEFT JOIN accounts AS a ON tg.Account = a.ID";
                 sql += " WHERE tg.Open = 0 AND Cost IS NOT NULL";
                 sql += " ORDER BY endTime";
 
