@@ -24,7 +24,7 @@ namespace OptionView
         {
             TransactionGroup grp = new TransactionGroup();
 
-            grp.Account = Convert.ToInt32(reader["Account"]);
+            grp.Account = reader["Account"].ToString();
             grp.Symbol = reader["Symbol"].ToString();
             grp.GroupID = Convert.ToInt32(reader["ID"]); // readerGroup
             grp.Cost = Convert.ToDecimal(reader["Cost"]);
@@ -254,7 +254,7 @@ namespace OptionView
 
                         grp.ActionDate = todoDate;
 
-                        grp.Account = Convert.ToInt32(reader["Account"]);
+                        grp.Account = reader["Account"].ToString();
                         grp.Symbol = reader["Symbol"].ToString();
                         if (reader["Strategy"] != DBNull.Value) grp.Strategy = reader["Strategy"].ToString();
                         if (reader["ExitStrategy"] != DBNull.Value) grp.ExitStrategy = reader["ExitStrategy"].ToString();

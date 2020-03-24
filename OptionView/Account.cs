@@ -16,7 +16,7 @@ namespace OptionView
     //    public string Name { get; set; }
     //}
 
-    public class Accounts : Dictionary<int,string>
+    public class Accounts : Dictionary<string,string>
     {
         public Accounts()
         {
@@ -34,12 +34,12 @@ namespace OptionView
                 SQLiteDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    int id = 0;
+                    string id = "";
                     string name = "";
-                    if (reader["ID"] != DBNull.Value) id = Convert.ToInt32(reader["ID"]);
+                    if (reader["ID"] != DBNull.Value) id = reader["ID"].ToString();
                     if (reader["Name"] != DBNull.Value) name = reader["Name"].ToString();
 
-                    if (id > 0) this.Add(id, name);
+                    if (id.Length > 0) this.Add(id, name);
                 }
             }
             catch (Exception ex)
