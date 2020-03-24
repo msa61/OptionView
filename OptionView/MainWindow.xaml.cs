@@ -128,7 +128,7 @@ namespace OptionView
             DateAction_IsEnabledChanged(dateAction, new DependencyPropertyChangedEventArgs());
 
 
-            foreach (KeyValuePair<int, string> a in accounts)
+            foreach (KeyValuePair<string, string> a in accounts)
             {
                 cbAccount.Items.Add(a.Value);
             }
@@ -429,24 +429,19 @@ namespace OptionView
         }
 
 
-        private void LoadButton(object sender, RoutedEventArgs e)
+        private void SyncButton(object sender, RoutedEventArgs e)
         {
-            string filename = "";
-            Debug.WriteLine("LoadButton...");
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "Data files (*.csv)|*.csv|All files (*.*)|*.*";
-            if (openFileDialog.ShowDialog() == true)
-                filename = openFileDialog.FileName;
+            Debug.WriteLine("SyncButton...");
 
-            if (filename.Length > 0)
-            {
-                Debug.WriteLine("Load: " + filename);
-                DataLoader.Load(filename);
-                UpdateHoldingsTiles();
-                UpdateResultsGrid();
-                UpdateTodosGrid();
+            Cursor prev = this.Cursor;
+            this.Cursor = Cursors.Wait;
 
-            }
+            DataLoader.Load(accounts);
+            UpdateHoldingsTiles();
+            UpdateResultsGrid();
+            UpdateTodosGrid();
+
+            this.Cursor = prev;
         }
 
         private void CombineClick(object sender, RoutedEventArgs e)
@@ -536,14 +531,14 @@ namespace OptionView
             bool ret = false;
 
             string dateTag = ((ComboBoxItem)cbDateFilter.SelectedItem).Tag.ToString();
-            int accnt = 0;
-            if (cbAccount.SelectedIndex != 0) accnt= accounts.Keys.ElementAt(cbAccount.SelectedIndex - 1);
+            string accountNumber = "";
+            if (cbAccount.SelectedIndex != 0) accountNumber = accounts.Keys.ElementAt(cbAccount.SelectedIndex - 1);
 
             TransactionGroup t = (TransactionGroup)item;
             if (t != null)
             // If filter is turned on, filter completed items.
             {
-                if ((accnt != 0) && (t.Account != accnt))
+                if ((accountNumber.Length > 0) && (t.Account != accountNumber))
                     ret = false;
                 else if ((dateTag == "LastYear") && ((t.EndTime < new DateTime(DateTime.Now.Year-1, 1, 1)) || (t.EndTime >= new DateTime(DateTime.Now.Year, 1, 1))) )
                     ret = false;
@@ -688,7 +683,7 @@ namespace OptionView
             }
             else if (mode == "Account")
             {
-                return mw.accounts[(Int32)value];
+                return mw.accounts[(string)value];
             }
             else if (mode == "EarningsTrade")
             {

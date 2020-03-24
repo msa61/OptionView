@@ -14,163 +14,60 @@ namespace OptionView
 {
     public class DataLoader
     {
-        private static TransactionLoader[] transactions = null;
-
-
-        public static void Load(string filename)
+        public static void Load(Accounts accounts)
         {
             try
             {
-                transactions = ParseInputFile(filename);
-
                 // establish connection
                 App.OpenConnection();
 
-                Int32 accountNum = SaveTransactions();  // transfer transaction array to database
-                UpdateNewTransactions();  // matches unassociated asignments and exercises
+                if (TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password")))
+                {
 
-                // save latest transaction for next upload
-                SQLiteCommand cmd = new SQLiteCommand("SELECT max(time) FROM transactions WHERE Account = @ac", App.ConnStr);
-                cmd.Parameters.AddWithValue("ac", accountNum);
-                SQLiteDataReader rdr = cmd.ExecuteReader();
-                string propName = "LastDate-" + accountNum;
-                if (rdr.Read()) Config.SetProp(propName, rdr[0].ToString());
+                    foreach (KeyValuePair<string, string> a in accounts)
+                    {
+                        Debug.WriteLine(a.Key);
+
+                        // retrieve Tastyworks transactions for the past month
+                        TWTransactions transactions = TastyWorks.Transactions(a.Key, DateTime.Today.AddDays(-30), null);
+
+                        SaveTransactions(transactions);  // transfer transaction array to database
+
+                        // save latest transaction for next upload
+                        SQLiteCommand cmd = new SQLiteCommand("SELECT max(time) FROM transactions WHERE Account = @ac", App.ConnStr);
+                        cmd.Parameters.AddWithValue("ac", a.Key);
+                        SQLiteDataReader rdr = cmd.ExecuteReader();
+                        string propName = "LastDate-" + a.Key;
+                        if (rdr.Read()) Config.SetProp(propName, rdr[0].ToString());
+                    }
+
+                    UpdateNewTransactions();  // matches unassociated asignments and exercises
+
+                }
+                else
+                {
+                    MessageBox.Show("Login to TastyWorks failed", "Error");
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("ERROR DataLoader: " + ex.Message);
-                MessageBox.Show(ex.Message, "Load Error");
+                MessageBox.Show(ex.Message, "Sync Error");
             }
         }
 
-        private static TransactionLoader[] ParseInputFile(string filename)
-        {
-            FileHelperEngine<TransactionLoader> engine = new FileHelperEngine<TransactionLoader>();
-            TransactionLoader[] records = engine.ReadFile(filename);
 
-            foreach (var record in records)
-            {
-                //global changes
-                if (record.InsType == "C") record.InsType = "Call";
-                if (record.InsType == "P") record.InsType = "Put";
-                if ((record.TransactionSubcode == "Sell to Open") || (record.TransactionSubcode == "Sell to Close")) record.Quantity *= -1;
-
-
-                if (record.TransactionCode == "Receive Deliver")
-                {
-                    if (record.TransactionSubcode == "Assignment")
-                    {
-                        record.OpenClose = "Close";
-                    }
-                    else if (record.TransactionSubcode == "Exercise")
-                    {
-                        record.OpenClose = "Close";
-                        record.Quantity *= -1;
-                    }
-                    else if (record.TransactionSubcode == "Expiration")
-                    {
-                        // parse the description that is available
-                        string pattern = @"(\w+)\sof\s(\d+)\s(\w+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)";
-                        string[] substrings = Regex.Split(record.Description, pattern, RegexOptions.IgnoreCase);
-
-                        if (substrings.Count() != 8) Console.Write("ERROR");
-
-                        record.BuySell = "Expired";
-                        record.OpenClose = "Close";
-                        record.ExpireDate = Convert.ToDateTime(substrings[4]);
-                        record.Strike = Convert.ToDecimal(substrings[6]);
-                    }
-                    else
-                    {
-                        // all that's left is Sell to Open and Buy to Open
-                        record.InsType = "Stock";
-                        string[] s = record.TransactionSubcode.Split(' ');
-                        if (s.Length == 3)
-                        {
-                            record.BuySell = s[0];
-                            record.OpenClose = s[2];
-                        }
-                    }
-
-                }
-                else if (record.TransactionCode == "Trade")
-                {
-                    if (record.InsType == "Call" || record.InsType == "Put")
-                    {
-                        // Find matches.
-                        //string pattern = @"(\w+)\s(\d+)\s(\w+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
-                        //string pattern = @"(\w+)\s(\d+)\s([a-zA-Z0-9_\/]+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
-                        string pattern = @"(\w+)\s(\d+)\s([a-zA-Z0-9_\/]+)(\s\w+)*\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
-                        // (\w+)  \s      (\d+)          \s      ([a-zA-Z0-9_\/]+) (\s\w+)*        \s      ([0-9\/]+) \s      (\w+)  \s      ([0-9\.]+) \s     \@ \s      ([0-9\.]+)
-                        // {verb} {space} {#ofContracts} {space} {symbol}          {optional word} {space} {date}     {space} {type} {space} {strike}   {space} @ {space} {strike}
-
-                        // examples
-                        // Bought 1 ROKU 03/20/20 Put 105.00 @ 8.20
-                        // Bought 1 /CLK0 LOK0 04/16/20 Put 46.00 @ 1.1
-
-                        string[] substrings = Regex.Split(record.Description, pattern, RegexOptions.IgnoreCase);
-
-                        int strs = substrings.Count();
-                        if (strs == 9)
-                        {
-                            // equity
-                            record.ExpireDate = Convert.ToDateTime(substrings[4]);
-                            record.Strike = Convert.ToDecimal(substrings[6]);
-                        }
-                        else if (strs == 10)
-                        {
-                            // future
-                            record.ExpireDate = Convert.ToDateTime(substrings[5]);
-                            record.Strike = Convert.ToDecimal(substrings[7]);
-                        }
-                        else
-                        {
-                            Console.WriteLine(record.Description + " failed regex parse");
-                        }
-                    }
-                    else
-                    {
-                        // stock transaction
-                        record.InsType = "Stock";
-                    }
-
-                    if (record.TransactionSubcode.IndexOf("Buy") >= 0) record.BuySell = "Buy";
-                    if (record.TransactionSubcode.IndexOf("Sell") >= 0) record.BuySell = "Sell";
-                    if (record.TransactionSubcode.IndexOf("Close") >= 0) record.OpenClose = "Close";
-                    if (record.TransactionSubcode.IndexOf("Open") >= 0) record.OpenClose = "Open";
-
-                }
-
-            }
-
-            return records;
-        }
-
-        // write transactions loaded from cvs into the database
+        // write transactions loaded from webservice into the database
         //
-        private static Int32 SaveTransactions()
+        private static void SaveTransactions(TWTransactions transactions)
         {
-            Int32 accountNum = 0;
             try
             {
                 SQLiteCommand cmd;
 
-                if (transactions.Count() == 0) return 0;
+                if (transactions.Count() == 0) return;
 
-                if (transactions[0].AccountRef == "Individual...89")
-                {
-                    accountNum = 6789;
-                }
-                else if (transactions[0].AccountRef == "Roth IRA...60")
-                {
-                    accountNum = 1760;
-                }
-                else
-                {
-                    accountNum = Convert.ToInt32(transactions[0].AccountRef.Substring(transactions[0].AccountRef.Length - 2));
-                }
-
-                string propName = "LastDate-" + accountNum;
+                string propName = "LastDate-" + transactions[0].AccountRef;
                 DateTime lastDate = Config.GetDateProp(propName);
 
                 int maxLoadID = DBUtilities.GetMax("SELECT Max(LoadGroupID) FROM transactions");
@@ -178,21 +75,21 @@ namespace OptionView
 
                 //(new SQLiteCommand("DELETE FROM transactions WHERE 1=1", conn)).ExecuteNonQuery();
 
-                string sql = "INSERT INTO transactions(Time, LoadGroupID, TransType, TransSubType, SecID, Symbol, 'Buy-Sell', 'Open-Close', Quantity, ExpireDate, Strike, Type, Price, Fees, Amount, Description, Account)"
-                        + " Values(@tm,@lg,@tt,@tst,@sid,@sym,@buy,@op,@qu,@exp,@str,@ty,@pr,@fe,@am,@des,@acc)";
+                string sql = "INSERT INTO transactions(Time, LoadGroupID, TransType, TransSubType, TransID, Symbol, 'Buy-Sell', 'Open-Close', Quantity, ExpireDate, Strike, Type, Price, Fees, Amount, Description, Account)"
+                        + " Values(@tm,@lg,@tt,@tst,@tid,@sym,@buy,@op,@qu,@exp,@str,@ty,@pr,@fe,@am,@des,@acc)";
 
                 SQLiteTransaction sqlTransaction = App.ConnStr.BeginTransaction();
 
                 foreach (var record in transactions)
                 {
-                    if (record.Time > lastDate)
+                    if (record.Time.Trim(TimeSpan.TicksPerSecond) > lastDate)
                     {
                         cmd = new SQLiteCommand(sql, App.ConnStr);
-                        cmd.Parameters.AddWithValue("tm", record.Time);
+                        cmd.Parameters.AddWithValue("tm", record.Time.Trim(TimeSpan.TicksPerSecond));
                         cmd.Parameters.AddWithValue("lg", newLoadID);  // load group id
                         cmd.Parameters.AddWithValue("tt", record.TransactionCode);
                         cmd.Parameters.AddWithValue("tst", record.TransactionSubcode);
-                        cmd.Parameters.AddWithValue("sid", record.SecurityID);
+                        cmd.Parameters.AddWithValue("tid", record.TransID);
                         cmd.Parameters.AddWithValue("sym", record.Symbol);
                         cmd.Parameters.AddWithValue("buy", record.BuySell);
                         cmd.Parameters.AddWithValue("op", record.OpenClose);
@@ -204,7 +101,7 @@ namespace OptionView
                         cmd.Parameters.AddWithValue("fe", record.Fees);
                         cmd.Parameters.AddWithValue("am", record.Amount);
                         cmd.Parameters.AddWithValue("des", record.Description);
-                        cmd.Parameters.AddWithValue("acc", accountNum);
+                        cmd.Parameters.AddWithValue("acc", record.AccountRef);
 
                         cmd.ExecuteNonQuery();
                     }
@@ -218,8 +115,9 @@ namespace OptionView
                 Debug.WriteLine("ERROR: Save Transaction: " + ex.Message);
             }
 
-            return accountNum;
+            return;
         }
+
 
 
         private static void UpdateNewTransactions()
@@ -394,7 +292,7 @@ namespace OptionView
         private static void UpdateTransactionGroups()
         {
             string symbol = "";
-            Int32 account = 0;
+            string account = "";
 
             try
             {
@@ -409,7 +307,7 @@ namespace OptionView
                 {
 
                     // save props of controlling record
-                    account = Convert.ToInt32(reader["Account"]);
+                    account = reader["Account"].ToString();
                     symbol = reader["Symbol"].ToString();
                     Debug.WriteLine("UpdateTransactionGroups: Found -> " + account + "/" + symbol);
 
@@ -455,7 +353,7 @@ namespace OptionView
         // starts with data table of all possible transaction, account/symbol and a particular transaction time
         // chain is built from there
         //
-        private static void ProcessTransactionChain(Int32 account, string symbol, DataTable dt, string time)
+        private static void ProcessTransactionChain(string account, string symbol, DataTable dt, string time)
         {
             Positions holdings = new Positions();
             SortedList<string, string> times = new SortedList<string, string>();
@@ -668,7 +566,7 @@ namespace OptionView
 
 
 
-        private static void ProcessTransactionGroup(Int32 account, string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
+        private static void ProcessTransactionGroup(string account, string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
         {
             Debug.WriteLine("Entering ProcessTransactionGroup (" + symbol + ")");
 
@@ -797,5 +695,6 @@ namespace OptionView
 
         }
     }
+
 }
 
