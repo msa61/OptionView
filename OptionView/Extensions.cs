@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace OptionView
 {
  
-    public static class StringExtensions
+    public static class Extensions
     {
         public static string SafeSubstring(this string input, int startIndex, int length)
         {
@@ -28,5 +28,12 @@ namespace OptionView
                 }
             }
         }
+
+
+        public static DateTime Trim(this DateTime date, long ticks)
+        {
+            return new DateTime(date.Ticks - (date.Ticks % ticks), date.Kind);
+        }
+
     }
 }
