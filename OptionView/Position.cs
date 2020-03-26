@@ -104,6 +104,16 @@ namespace OptionView
         }
 
 
+        public override string ToString()
+        {
+            string ret = "";
+            foreach (KeyValuePair<string, Position> item in this)
+            {
+                ret += item.Key + " : " + item.Value.Quantity.ToString() + "\n";
+            }
+            return ret;
+        }
+
         public void DumpToDebug()
         {
             foreach (KeyValuePair<string, Position> item in this)
