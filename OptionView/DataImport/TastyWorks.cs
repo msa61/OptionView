@@ -106,8 +106,6 @@ namespace OptionView
 
     class TastyWorks
     {
-        static private string User = "";
-        static private string Password = "";
         static private string Token = "";
         static EncodedWebClient Web = null;
 
@@ -120,8 +118,7 @@ namespace OptionView
         {
             try
             {
-                User = user;
-                Password = password;
+                if (Token.Length > 0) return true;  // no need to login again
 
                 Web = new EncodedWebClient();
                 SetHeaders();
@@ -201,6 +198,7 @@ namespace OptionView
                 if (item["quantity-direction"].ToString() == "Short") inst.Quantity *= -1;
                 JToken exp = item["expires-at"];
                 inst.Market = Convert.ToDecimal(item["mark"]);
+                if (item["cost-effect"].ToString() == "Debit") inst.Market *= -1;
                 inst.OpenAmount = Convert.ToDecimal(item["average-open-price"]);
 
                 if (item["instrument-type"].ToString() == "Equity Option")
@@ -212,13 +210,20 @@ namespace OptionView
                     if (subs.Count() == 9)
                     {
                         inst.ExpDate = new DateTime(Convert.ToInt32(subs[2]) + 2000, Convert.ToInt32(subs[3]), Convert.ToInt32(subs[4]));
-                        inst.Type = subs[5];
+                        if (subs[5] == "C")
+                        {
+                            inst.Type = "Call";
+                        }
+                        else if (subs[5] == "P")
+                        {
+                            inst.Type = "Put";
+                        }
                         inst.Strike = Convert.ToDecimal(subs[6]) + Convert.ToDecimal(subs[7]) / 1000;
                     }
                 }
                 else
                 {
-                    inst.Type = "S";
+                    inst.Type = "Stock";
                 }
 
                 returnList.Add(inst);
