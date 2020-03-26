@@ -13,13 +13,15 @@ using System.Diagnostics;
 namespace OptionView
 {
 
-    public class Portfolio : Dictionary<int,TransactionGroup>
+    public class Portfolio : Dictionary<int, TransactionGroup>
     {
+        private Dictionary<string, TWPositions> twpositions = null;
+
         public Portfolio()
         {
         }
 
-                
+
         static public TransactionGroup MapTransactionGroup(SQLiteDataReader reader)
         {
             TransactionGroup grp = new TransactionGroup();
@@ -52,12 +54,12 @@ namespace OptionView
             return grp;
         }
 
-        private static bool HasColumn (DbDataReader reader, string column)
+        private static bool HasColumn(DbDataReader reader, string column)
         {
             return (reader.GetOrdinal(column) >= 0);
         }
 
-        public void GetCurrentHoldings()
+        public void GetCurrentHoldings(Accounts accounts)
         {
             try
             {
@@ -101,6 +103,7 @@ namespace OptionView
                     }
 
                     grp.EarliestExpiration = FindEarliestDate(grp.Holdings);
+                    grp.CurrentValue = DetermineCurrentValue(accounts, grp);
 
                     this.Add(grp.GroupID, grp);
                 }  // end of transaction group loop
@@ -117,7 +120,7 @@ namespace OptionView
         {
             DateTime ret = DateTime.MaxValue;
 
-            foreach(KeyValuePair<string, Position> item in positions)
+            foreach (KeyValuePair<string, Position> item in positions)
             {
                 Position p = item.Value;
                 if ((p.ExpDate > DateTime.MinValue) && (p.ExpDate < ret)) ret = p.ExpDate;
@@ -126,10 +129,53 @@ namespace OptionView
             return ret;
         }
 
+        private decimal DetermineCurrentValue(Accounts accounts, TransactionGroup grp)
+        {
+            decimal returnValue = 0;
+
+            // retrieve current data from tastyworks for this a subsequent passes
+            if (twpositions == null)
+            {
+                if (TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password")))
+                {
+                    twpositions = new Dictionary<string, TWPositions>();
+                    foreach (KeyValuePair<string, string> a in accounts)
+                    {
+                        // retrieve Tastyworks positions for given account
+                        TWPositions pos = TastyWorks.Positions(a.Key);
+                        twpositions.Add(a.Key, pos);
+                    }
+                }
+            }
+
+            foreach (KeyValuePair<string, Position> item in grp.Holdings)
+            {
+                Position pos = item.Value;
+
+                foreach (TWPosition twpos in twpositions[grp.Account])
+                {
+                    if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate))
+                    {
+                        // matching asset - regardless of quantity
+                        //Debug.WriteLine(twpos.Market);
+                        if (pos.Quantity == twpos.Quantity)
+                        {
+                            returnValue += twpos.Market;
+                            // can remove from twlist to quicken subsequent searches
+                        }
+                        else
+                        {
+                            returnValue += pos.Quantity * twpos.Market / twpos.Quantity;
+                        }
+                    }
+                }
+            }
 
 
+            Debug.WriteLine(grp.Symbol + " : " + returnValue.ToString());
+            return returnValue;
+        }
     }
-
 
     public class PortfolioResults : List<TransactionGroup>
     {

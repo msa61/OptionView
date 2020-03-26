@@ -60,7 +60,7 @@ namespace OptionView
             if (MainCanvas.Children.Count > 0) MainCanvas.Children.Clear();
 
             portfolio = new Portfolio();
-            portfolio.GetCurrentHoldings();
+            portfolio.GetCurrentHoldings(accounts);
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
                 TransactionGroup grp = entry.Value;
@@ -68,7 +68,7 @@ namespace OptionView
                 // massage cost to incude per lot value as well
                 string cost = grp.Cost.ToString("C0") + grp.GetPerLotCost();
 
-                Tiles.CreateTile(this, MainCanvas, (grp.Cost > 0), grp.GroupID, grp.Symbol, grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, 
+                Tiles.CreateTile(this, MainCanvas, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, (grp.CurrentValue + grp.Cost).ToString("C0"),
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
                     (grp.ActionDate > DateTime.MinValue));
             }
@@ -384,7 +384,7 @@ namespace OptionView
             if (Decimal.TryParse(txtRisk.Text.Replace("$", ""), out retval)) grp.Risk = retval;
 
             grp.Update();
-            portfolio.GetCurrentHoldings();  //refresh
+            portfolio.GetCurrentHoldings(accounts);  //refresh
             if (uiDirty)
             {
                 grp = portfolio[tag];
