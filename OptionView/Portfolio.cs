@@ -16,6 +16,7 @@ namespace OptionView
     public class Portfolio : Dictionary<int, TransactionGroup>
     {
         private Dictionary<string, TWPositions> twpositions = null;
+        private Accounts accounts = null;
 
         public Portfolio()
         {
@@ -59,8 +60,10 @@ namespace OptionView
             return (reader.GetOrdinal(column) >= 0);
         }
 
-        public void GetCurrentHoldings(Accounts accounts)
+        public void GetCurrentHoldings(Accounts acc)
         {
+            accounts = acc;
+
             try
             {
                 // always start with an empty list
@@ -103,7 +106,7 @@ namespace OptionView
                     }
 
                     grp.EarliestExpiration = FindEarliestDate(grp.Holdings);
-                    grp.CurrentValue = DetermineCurrentValue(accounts, grp);
+                    grp.CurrentValue = DetermineCurrentValue(grp);
 
                     this.Add(grp.GroupID, grp);
                 }  // end of transaction group loop
@@ -129,7 +132,7 @@ namespace OptionView
             return ret;
         }
 
-        private decimal DetermineCurrentValue(Accounts accounts, TransactionGroup grp)
+        private decimal DetermineCurrentValue(TransactionGroup grp)
         {
             decimal returnValue = 0;
 
@@ -172,10 +175,118 @@ namespace OptionView
             }
 
 
-            Debug.WriteLine(grp.Symbol + " : " + returnValue.ToString());
+            //Debug.WriteLine(grp.Symbol + " : " + returnValue.ToString());
+            return returnValue;
+        }
+
+
+        public string ValidateCurrentHoldings()
+        {
+            string returnValue = "";
+            Dictionary<string, TWPositions> overallPositions = null;
+
+            // always start with clean data
+            if (TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password")))
+            {
+                overallPositions = new Dictionary<string, TWPositions>();
+                foreach (KeyValuePair<string, string> a in accounts)
+                {
+                    // retrieve Tastyworks positions for given account
+                    TWPositions pos = TastyWorks.Positions(a.Key);
+                    overallPositions.Add(a.Key, pos);
+                }
+            }
+
+            foreach (KeyValuePair<string, TWPositions> item  in overallPositions)
+            {
+                // cycle thru each account
+                TWPositions accountPositions = item.Value;
+
+                // and confirm each aligns with what is in current database by
+                // iterating thru all the positions in the current account
+                int i = 0;
+                while (i < accountPositions.Count)
+                {
+                    TWPosition position = accountPositions[i];
+
+                    // iterate thru each group
+                    foreach (KeyValuePair<int, TransactionGroup> grpItem in this)
+                    {
+                        TransactionGroup grp = grpItem.Value;
+
+                        // examine closer if right account and underlying
+                        if ((item.Key == grp.Account) && (position.Symbol == grp.Symbol))
+                        {
+                            // iterate thru everthing in the group
+                            int j = 0;
+                            while ((j < grp.Holdings.Count) && (position.Quantity != 0))
+                            {
+                                Position dbpos = grp.Holdings[grp.Holdings.Keys.ElementAt(j)];
+
+                                // look for matching security
+                                if ((position.Type == dbpos.Type) && (position.Strike == dbpos.Strike) && (position.ExpDate == dbpos.ExpDate))
+                                {
+                                    position.Quantity -= dbpos.Quantity;
+                                    grp.Holdings.Remove(grp.Holdings.Keys.ElementAt(j));
+                                }
+                                else
+                                {
+                                    j++;
+                                }
+
+                            }
+                        }
+
+                    }
+
+                    if (position.Quantity == 0)
+                    {
+                        accountPositions.Remove(position);
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+
+                    //.Remove(officialPositions.Keys[i]);
+
+            }
+
+
+            // catch anything left over in database
+            foreach (KeyValuePair<int, TransactionGroup> grpItem in this)
+            {
+                TransactionGroup grp = grpItem.Value;
+
+                if (grp.Holdings.Count > 0)
+                {
+                    // something left
+                    if (returnValue.Length == 0) returnValue = "Unmatched positons in the database:\n";
+                    returnValue += grp.Holdings.ToString();
+                }
+            }
+            // add anything left from the TW query
+            foreach (KeyValuePair<string, TWPositions> positionsPair in overallPositions)
+            {
+                bool firstPass = true;
+                foreach (TWPosition pos in positionsPair.Value)
+                {
+                    if (firstPass)
+                    {
+                        firstPass = false;
+                        if (returnValue.Length > 0) returnValue += "\n";
+                        returnValue += "Unmatched from TastyWorks account:\n";
+                    }
+                    returnValue += (pos.Type == "Stock") ? pos.Symbol : pos.Symbol + pos.ExpDate.ToString("yyMMdd") + pos.Strike.ToString("0000.0") + pos.Type + " : " + pos.Quantity.ToString() + "\n";
+                }
+            }
+
+
             return returnValue;
         }
     }
+
 
     public class PortfolioResults : List<TransactionGroup>
     {

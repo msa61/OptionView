@@ -444,6 +444,24 @@ namespace OptionView
             this.Cursor = prev;
         }
 
+        private void ValidateButton(object sender, RoutedEventArgs e)
+        {
+            Debug.WriteLine("ValidateButton...");
+
+            Cursor prev = this.Cursor;
+            this.Cursor = Cursors.Wait;
+
+            portfolio = new Portfolio();
+            portfolio.GetCurrentHoldings(accounts);
+            string response = portfolio.ValidateCurrentHoldings();
+
+            this.Cursor = prev;
+
+            if (response.Length == 0) response = "Success!";
+            MessageBox.Show(response, "Validate Results");
+        }
+
+
         private void CombineClick(object sender, RoutedEventArgs e)
         {
             Debug.WriteLine("Combine selected - tile id: " + combineRequestTag.ToString());
