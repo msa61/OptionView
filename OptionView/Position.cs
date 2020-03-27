@@ -56,6 +56,7 @@ namespace OptionView
                 this.Add(key, p);
             }
 
+            p.TransType = openClose;
             if (grpID > 0) groupID = grpID;
 
             return key;
