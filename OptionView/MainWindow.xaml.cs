@@ -51,7 +51,9 @@ namespace OptionView
 
         private void UpdateAppVersionLabel()
         {
-            this.Title += " - " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(); 
+            this.Title += " - " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+            ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(Int32.MaxValue));
         }
 
 
@@ -167,6 +169,18 @@ namespace OptionView
 
             App.CloseConnection();
         }
+
+        private void TileTooltip(object sender, ToolTipEventArgs e)
+        {
+            if (sender.GetType() == typeof(Grid))
+            {
+                Grid grid = (Grid)sender;
+                ContentControl cc = (ContentControl)VisualTreeHelper.GetParent(grid);
+
+                grid.ToolTip = portfolio[Convert.ToInt32(cc.Tag)].GetHistory();
+            }
+        }
+
 
         private void TileDragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
         {
