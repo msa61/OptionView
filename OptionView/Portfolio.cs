@@ -248,9 +248,6 @@ namespace OptionView
                         i++;
                     }
                 }
-
-                    //.Remove(officialPositions.Keys[i]);
-
             }
 
 
