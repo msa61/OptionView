@@ -24,7 +24,7 @@
 
         <!-- Item Template -->
         <ControlTemplate x:Key="GreenTileTemplate" TargetType="{x:Type ContentControl}">
-            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100" ContextMenuOpening="ContextMenuValidationCheck" ContextMenu="{StaticResource TileContextMenu}">
+            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100" ContextMenuOpening="ContextMenuValidationCheck" ContextMenu="{StaticResource TileContextMenu}" ToolTip="..." ToolTipOpening="TileTooltip" >
                 <local:MoveTile Template="{StaticResource MoveThumbTemplate}" DragCompleted="TileDragCompleted" />
                 <Border BorderThickness="3">
                     <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False">
@@ -53,7 +53,7 @@
             </ControlTemplate.Triggers>
         </ControlTemplate>
         <ControlTemplate x:Key="RedTileTemplate" TargetType="{x:Type ContentControl}">
-            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100" ContextMenuOpening="ContextMenuValidationCheck" ContextMenu="{StaticResource TileContextMenu}">
+            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100" ContextMenuOpening="ContextMenuValidationCheck" ContextMenu="{StaticResource TileContextMenu}" ToolTip="..." ToolTipOpening="TileTooltip" >
                 <local:MoveTile Template="{StaticResource MoveThumbTemplate}" DragCompleted="TileDragCompleted" />
                 <Border BorderThickness="3" >
                     <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False" >

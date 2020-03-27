@@ -140,6 +140,120 @@ namespace OptionView
 
             return " - " + String.Format("{0:C0}", this.Cost / defaultAmount) + "/lot";
         }
-    }
 
+
+        public string GetHistory()
+        {
+            SortedList<DateTime, Positions> data = new SortedList<DateTime, Positions>();
+
+            // step thru open transactions
+            string sql = "SELECT datetime(time) AS Time, symbol, type, datetime(expiredate) AS ExpireDate, strike, quantity, amount, TransSubType FROM transactions";
+            sql += " WHERE (transgroupid = @gr) ORDER BY time";
+            SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+            cmd.Parameters.AddWithValue("gr", this.GroupID);
+
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                DateTime time = ((reader["Time"] != DBNull.Value) ? Convert.ToDateTime(reader["Time"].ToString()) : DateTime.MinValue);
+                if (!data.ContainsKey(time)) data.Add(time, new Positions());
+
+                Positions tr = new Positions();
+                string symbol = reader["Symbol"].ToString();
+                string type = reader["Type"].ToString();
+                DateTime expDate = DateTime.MinValue;
+                if (reader["ExpireDate"] != DBNull.Value)  expDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
+                decimal strike = 0;
+                if (reader["Strike"] != DBNull.Value)  strike = Convert.ToDecimal(reader["Strike"]);
+                decimal quantity = Convert.ToDecimal(reader["Quantity"]);
+                decimal amount = Convert.ToDecimal(reader["Amount"]);
+                string transType = reader["TransSubType"].ToString();
+
+                data[time].Add(symbol, type, expDate, strike, quantity, amount, 0, transType, 0);
+            }
+
+            string returnValue = "";
+            foreach (KeyValuePair<DateTime,Positions> key in data)
+            {
+                Positions positions = key.Value;
+                decimal total = SumAmounts(positions);
+
+                returnValue += String.Format("{0}   {1} for {2:C0}\n", key.Key.ToString(), GetDescription(positions), total);
+                foreach (KeyValuePair<string, Position> pkey in positions)
+                {
+                    Position pos = pkey.Value;
+                    string code = "";
+                    switch (pos.TransType)
+                    {
+                        case "Buy to Open":
+                            code = "BTO";
+                            break;
+                        case "Buy to Close":
+                            code = "BTC";
+                            break;
+                        case "Sell to Open":
+                            code = "STO";
+                            break;
+                        case "Sell to Close":
+                            code = "STC";
+                            break;
+
+                    }
+                    if (pos.Type == "Stock")
+                    {
+                        returnValue += String.Format("   {0,2} {1} {2}\n", pos.Quantity, pos.Type, code);
+                    }
+                    else
+                    {
+                        returnValue += String.Format("   {0,2} {1} {2} {3:MMMd} {4}\n", pos.Quantity, pos.Type, pos.Strike, pos.ExpDate, code);
+                    }
+                }
+            }
+
+            return returnValue;
+        }
+
+        private decimal SumAmounts (Positions positions)
+        {
+            decimal returnValue = 0;
+            foreach (KeyValuePair<string,Position> key in positions)
+            {
+                Position pos = key.Value;
+                returnValue += pos.Amount;
+            }
+
+            return returnValue;
+        }
+
+        private string GetDescription(Positions positions)
+        {
+            string returnValue = "Adjusted";
+            int openCount = 0;
+            int closeCount = 0;
+            bool diffExpire = false;
+            DateTime expDate = DateTime.MinValue;
+
+            foreach (KeyValuePair<string, Position> key in positions)
+            {
+                Position pos = key.Value;
+                if (expDate == DateTime.MinValue) expDate = pos.ExpDate;
+
+                if (expDate != pos.ExpDate) diffExpire = true;
+                if (pos.TransType.IndexOf("Open") >= 0) openCount++;
+                if (pos.TransType.IndexOf("Close") >= 0) closeCount++;
+            }
+
+            if (closeCount == 0)
+                returnValue = "Open";
+            else if (openCount == 0)
+                returnValue = "Close";
+            else if (diffExpire)
+                returnValue = "Rolled Out";
+            else if (!diffExpire)
+                returnValue = "Rolled";
+            return returnValue;
+        }
+
+
+    }
 }

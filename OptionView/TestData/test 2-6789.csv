@@ -1,0 +1,15 @@
+Date/Time,Transaction Code,Transaction Subcode,Security ID,Symbol,Buy/Sell,Open/Close,Quantity,Expiration Date,Strike,Call/Put,Price,Fees,Amount,Description,Account Reference
+4/5/2019 15:00,Receive Deliver,Expiration,,BA,,,1,,,C,,,0,Removal of 1 BA 04/05/19 Call 450.00 due to expiration.,Individual...6789
+5/17/2019 15:00,Receive Deliver,Expiration,,BA,,,1,,,C,,,0,Removal of 1 BA 05/17/19 Call 450.00 due to expiration.,Individual...6789
+5/3/2019 16:00,Receive Deliver,Assignment,,GOOG,,,1,,,P,,,0,Removal of option due to assignment,Individual...6789
+5/3/2019 16:00,Receive Deliver,Buy to Close,,GOOG,,,100,,,,1235,5,-123500,Buy to Close 100 GOOG @ 1235.00,Individual...6789
+5/3/2019 16:00,Receive Deliver,Exercise,,GOOG,,,1,,,P,,,0,Removal of option due to exercise,Individual...6789
+5/3/2019 16:00,Receive Deliver,Sell to Open,,GOOG,,,100,,,,1225,7.552,122500,Sell to Open 100 GOOG @ 1225.00,Individual...6789
+5/3/2019 15:00,Receive Deliver,Expiration,,GOOG,,,1,,,C,,,0,Removal of 1 GOOG 05/03/19 Call 1330.00 due to expiration.,Individual...6789
+5/3/2019 15:00,Receive Deliver,Expiration,,GOOG,,,1,,,C,,,0,Removal of 1 GOOG 05/03/19 Call 1340.00 due to expiration.,Individual...6789
+5/17/2019 12:37,Trade,Sell to Open,,AMD,,,2,,,P,1.6,2.294,320,Sold 2 AMD 06/21/19 Put 28.00 @ 1.60,Individual...6789
+5/17/2019 12:37,Trade,Buy to Close,,AMD,,,2,,,P,0.52,0.28,-104,Bought 2 AMD 06/21/19 Put 25.00 @ 0.52,Individual...6789
+5/13/2019 9:26,Trade,Sell to Open,,AMD,,,2,,,C,1.23,2.294,246,Sold 2 AMD 06/21/19 Call 28.00 @ 1.23,Individual...6789
+5/13/2019 9:26,Trade,Buy to Close,,AMD,,,2,,,C,0.47,0.28,-94,Bought 2 AMD 06/21/19 Call 31.00 @ 0.47,Individual...6789
+5/31/2019 11:53,Trade,Buy to Close,,AMD,,,2,,,P,1.4,0.28,-280,Bought 2 AMD 06/21/19 Put 28.00 @ 1.40,Individual...6789
+5/31/2019 11:53,Trade,Buy to Close,,AMD,,,2,,,C,1.42,0.28,-284,Bought 2 AMD 06/21/19 Call 28.00 @ 1.42,Individual...6789

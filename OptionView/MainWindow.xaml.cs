@@ -39,7 +39,7 @@ namespace OptionView
         public MainWindow()
         {
             InitializeComponent();
-            UpdateAppVersionLabel();
+            InitializeApp();
             accounts = new Accounts();
 
             UpdateHoldingsTiles();
@@ -49,7 +49,7 @@ namespace OptionView
             RestorePreviousSession();
         }
 
-        private void UpdateAppVersionLabel()
+        private void InitializeApp()
         {
             this.Title += " - " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 

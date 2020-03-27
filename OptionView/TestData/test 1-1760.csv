@@ -1,0 +1,13 @@
+Date/Time,Transaction Code,Transaction Subcode,Security ID,Symbol,Buy/Sell,Open/Close,Quantity,Expiration Date,Strike,Call/Put,Price,Fees,Amount,Description,Account Reference
+3/1/2019 14:04,Trade,Sell to Open,,BA,,,1,,,C,10.36,1.162,1036,Sold 1 BA 04/05/19 Call 450.00 @ 10.36,Roth IRA...1760
+3/1/2019 14:04,Trade,Buy to Open,,BA,,,1,,,C,18.3,1.14,-1830,Bought 1 BA 05/17/19 Call 450.00 @ 18.30,Roth IRA...1760
+3/2/2019 13:02,Trade,Sell to Open,,GOOG,,,1,,,C,4.59,1.152,459,Sold 1 GOOG 05/03/19 Call 1330.00 @ 4.59,Roth IRA...1760
+3/2/2019 13:02,Trade,Sell to Open,,GOOG,,,1,,,P,6.03,1.162,603,Sold 1 GOOG 05/03/19 Put 1235.00 @ 6.03,Roth IRA...1760
+3/2/2019 13:02,Trade,Buy to Open,,GOOG,,,1,,,C,3.06,1.14,-306,Bought 1 GOOG 05/03/19 Call 1340.00 @ 3.06,Roth IRA...1760
+3/2/2019 13:02,Trade,Buy to Open,,GOOG,,,1,,,P,4.36,1.14,-436,Bought 1 GOOG 05/03/19 Put 1225.00 @ 4.36,Roth IRA...1760
+3/1/2019 13:59,Trade,Sell to Open,,AMD,,,2,,,C,0.53,2.294,106,Sold 2 AMD 06/21/19 Call 32.00 @ 0.53,Roth IRA...1760
+3/1/2019 13:59,Trade,Sell to Open,,AMD,,,2,,,P,0.5,2.294,100,Sold 2 AMD 06/21/19 Put 24.00 @ 0.50,Roth IRA...1760
+3/3/2019 14:16,Trade,Sell to Open,,AMD,,,2,,,P,0.61,2.294,122,Sold 2 AMD 06/21/19 Put 25.00 @ 0.61,Roth IRA...1760
+3/3/2019 14:16,Trade,Buy to Close,,AMD,,,2,,,P,0.41,0.28,-82,Bought 2 AMD 06/21/19 Put 24.00 @ 0.41,Roth IRA...1760
+3/6/2019 9:29,Trade,Buy to Close,,AMD,,,2,,,C,0.52,0.28,-104,Bought 2 AMD 06/21/19 Call 32.00 @ 0.52,Roth IRA...1760
+3/6/2019 9:29,Trade,Sell to Open,,AMD,,,2,,,C,0.7,2.294,140,Sold 2 AMD 06/21/19 Call 31.00 @ 0.70,Roth IRA...1760
