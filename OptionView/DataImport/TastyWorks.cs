@@ -108,6 +108,7 @@ namespace OptionView
     {
         static private string Token = "";
         static EncodedWebClient Web = null;
+        static bool alreadyFailedOnce = false;
 
         public TastyWorks()
         {
@@ -118,6 +119,7 @@ namespace OptionView
         {
             try
             {
+                if (alreadyFailedOnce) return false;
                 if (Token.Length > 0) return true;  // no need to login again
 
                 Web = new EncodedWebClient();
@@ -133,6 +135,7 @@ namespace OptionView
             catch (Exception e)
             {
                 Debug.WriteLine(e.ToString());
+                alreadyFailedOnce = true;
             }
             return false;
         }
