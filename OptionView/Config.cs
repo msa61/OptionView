@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.Security.Cryptography;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace OptionView
 {
@@ -49,7 +51,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("ERROR SetProp: " + ex.Message);
+                Console.WriteLine("ERROR SetProp: " + ex.Message);
             }
             return ret;
         }
@@ -74,7 +76,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                Console.WriteLine(ex.Message);
             }
 
             return ret;
@@ -95,12 +97,28 @@ namespace OptionView
             return ret;
         }
 
-        static byte[] entropy = { 9, 8, 7, 6, 5 };
-
         public static bool SetEncryptedProp(string prop, string value)
         {
-            byte[] encryptedString = ProtectedData.Protect(System.Text.Encoding.UTF8.GetBytes(value), entropy, DataProtectionScope.CurrentUser);
-            string encodedString = Convert.ToBase64String(encryptedString);
+            string encodedString = "";
+
+            AesManaged aes = new AesManaged();
+            ICryptoTransform encryptor = aes.CreateEncryptor();
+
+            // Create the streams used for encryption.
+            using (MemoryStream msEncrypt = new MemoryStream())
+            {
+                using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                {
+                    using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                    {
+                        //Write all data to the stream.
+                        swEncrypt.Write(value);
+                    }
+                    encodedString = Convert.ToBase64String(msEncrypt.ToArray());
+                }
+            }
+
+            encodedString += "-" + Convert.ToBase64String(aes.Key) + "-" + Convert.ToBase64String(aes.IV);
 
             return SetProp(prop, encodedString);
         }
@@ -110,10 +128,32 @@ namespace OptionView
             string value = GetProp(prop);
             if (value.Length > 0)
             {
-                byte[] decodedString = Convert.FromBase64String(value);
-                byte[] decryptedString = ProtectedData.Unprotect(decodedString, entropy, DataProtectionScope.CurrentUser);
+                string pattern = @"(.+)\-(.+)\-(.+)";
+                string[] subs = Regex.Split(value, pattern);
 
-                return System.Text.Encoding.UTF8.GetString(decryptedString);
+                byte[] decodedString = Convert.FromBase64String(subs[1]);
+                byte[] key = Convert.FromBase64String(subs[2]);
+                byte[] iv = Convert.FromBase64String(subs[3]);
+
+                AesManaged aes = new AesManaged();
+
+                // Create a decryptor to perform the stream transform.
+                ICryptoTransform decryptor = aes.CreateDecryptor(key, iv);
+
+                // Create the streams used for decryption.
+                using (MemoryStream msDecrypt = new MemoryStream(decodedString))
+                {
+                    using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                        {
+
+                            // Read the decrypted bytes from the decrypting stream
+                            // and place them in a string.
+                            return srDecrypt.ReadToEnd();
+                        }
+                    }
+                }
             }
 
             return "";
