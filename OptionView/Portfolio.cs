@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
 using System.Diagnostics;
+using System.Windows;
 
 
 namespace OptionView
@@ -114,7 +115,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("CurrentHoldings: " + ex.Message);
+                Console.WriteLine("CurrentHoldings: " + ex.Message);
             }
 
         }
@@ -136,44 +137,53 @@ namespace OptionView
         {
             decimal returnValue = 0;
 
-            // retrieve current data from tastyworks for this a subsequent passes
-            if (twpositions == null)
+            try
             {
-                if (TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password")))
+                // retrieve current data from tastyworks for this a subsequent passes
+                if (twpositions == null)
                 {
-                    twpositions = new Dictionary<string, TWPositions>();
-                    foreach (KeyValuePair<string, string> a in accounts)
+                    if (TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password")))
                     {
-                        // retrieve Tastyworks positions for given account
-                        TWPositions pos = TastyWorks.Positions(a.Key);
-                        twpositions.Add(a.Key, pos);
-                    }
-                }
-            }
-
-            foreach (KeyValuePair<string, Position> item in grp.Holdings)
-            {
-                Position pos = item.Value;
-
-                foreach (TWPosition twpos in twpositions[grp.Account])
-                {
-                    if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate))
-                    {
-                        // matching asset - regardless of quantity
-                        //Debug.WriteLine(twpos.Market);
-                        if (pos.Quantity == twpos.Quantity)
+                        twpositions = new Dictionary<string, TWPositions>();
+                        foreach (KeyValuePair<string, string> a in accounts)
                         {
-                            returnValue += twpos.Market;
-                            // can remove from twlist to quicken subsequent searches
-                        }
-                        else
-                        {
-                            returnValue += pos.Quantity * twpos.Market / twpos.Quantity;
+                            // retrieve Tastyworks positions for given account
+                            TWPositions pos = TastyWorks.Positions(a.Key);
+                            twpositions.Add(a.Key, pos);
                         }
                     }
                 }
-            }
 
+                if ((twpositions != null) && (twpositions.Count > 0))
+                {
+                    foreach (KeyValuePair<string, Position> item in grp.Holdings)
+                    {
+                        Position pos = item.Value;
+
+                        foreach (TWPosition twpos in twpositions[grp.Account])
+                        {
+                            if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate))
+                            {
+                                // matching asset - regardless of quantity
+                                //Debug.WriteLine(twpos.Market);
+                                if (pos.Quantity == twpos.Quantity)
+                                {
+                                    returnValue += twpos.Market;
+                                    // can remove from twlist to quicken subsequent searches
+                                }
+                                else
+                                {
+                                    returnValue += pos.Quantity * twpos.Market / twpos.Quantity;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("DetermineCurrentValue: " + ex.Message);
+            }
 
             //Debug.WriteLine(grp.Symbol + " : " + returnValue.ToString());
             return returnValue;
