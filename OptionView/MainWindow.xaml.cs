@@ -475,6 +475,12 @@ namespace OptionView
             MessageBox.Show(response, "Validate Results");
         }
 
+        private void ConfigButton(object sender, RoutedEventArgs e)
+        {
+            Window cfg = new Login();
+            cfg.Show();
+        }
+
 
         private void CombineClick(object sender, RoutedEventArgs e)
         {

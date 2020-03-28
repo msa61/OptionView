@@ -85,6 +85,9 @@
     <Compile Include="DataImport\DataLoader.cs" />
     <Compile Include="DBUtilities.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Login.xaml.cs">
+      <DependentUpon>Login.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MoveTile.cs" />
     <Compile Include="Portfolio.cs" />
     <Compile Include="Position.cs" />
@@ -99,6 +102,10 @@
     <Compile Include="Transaction.cs" />
     <Compile Include="TransactionGroup.cs" />
     <Compile Include="UIHelper.cs" />
+    <Page Include="Login.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

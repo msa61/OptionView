@@ -167,8 +167,6 @@
             </StackPanel>
         </ControlTemplate>
 
-
-
     </Window.Resources>
 
     <Grid d:DataContext="{d:DesignData /SampleData/PortfolioResultsSampleData.xaml}">
@@ -300,8 +298,9 @@
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Height="30" Background="Black"  >
-                            <Button x:Name="Sync" HorizontalAlignment="Left" Width="90" Content="Sync"  Click="SyncButton" />
-                            <Button x:Name="Validate" HorizontalAlignment="Left" Width="90" Content="Validate" Margin="11,0,0,0" Click="ValidateButton" />
+                            <Button x:Name="Sync" HorizontalAlignment="Left" Width="59" Content="Sync"  Click="SyncButton" />
+                            <Button x:Name="Validate" HorizontalAlignment="Left" Width="59" Content="Validate" Margin="6,0,0,0" Click="ValidateButton" />
+                            <Button  HorizontalAlignment="Left" Width="59" Content="Config" Margin="6,0,0,0" Click="ConfigButton" />
                         </StackPanel>
                     </DockPanel>
                 </Grid>
