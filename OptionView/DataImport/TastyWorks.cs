@@ -199,7 +199,7 @@ namespace OptionView
                 inst.Symbol = item["underlying-symbol"].ToString();
                 inst.Quantity = Convert.ToDecimal(item["quantity"]);
                 if (item["quantity-direction"].ToString() == "Short") inst.Quantity *= -1;
-                JToken exp = item["expires-at"];
+                DateTime exp = Convert.ToDateTime(item["expires-at"]).Trim(TimeSpan.TicksPerDay);
                 inst.Market = Convert.ToDecimal(item["mark"]);
                 if (item["cost-effect"].ToString() == "Debit") inst.Market *= -1;
                 inst.OpenAmount = Convert.ToDecimal(item["average-open-price"]);
@@ -212,7 +212,7 @@ namespace OptionView
                     string[] subs = Regex.Split(symbol, pattern);
                     if (subs.Count() == 9)
                     {
-                        inst.ExpDate = new DateTime(Convert.ToInt32(subs[2]) + 2000, Convert.ToInt32(subs[3]), Convert.ToInt32(subs[4]));
+                        inst.ExpDate = exp;
                         if (subs[5] == "C")
                         {
                             inst.Type = "Call";
@@ -222,6 +222,26 @@ namespace OptionView
                             inst.Type = "Put";
                         }
                         inst.Strike = Convert.ToDecimal(subs[6]) + Convert.ToDecimal(subs[7]) / 1000;
+                    }
+                }
+                else if (item["instrument-type"].ToString() == "Future Option")
+                {
+                    string symbol = item["symbol"].ToString();
+                    //  ./CLM0 LOM0  200514P15
+                    string pattern = @"(.+)\s+(.+)\s+(\d{2})(\d{2})(\d{2})(.)(\d{1,5})";
+                    string[] subs = Regex.Split(symbol, pattern);
+                    if (subs.Count() == 9)
+                    {
+                        inst.ExpDate = exp;
+                        if (subs[6] == "C")
+                        {
+                            inst.Type = "Call";
+                        }
+                        else if (subs[6] == "P")
+                        {
+                            inst.Type = "Put";
+                        }
+                        inst.Strike = Convert.ToDecimal(subs[7]);  //todo confirm how they handle non integers
                     }
                 }
                 else
