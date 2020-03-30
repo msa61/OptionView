@@ -78,6 +78,7 @@ namespace OptionView
             {
                 Text = strategy,
                 Style = (Style)window.Resources["SymbolDetails"],
+                Tag = "strategy",
             };
             Canvas.SetTop(txtDetail1, 18);
             tileCanvas.Children.Add(txtDetail1);
@@ -112,7 +113,8 @@ namespace OptionView
                 Height = 16,
                 Width = 16,
                 Source = new BitmapImage(new Uri("pack://application:,,,/icons/alarm.ico")),
-                Visibility = alarm ? Visibility.Visible : Visibility.Hidden
+                Visibility = alarm ? Visibility.Visible : Visibility.Hidden,
+                Tag = "alarmIcon"
             };
             Canvas.SetTop(img, 68);
             tileCanvas.Children.Add(img);
@@ -132,10 +134,20 @@ namespace OptionView
                 {
                     Debug.WriteLine("UpdateTile found: " + tag.ToString());
                     UIElementCollection children = ((Canvas)cc.Content).Children;
-                    ((TextBlock)children[3]).Text = strategy;
-                    ((Image)children[6]).Visibility = alarm ? Visibility.Visible : Visibility.Hidden;
+                    ((TextBlock)FindChildByTag(children, "strategy")).Text = strategy;
+                    ((Image)FindChildByTag(children, "alarmIcon")).Visibility = alarm ? Visibility.Visible : Visibility.Hidden;
                 }
             }
+        }
+
+        private static UIElement FindChildByTag (UIElementCollection children, string tag)
+        {
+            foreach (UIElement elem in children)
+            {
+                string val = Convert.ToString(elem.GetType().GetProperty("Tag", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public).GetValue(elem));
+                if (val == tag) return elem;
+            }
+            return null;
         }
 
         public static void UpdateTilePosition(string tag, int x, int y)
