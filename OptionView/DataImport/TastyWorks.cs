@@ -204,50 +204,10 @@ namespace OptionView
                 if (item["cost-effect"].ToString() == "Debit") inst.Market *= -1;
                 inst.OpenAmount = Convert.ToDecimal(item["average-open-price"]);
 
-                if (item["instrument-type"].ToString() == "Equity Option")
-                {
-                    string symbol = item["symbol"].ToString();
-                    //  ROKU  200417P00065000
-                    string pattern = @"(.+)\s+(\d{2})(\d{2})(\d{2})(.)(\d{5})(\d+)";
-                    string[] subs = Regex.Split(symbol, pattern);
-                    if (subs.Count() == 9)
-                    {
-                        inst.ExpDate = exp;
-                        if (subs[5] == "C")
-                        {
-                            inst.Type = "Call";
-                        }
-                        else if (subs[5] == "P")
-                        {
-                            inst.Type = "Put";
-                        }
-                        inst.Strike = Convert.ToDecimal(subs[6]) + Convert.ToDecimal(subs[7]) / 1000;
-                    }
-                }
-                else if (item["instrument-type"].ToString() == "Future Option")
-                {
-                    string symbol = item["symbol"].ToString();
-                    //  ./CLM0 LOM0  200514P15
-                    string pattern = @"(.+)\s+(.+)\s+(\d{2})(\d{2})(\d{2})(.)(\d{1,5})";
-                    string[] subs = Regex.Split(symbol, pattern);
-                    if (subs.Count() == 9)
-                    {
-                        inst.ExpDate = exp;
-                        if (subs[6] == "C")
-                        {
-                            inst.Type = "Call";
-                        }
-                        else if (subs[6] == "P")
-                        {
-                            inst.Type = "Put";
-                        }
-                        inst.Strike = Convert.ToDecimal(subs[7]);  //todo confirm how they handle non integers
-                    }
-                }
-                else
-                {
-                    inst.Type = "Stock";
-                }
+                SymbolDecoder symbol = new SymbolDecoder(item["symbol"].ToString(), item["instrument-type"].ToString());
+                inst.Type = symbol.Type;
+                inst.ExpDate = symbol.Expiration;
+                inst.Strike = symbol.Strike;
 
                 returnList.Add(inst);
             }
@@ -309,6 +269,11 @@ namespace OptionView
                     {
                         inst.Symbol = item["underlying-symbol"].ToString();
                         inst.Quantity = Convert.ToDecimal(item["quantity"]);
+
+                        SymbolDecoder symbol = new SymbolDecoder(item["symbol"].ToString(), item["instrument-type"].ToString());
+                        inst.InsType = symbol.Type;
+                        inst.ExpireDate = symbol.Expiration;
+                        inst.Strike = symbol.Strike;
                     }
                     CompleteInstance(inst);
 
@@ -324,8 +289,6 @@ namespace OptionView
 
                 pages--;
             } while (pages > 0);
-
-            IndentifyMissingTypes(returnList);
 
             return (returnList.Count > 0) ? returnList : null;
         }
@@ -347,17 +310,8 @@ namespace OptionView
                 }
                 else if (tr.TransactionSubcode == "Expiration")
                 {
-                    // parse the description that is available
-                    string pattern = @"(\w+)\sof\s(\d+)\s(\w+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)";
-                    string[] substrings = Regex.Split(tr.Description, pattern, RegexOptions.IgnoreCase);
-
-                    if (substrings.Count() != 8) Console.Write("ERROR");
-
-                    tr.InsType = substrings[5];
                     tr.BuySell = "Expired";
                     tr.OpenClose = "Close";
-                    tr.ExpireDate = Convert.ToDateTime(substrings[4]);
-                    tr.Strike = Convert.ToDecimal(substrings[6]);
                 }
                 else
                 {
@@ -370,53 +324,9 @@ namespace OptionView
                         tr.OpenClose = s[2];
                     }
                 }
-
             }
             else if (tr.TransactionCode == "Trade")
             {
-                Match m = Regex.Match(tr.Description, @"(Call|Put)", RegexOptions.IgnoreCase);
-                if (m.Success)
-                {
-                    tr.InsType = m.Value;
-
-                    // Decompose description.
-                    //string pattern = @"(\w+)\s(\d+)\s(\w+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
-                    //string pattern = @"(\w+)\s(\d+)\s([a-zA-Z0-9_\/]+)\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
-                    string pattern = @"(\w+)\s(\d+)\s([a-zA-Z0-9_\/]+)(\s\w+)*\s([0-9\/]+)\s(\w+)\s([0-9\.]+)\s\@\s([0-9\.]+)";
-                    // (\w+)  \s      (\d+)          \s      ([a-zA-Z0-9_\/]+) (\s\w+)*        \s      ([0-9\/]+) \s      (\w+)  \s      ([0-9\.]+) \s     \@ \s      ([0-9\.]+)
-                    // {verb} {space} {#ofContracts} {space} {symbol}          {optional word} {space} {date}     {space} {type} {space} {strike}   {space} @ {space} {strike}
-
-                    // examples
-                    // Bought 1 ROKU 03/20/20 Put 105.00 @ 8.20
-                    // Bought 1 /CLK0 LOK0 04/16/20 Put 46.00 @ 1.1
-
-                    string[] substrings = Regex.Split(tr.Description, pattern, RegexOptions.IgnoreCase);
-
-                    int strs = substrings.Count();
-                    if (strs == 9)
-                    {
-                        // equity
-                        tr.ExpireDate = Convert.ToDateTime(substrings[4]);
-                        tr.Strike = Convert.ToDecimal(substrings[6]);
-                    }
-                    else if (strs == 10)
-                    {
-                        // future
-                        tr.ExpireDate = Convert.ToDateTime(substrings[5]);
-                        tr.Strike = Convert.ToDecimal(substrings[7]);
-                    }
-                    else
-                    {
-                        Console.WriteLine(tr.Description + " failed regex parse");
-                    }
-
-                }
-                else
-                {
-                    // stock transaction
-                    tr.InsType = "Stock";
-                }
-
                 if (tr.TransactionSubcode.IndexOf("Buy") >= 0) tr.BuySell = "Buy";
                 if (tr.TransactionSubcode.IndexOf("Sell") >= 0) tr.BuySell = "Sell";
                 if (tr.TransactionSubcode.IndexOf("Close") >= 0) tr.OpenClose = "Close";
@@ -424,40 +334,6 @@ namespace OptionView
             }
 
         }
-
-        private static void IndentifyMissingTypes (TWTransactions trans)
-        {
-            if (trans.Count == 0) return;
-
-            for (Int32 i = 0; i < trans.Count; i++)
-            {
-                TWTransaction tr = trans[i];
-
-                if ((tr.TransactionCode == "Receive Deliver") && (tr.InsType is null))
-                {
-                    // the associated transaction is always next
-                    TWTransaction tr2 = trans[i + 1];
-
-                    if (tr.TransactionSubcode == "Exercise")
-                    {
-                        tr.Strike = tr2.Price;
-                        if (tr2.BuySell == "Sell")
-                            tr.InsType = "Put";
-                        else if (tr2.BuySell == "Buy")
-                            tr.InsType = "Call";
-                    }
-                    else if (tr.TransactionSubcode == "Assignment")
-                    {
-                        tr.Strike = tr2.Price;
-                        if (tr2.BuySell == "Sell")
-                            tr.InsType = "Call";
-                        else if (tr2.BuySell == "Buy")
-                            tr.InsType = "Put";
-                    }
-                }
-            }
-        }
-
 
 
         private static void SetHeaders ()

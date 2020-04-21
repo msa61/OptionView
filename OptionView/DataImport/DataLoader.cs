@@ -124,7 +124,6 @@ namespace OptionView
         {
             try
             {
-                MatchAssignmentsOrExercises();
                 MatchExpirations();
                 UpdateTransactionGroups();
             }
@@ -134,105 +133,6 @@ namespace OptionView
             }
         }
 
-
-        // by default, transactions do not have the strike price and expiration date correctly set if the happen to be closed due to assignment or exercise
-        // this function will search for associated transaction to flesh these values out
-        //
-        private static void MatchAssignmentsOrExercises()
-        {
-            // null strike indicates a new record that hasn't been matched to its cooresponding/resulting transaction
-            // retrieve all cases
-            string sql = "SELECT id, time, quantity, * FROM transactions WHERE (TransSubType = 'Assignment' OR TransSubType = 'Exercise') AND Strike is NULL ORDER BY time";
-            SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
-            SQLiteDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                // save props of controlling record
-                Int32 row = reader.GetInt32(0);
-                DateTime date = reader.GetDateTime(1);
-                Int32 account = Convert.ToInt32(reader["Account"]);
-                string symbol = reader["Symbol"].ToString();
-                string type = reader["Type"].ToString();
-                string tranType = reader["TransSubType"].ToString();
-                Int32 quantity = reader.GetInt32(2);
-                Debug.WriteLine(tranType + " found " + tranType + " -> " + account + "/" + symbol + ":" + type + " on " + date.ToString() + " (row:" + row + ")");
-
-                // find out how many other matching transactions might have happened on the same day as the Assignment/Exercise in question
-                SQLiteCommand cmdStk = new SQLiteCommand("SELECT Count(*) FROM transactions WHERE Account = @ac AND Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
-                cmdStk.Parameters.AddWithValue("ac", account);
-                cmdStk.Parameters.AddWithValue("sym", symbol);
-                cmdStk.Parameters.AddWithValue("tt", ((tranType == "Assignment") ^ (type == "Call")) ? "Buy" : "Sell");
-                cmdStk.Parameters.AddWithValue("tm", date);
-                cmdStk.Parameters.AddWithValue("qu", quantity * 100 * ((type == "Call") ? -1 : 1));
-
-                int rows = Convert.ToInt32(cmdStk.ExecuteScalar());
-                Debug.WriteLine("found " + rows.ToString() + " related to the " + tranType + " of " + symbol);
-
-                if (rows == 1)
-                {
-                    // retrieve the strike from the cooresponding transaction to use to find originating transaction
-                    cmdStk = new SQLiteCommand("SELECT price FROM transactions WHERE Account = @ac AND Symbol = @sym AND TransType = 'Receive Deliver' AND [Buy-Sell] = @tt AND time = @tm AND quantity = @qu", App.ConnStr);
-                    cmdStk.Parameters.AddWithValue("ac", account);
-                    cmdStk.Parameters.AddWithValue("sym", symbol);
-                    cmdStk.Parameters.AddWithValue("tt", ((tranType == "Assignment") ^ (type == "Call")) ? "Buy" : "Sell");
-                    cmdStk.Parameters.AddWithValue("tm", date);
-                    cmdStk.Parameters.AddWithValue("qu", quantity * 100 * ((type == "Call") ? -1 : 1));
-                    SQLiteDataReader stk = cmdStk.ExecuteReader();
-                    stk.Read();
-
-                    decimal price = stk.GetDecimal(0);
-                    Debug.WriteLine("  found a " + (tranType == "Assignment" ? "Buy" : "Sell") + " for " + symbol + " price: " + price.ToString());
-
-                    // Find originating transaction for that strike/type in order to get the right expiration date
-                    cmdStk = new SQLiteCommand("SELECT datetime(expireDate) AS ExpireDate FROM transactions WHERE Account = @ac AND Symbol = @sym AND Type = @ty AND Strike = @st", App.ConnStr);
-                    cmdStk.Parameters.AddWithValue("ac", account);
-                    cmdStk.Parameters.AddWithValue("sym", symbol);
-                    cmdStk.Parameters.AddWithValue("st", price);
-                    cmdStk.Parameters.AddWithValue("ty", type);
-
-                    // there may be more than one instance of sym/type/strike
-                    SQLiteDataAdapter da = new SQLiteDataAdapter(cmdStk);
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-
-                    bool found = false;
-                    int i = 0;
-                    DateTime expDate = DateTime.MinValue;
-                    while ((!found) && (i < dt.Rows.Count))
-                    {
-                        // let's look for row where the expire data matches the date the assignment/exercise happen
-                        expDate = Convert.ToDateTime(dt.Rows[i][0]);
-                        if (date.Date == expDate) found = true;
-                        i++;
-                    }
-
-                    // if no match between transaction date and expire date, use whatever we can find
-                    if (!found && (dt.Rows.Count == 1))
-                        expDate = Convert.ToDateTime(dt.Rows[0][0]);
-
-                    //stk = cmdStk.ExecuteReader();
-                    //stk.Read();
-                    //DateTime expDate = stk.GetDateTime(0);
-                    Debug.WriteLine("  which expired on " + expDate.ToString("MMM-d"));
-
-                    if (expDate > DateTime.MinValue)
-                    {
-                        // Update the Put/Call transaction in order to match up later
-                        sql = "UPDATE transactions SET ExpireDate = @ex, Strike = @st WHERE ID=@row";
-                        cmdStk = new SQLiteCommand(sql, App.ConnStr);
-                        cmdStk.Parameters.AddWithValue("ex", expDate);
-                        cmdStk.Parameters.AddWithValue("st", price);
-                        cmdStk.Parameters.AddWithValue("row", row);
-                        cmdStk.ExecuteNonQuery();
-                    }
-                }
-                else
-                {
-                    // either nothing found, error?   or multiple/complex
-                    Debug.WriteLine("multiple assignments for " + symbol);
-                }
-            }
-        }
 
         // by default, expiration transactions do not include the correct quantity
         // the quantity is always positive regardless of whether a long or short is being removed
@@ -251,7 +151,7 @@ namespace OptionView
                 DateTime expDate = reader.GetDateTime(2);
                 decimal strike = reader.GetDecimal(3);
                 decimal quantity = reader.GetDecimal(4);
-                Int32 account = Convert.ToInt32(reader["Account"]);
+                string account = reader["Account"].ToString();
                 string symbol = reader["Symbol"].ToString();
                 string type = reader["Type"].ToString();
 
