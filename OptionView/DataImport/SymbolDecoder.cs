@@ -22,7 +22,10 @@ namespace OptionView
         {
             try
             {
-                string regexPattern = @".+\s?.*\s{2}(\d{2})(\d{2})(\d{2})(.)(\d+)";
+                //  ROKU  200417P00065000
+                //  ./CLM0 LOM0  200514P15
+                //  ./NGN0 LNEN0 200625P1.6
+                string regexPattern = @".+\s?.*\s{1,2}(\d{2})(\d{2})(\d{2})(.)(\d+\.*\d*)";
                 string[] flds = Regex.Split(symbol, regexPattern);
                 if (flds.Count() == 7)
                 {
@@ -71,7 +74,8 @@ namespace OptionView
                 else if (symbolType == "Future Option")
                 {
                     //  ./CLM0 LOM0  200514P15
-                    string pattern = @"(.+)\s+(.+)\s+(\d{2})(\d{2})(\d{2})(.)(\d{1,5})";
+                    //  ./NGN0 LNEN0 200625P1.6
+                    string pattern = @"(.+)\s+(.+)\s+(\d{2})(\d{2})(\d{2})(.)(\d+\.*\d*)";
                     string[] subs = Regex.Split(symbol, pattern);
                     if (subs.Count() == 9)
                     {
