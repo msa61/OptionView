@@ -201,6 +201,8 @@ namespace OptionView
                 if (item["quantity-direction"].ToString() == "Short") inst.Quantity *= -1;
                 DateTime exp = Convert.ToDateTime(item["expires-at"]).Trim(TimeSpan.TicksPerDay);
                 inst.Market = Convert.ToDecimal(item["mark"]);
+                if (inst.Market == 0)
+                    inst.Market = Convert.ToDecimal(item["close-price"]) * Convert.ToDecimal(item["multiplier"]);
                 if (item["cost-effect"].ToString() == "Debit") inst.Market *= -1;
                 inst.OpenAmount = Convert.ToDecimal(item["average-open-price"]);
 
