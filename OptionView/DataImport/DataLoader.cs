@@ -213,7 +213,7 @@ namespace OptionView
 
 
                     // query all of the transactions in this account, for given symbol that are either part of an open chain or not part of chain yet
-                    sql = "SELECT transactions.ID AS ID, transgroup.ID as tID, datetime(Time) AS TransTime, TransType, TransGroupID, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, [Open-Close], Amount";
+                    sql = "SELECT transactions.ID AS ID, transgroup.ID as tID, datetime(Time) AS TransTime, TransType, TransSubType, TransGroupID, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, [Open-Close], Amount";
                     sql += " FROM transactions";
                     sql += " LEFT JOIN transgroup ON transgroupid = transgroup.id";
                     sql += " WHERE transactions.account = @ac AND transactions.symbol = @sym AND (transgroup.Open = 1 OR transgroup.Open IS NULL) AND Transactions.TransType != 'Money Movement'";  // the money movement filter removes dividends
@@ -226,6 +226,8 @@ namespace OptionView
                     SQLiteDataAdapter da = new SQLiteDataAdapter(cmdTrans);
                     DataTable dt = new DataTable();
                     da.Fill(dt);
+
+                    PurgeSymbolChanges(dt);
 
                     while (dt.Rows.Count > 0)
                     {
@@ -244,6 +246,21 @@ namespace OptionView
                 Debug.WriteLine("UpdateTransactionGroups: " + ex.Message + "(" + symbol + ")");
             }
 
+        }
+
+        private static void PurgeSymbolChanges(DataTable dt)
+        {
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                DataRow r = dt.Rows[i];
+
+                if ((r["TransType"].ToString() == "Receive Deliver") && (r["TransSubType"].ToString() == "Symbol Change"))
+                {
+                    r.Delete();
+                    dt.AcceptChanges();
+                    i--;
+                }
+            }
         }
 
 
@@ -394,7 +411,7 @@ namespace OptionView
 
             }
 
-            return (retval += "?");
+            return (retval += "");
         }
 
 
