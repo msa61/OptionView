@@ -154,7 +154,8 @@ namespace OptionView
                     }
                 }
 
-                if ((twpositions != null) && (twpositions.Count > 0))
+                // ensure that positions got instanciated AND that the particular account isn't empty
+                if ((twpositions != null) && (twpositions.Count > 0) && (twpositions[grp.Account] != null))
                 {
                     foreach (KeyValuePair<string, Position> item in grp.Holdings)
                     {
@@ -212,10 +213,12 @@ namespace OptionView
                 // cycle thru each account
                 TWPositions accountPositions = item.Value;
 
+                // skip if the account is empty of positions
                 // and confirm each aligns with what is in current database by
                 // iterating thru all the positions in the current account
+                // 
                 int i = 0;
-                while (i < accountPositions.Count)
+                while ((accountPositions != null) && (i < accountPositions.Count))
                 {
                     TWPosition position = accountPositions[i];
 
@@ -277,15 +280,20 @@ namespace OptionView
             foreach (KeyValuePair<string, TWPositions> positionsPair in overallPositions)
             {
                 bool firstPass = true;
-                foreach (TWPosition pos in positionsPair.Value)
+
+                // nothing to do if account is empty
+                if (positionsPair.Value != null)
                 {
-                    if (firstPass)
+                    foreach (TWPosition pos in positionsPair.Value)
                     {
-                        firstPass = false;
-                        if (returnValue.Length > 0) returnValue += "\n";
-                        returnValue += "Unmatched from TastyWorks account:\n";
+                        if (firstPass)
+                        {
+                            firstPass = false;
+                            if (returnValue.Length > 0) returnValue += "\n";
+                            returnValue += "Unmatched from TastyWorks account:\n";
+                        }
+                        returnValue += (pos.Type == "Stock") ? pos.Symbol : pos.Symbol + pos.ExpDate.ToString("yyMMdd") + pos.Strike.ToString("0000.0") + pos.Type + " : " + pos.Quantity.ToString() + "\n";
                     }
-                    returnValue += (pos.Type == "Stock") ? pos.Symbol : pos.Symbol + pos.ExpDate.ToString("yyMMdd") + pos.Strike.ToString("0000.0") + pos.Type + " : " + pos.Quantity.ToString() + "\n";
                 }
             }
 
