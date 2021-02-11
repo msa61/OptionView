@@ -438,7 +438,7 @@
                             <ComboBox Name="cbGrouping1" Margin="6" SelectionChanged="CbGrouping1_SelectionChanged" x:FieldModifier="public">
                                 <ComboBoxItem Content="None" Tag="None" IsSelected="True"/>
                                 <ComboBoxItem Content="By Account" Tag="Account"/>
-                                <ComboBoxItem Content="By Symbol" Tag="Symbol"/>
+                                <ComboBoxItem Content="By Symbol" Tag="ShortSymbol"/>
                                 <ComboBoxItem Content="By Earnings" Tag="EarningsTrade"/>
                                 <ComboBoxItem Content="By Neutral" Tag="NeutralStrategy"/>
                                 <ComboBoxItem Content="By Year" Tag="Year"/>

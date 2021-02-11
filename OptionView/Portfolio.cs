@@ -31,6 +31,15 @@ namespace OptionView
             grp.Account = reader["Account"].ToString();
             grp.AccountName = reader["Name"].ToString().SafeSubstring(0, 4);
             grp.Symbol = reader["Symbol"].ToString();
+            // handle options
+            if (grp.Symbol.Substring(0,1) == "/")
+            {
+                grp.ShortSymbol = grp.Symbol.Substring(0, 3);
+            }
+            else
+            {
+                grp.ShortSymbol = grp.Symbol;
+            }
             grp.GroupID = Convert.ToInt32(reader["ID"]); // readerGroup
             grp.Cost = Convert.ToDecimal(reader["Cost"]);
             grp.Fees = Convert.ToDecimal(reader["Fees"]);

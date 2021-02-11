@@ -711,7 +711,7 @@ namespace OptionView
 
             string mode = ((ComboBoxItem)mw.cbGrouping1.SelectedItem).Tag.ToString();
 
-            if ((mode == "Symbol") || (mode == "Year"))
+            if ((mode == "ShortSymbol") || (mode == "Year"))
             {
                 //IEnumerable<object> grp = (IEnumerable<object>)value;
                 //if (grp == null)
