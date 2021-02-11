@@ -167,15 +167,16 @@ namespace OptionView
                             {
                                 // matching asset - regardless of quantity
                                 //Debug.WriteLine(twpos.Market);
-                                if (pos.Quantity == twpos.Quantity)
-                                {
-                                    returnValue += twpos.Market;
-                                    // can remove from twlist to quicken subsequent searches
-                                }
-                                else
-                                {
-                                    returnValue += pos.Quantity * twpos.Market / twpos.Quantity;
-                                }
+                                //if (pos.Quantity == twpos.Quantity)
+                                //{
+                                //    returnValue += twpos.Market;
+                                //    // can remove from twlist to quicken subsequent searches
+                                //}
+                                //else
+                                //{
+                                //    returnValue += pos.Quantity * twpos.Market / twpos.Quantity;
+                                //}
+                                returnValue += pos.Quantity * twpos.Market;
                             }
                         }
                     }
