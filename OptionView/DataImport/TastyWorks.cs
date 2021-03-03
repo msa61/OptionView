@@ -42,12 +42,12 @@ namespace OptionView
     class TWPosition
     {
         public string Symbol { get; set; }
+        public string OptionSymbol { get; set; }
         public DateTime ExpDate { get; set; }
         public decimal Strike { get; set; }
         public string Type { get; set; }
         public decimal Quantity { get; set; }
         public decimal Market { get; set; }
-        public decimal OpenAmount { get; set; }
 
         public TWPosition()
         {
@@ -182,37 +182,56 @@ namespace OptionView
 
         public static TWPositions Positions(string accountNumber)
         {
+            Dictionary<string, decimal> marketValues = new Dictionary<string, decimal>();
+
             SetHeaders();
             Web.Headers[HttpRequestHeader.Authorization] = Token;
-            string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/positions");
 
+            // retrieve current values
+            string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
             JObject package = JObject.Parse(reply);
 
+            List<JToken> list = package["data"]["underlyings"].Children().ToList();
+
+            foreach (JToken item in list)
+            {
+                JToken underlaying = item["marks"];
+
+                foreach (JProperty symbol in underlaying)
+                {
+                    if (!marketValues.ContainsKey(symbol.Name)) marketValues.Add(symbol.Name, Convert.ToDecimal(symbol.Value));
+                }
+            }
+
+
+            // retrieve specific positions
+            reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/positions");
+            package = JObject.Parse(reply);
 
             TWPositions returnList = new TWPositions();
 
-            List<JToken> list = package["data"]["items"].Children().ToList();
+            list = package["data"]["items"].Children().ToList();
 
             foreach (JToken item in list)
             {
                 TWPosition inst = new TWPosition();
                 inst.Symbol = item["underlying-symbol"].ToString();
+                inst.OptionSymbol = item["symbol"].ToString();
                 inst.Quantity = Convert.ToDecimal(item["quantity"]);
                 if (item["quantity-direction"].ToString() == "Short") inst.Quantity *= -1;
                 DateTime exp = Convert.ToDateTime(item["expires-at"]).Trim(TimeSpan.TicksPerDay);
-                inst.Market = Convert.ToDecimal(item["mark"]);
-                if (inst.Market == 0)
-                    inst.Market = Convert.ToDecimal(item["close-price"]) * Convert.ToDecimal(item["multiplier"]);
-                if (item["cost-effect"].ToString() == "Debit") inst.Market *= -1;
-                inst.OpenAmount = Convert.ToDecimal(item["average-open-price"]);
 
-                SymbolDecoder symbol = new SymbolDecoder(item["symbol"].ToString(), item["instrument-type"].ToString());
+                inst.Market = marketValues[inst.OptionSymbol] * Convert.ToDecimal(item["multiplier"]); ;
+
+                SymbolDecoder symbol = new SymbolDecoder(inst.OptionSymbol, item["instrument-type"].ToString());
                 inst.Type = symbol.Type;
                 inst.ExpDate = symbol.Expiration;
                 inst.Strike = symbol.Strike;
 
                 returnList.Add(inst);
             }
+
+
 
             return (returnList.Count > 0) ? returnList : null;
 

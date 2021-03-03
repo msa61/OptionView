@@ -16,7 +16,7 @@ namespace OptionView
 
     public class Portfolio : Dictionary<int, TransactionGroup>
     {
-        private Dictionary<string, TWPositions> twpositions = null;
+        private Dictionary<string, TWPositions> twpositions = null;   // cache for current value lookup
         private Accounts accounts = null;
 
         public Portfolio()
@@ -78,6 +78,7 @@ namespace OptionView
             {
                 // always start with an empty list
                 this.Clear();
+                twpositions = null;
 
                 // establish connection
                 App.OpenConnection();
@@ -174,17 +175,7 @@ namespace OptionView
                         {
                             if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate))
                             {
-                                // matching asset - regardless of quantity
                                 //Debug.WriteLine(twpos.Market);
-                                //if (pos.Quantity == twpos.Quantity)
-                                //{
-                                //    returnValue += twpos.Market;
-                                //    // can remove from twlist to quicken subsequent searches
-                                //}
-                                //else
-                                //{
-                                //    returnValue += pos.Quantity * twpos.Market / twpos.Quantity;
-                                //}
                                 returnValue += pos.Quantity * twpos.Market;
                             }
                         }
