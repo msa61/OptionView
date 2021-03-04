@@ -171,6 +171,7 @@ namespace OptionView
                     {
                         Position pos = item.Value;
 
+                        // this loop could be eliminated if the long symbol name gets persisted in database
                         foreach (KeyValuePair<string,TWPosition> p in twpositions[grp.Account])
                         {
                             TWPosition twpos = p.Value;
