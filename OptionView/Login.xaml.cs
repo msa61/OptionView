@@ -32,6 +32,8 @@ namespace OptionView
             Config.SetEncryptedProp("Username", txtUser.Text);
             Config.SetEncryptedProp("Password", txtPW.Text);
 
+            TastyWorks.ResetToken();
+
             this.Close();
         }
 

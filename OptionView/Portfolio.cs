@@ -208,6 +208,12 @@ namespace OptionView
                     overallPositions.Add(a.Key, pos);
                 }
             }
+            else
+            {
+                MessageBox.Show("Login to TastyWorks failed", "Error");
+                return "LoginFailed";
+            }
+
 
             foreach (KeyValuePair<string, TWPositions> item  in overallPositions)
             {

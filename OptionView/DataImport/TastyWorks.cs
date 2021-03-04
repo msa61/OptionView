@@ -114,6 +114,11 @@ namespace OptionView
         {
         }
 
+        public static void ResetToken()
+        {
+            Token = "";
+            alreadyFailedOnce = false;
+        }
 
         public static bool InitiateSession( string user, string password )
         {

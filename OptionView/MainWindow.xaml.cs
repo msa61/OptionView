@@ -471,8 +471,11 @@ namespace OptionView
 
             this.Cursor = prev;
 
-            if (response.Length == 0) response = "Success!";
-            MessageBox.Show(response, "Validate Results");
+            if (response != "LoginFailed")
+            {
+                if (response.Length == 0) response = "Success!";
+                MessageBox.Show(response, "Validate Results");
+            }
         }
 
         private void ConfigButton(object sender, RoutedEventArgs e)
