@@ -171,8 +171,9 @@ namespace OptionView
                     {
                         Position pos = item.Value;
 
-                        foreach (TWPosition twpos in twpositions[grp.Account])
+                        foreach (KeyValuePair<string,TWPosition> p in twpositions[grp.Account])
                         {
+                            TWPosition twpos = p.Value;
                             if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate))
                             {
                                 //Debug.WriteLine(twpos.Market);
@@ -227,7 +228,7 @@ namespace OptionView
                 int i = 0;
                 while ((accountPositions != null) && (i < accountPositions.Count))
                 {
-                    TWPosition position = accountPositions[i];
+                    TWPosition position = accountPositions.ElementAt(i).Value;
 
                     // iterate thru each group
                     foreach (KeyValuePair<int, TransactionGroup> grpItem in this)
@@ -261,7 +262,7 @@ namespace OptionView
 
                     if (position.Quantity == 0)
                     {
-                        accountPositions.Remove(position);
+                        accountPositions.Remove(accountPositions.ElementAt(i).Key);
                     }
                     else
                     {
@@ -291,8 +292,10 @@ namespace OptionView
                 // nothing to do if account is empty
                 if (positionsPair.Value != null)
                 {
-                    foreach (TWPosition pos in positionsPair.Value)
+                    foreach (KeyValuePair<string,TWPosition> p in positionsPair.Value)
                     {
+                        TWPosition pos = p.Value;
+
                         if (firstPass)
                         {
                             firstPass = false;

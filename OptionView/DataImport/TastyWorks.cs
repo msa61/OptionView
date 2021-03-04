@@ -48,13 +48,14 @@ namespace OptionView
         public string Type { get; set; }
         public decimal Quantity { get; set; }
         public decimal Market { get; set; }
+        public decimal Multiplier { get; set; }
 
         public TWPosition()
         {
             Quantity = 0;
         }
     }
-    class TWPositions : List<TWPosition>
+    class TWPositions : Dictionary<string, TWPosition>
     {
     }
 
@@ -226,20 +227,19 @@ namespace OptionView
                 if (item["quantity-direction"].ToString() == "Short") inst.Quantity *= -1;
                 DateTime exp = Convert.ToDateTime(item["expires-at"]).Trim(TimeSpan.TicksPerDay);
 
-                inst.Market = marketValues[inst.OptionSymbol] * Convert.ToDecimal(item["multiplier"]); ;
+                inst.Multiplier = Convert.ToDecimal(item["multiplier"]); ;
+                inst.Market = marketValues[inst.OptionSymbol] * inst.Multiplier;
 
                 SymbolDecoder symbol = new SymbolDecoder(inst.OptionSymbol, item["instrument-type"].ToString());
                 inst.Type = symbol.Type;
                 inst.ExpDate = symbol.Expiration;
                 inst.Strike = symbol.Strike;
 
-                returnList.Add(inst);
+                returnList.Add(inst.OptionSymbol.Length > 0 ? inst.OptionSymbol : inst.Symbol, inst);
             }
 
 
-
             return (returnList.Count > 0) ? returnList : null;
-
         }
 
 
