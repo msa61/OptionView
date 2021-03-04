@@ -13,7 +13,7 @@ namespace OptionView
     public class TransactionGroup
     {
         public string Symbol { get; set; }
-        public string ShortSymbol { get; set; }
+        public string ShortSymbol { get; set; }  // deal with options
         public int GroupID { get; set; }
         public decimal Cost { get; set; }
         public decimal Fees { get; set; }
