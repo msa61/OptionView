@@ -15,6 +15,7 @@ namespace OptionView
     public class DataLoader
     {
         private static Dictionary<string, TWPositions> twpositions = null;
+        private static Dictionary<string, TWMargins> twMarginReq = null;
 
         public static void Load(Accounts accounts)
         {
@@ -27,11 +28,15 @@ namespace OptionView
                 {
                     // cache the current positions for details required to establish default risk and capreq
                     twpositions = new Dictionary<string, TWPositions>();
+                    twMarginReq = new Dictionary<string, TWMargins>();
                     foreach (KeyValuePair<string, string> a in accounts)
                     {
                         // retrieve Tastyworks positions for given account
                         TWPositions pos = TastyWorks.Positions(a.Key);
                         twpositions.Add(a.Key, pos);
+
+                        TWMargins mar = TastyWorks.MarginData(a.Key);
+                        twMarginReq.Add(a.Key, mar);
                     }
 
                     // proceed with transactions from all accounts
@@ -333,8 +338,8 @@ namespace OptionView
                     cmd.Parameters.AddWithValue("dr", DefaultDefinedRisk(strat));
                     cmd.Parameters.AddWithValue("ns", DefaultNeutralStrategy(strat));
                     decimal capital = DefaultCapital(account, strat, holdings);
-                    cmd.Parameters.AddWithValue("cap", capital);
                     cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, capital, holdings));
+                    cmd.Parameters.AddWithValue("cap", FindTWMarginRequirement(account, holdings));
                     cmd.ExecuteNonQuery();
 
                     groupID = DBUtilities.GetMax("SELECT max(id) FROM TransGroup");
@@ -510,6 +515,23 @@ namespace OptionView
             }
 
             return null;
+        }
+
+        private static decimal FindTWMarginRequirement(string account, Positions positions)
+        {
+            Position pos = positions.ElementAt(0).Value;
+
+            // this loop could be eliminated if the long symbol name gets persisted in database
+            foreach (KeyValuePair<string, TWMargin> p in twMarginReq[account])
+            {
+                TWMargin mar = p.Value;
+                if (pos.Symbol == mar.Symbol) 
+                {
+                    return mar.CapitalRequirement;
+                }
+            }
+
+            return 0M;
         }
 
 

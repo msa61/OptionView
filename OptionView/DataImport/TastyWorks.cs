@@ -32,6 +32,15 @@ namespace OptionView
     {
     }
 
+    class TWMargin
+    {
+        public string Symbol { get; set; }
+        public decimal CapitalRequirement { get; set; }
+    }
+    class TWMargins : Dictionary<string,TWMargin>
+    {
+    }
+
     class TWBalance
     {
         public decimal NetLiq { get; set; }
@@ -166,6 +175,30 @@ namespace OptionView
             }
 
             return (returnList.Count > 0) ? returnList : null;
+        }
+
+
+        public static TWMargins MarginData(string accountNumber)
+        {
+            SetHeaders();
+            Web.Headers[HttpRequestHeader.Authorization] = Token;
+            string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
+
+            JObject package = JObject.Parse(reply);
+
+            List<JToken> list = package["data"]["underlyings"].Children().ToList();
+
+            TWMargins retval = new TWMargins();
+
+            foreach (JToken item in list)
+            {
+                TWMargin mar = new TWMargin();
+                mar.Symbol = item["underlying-symbol"].ToString();
+                mar.CapitalRequirement = Convert.ToDecimal(item["margin-requirement"]);
+                retval.Add(mar.Symbol, mar);
+            }
+
+            return retval;
         }
 
 
