@@ -14,16 +14,27 @@ namespace OptionView
 {
     public class DataLoader
     {
+        private static Dictionary<string, TWPositions> twpositions = null;
+
         public static void Load(Accounts accounts)
         {
             try
             {
-                // establish connection
+                // establish db connection
                 App.OpenConnection();
 
                 if (TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password")))
                 {
+                    // cache the current positions for details required to establish default risk and capreq
+                    twpositions = new Dictionary<string, TWPositions>();
+                    foreach (KeyValuePair<string, string> a in accounts)
+                    {
+                        // retrieve Tastyworks positions for given account
+                        TWPositions pos = TastyWorks.Positions(a.Key);
+                        twpositions.Add(a.Key, pos);
+                    }
 
+                    // proceed with transactions from all accounts
                     foreach (KeyValuePair<string, string> a in accounts)
                     {
                         Debug.WriteLine(a.Key);
@@ -321,7 +332,7 @@ namespace OptionView
                     cmd.Parameters.AddWithValue("str", strat);
                     cmd.Parameters.AddWithValue("dr", DefaultDefinedRisk(strat));
                     cmd.Parameters.AddWithValue("ns", DefaultNeutralStrategy(strat));
-                    decimal capital = DefaultCapital(strat, holdings);
+                    decimal capital = DefaultCapital(account, strat, holdings);
                     cmd.Parameters.AddWithValue("cap", capital);
                     cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, capital, holdings));
                     cmd.ExecuteNonQuery();
@@ -435,8 +446,14 @@ namespace OptionView
             return 0;
         }
 
-        private static decimal DefaultCapital(string strat, Positions positions)
+        private static decimal DefaultCapital(string account, string strat, Positions positions)
         {
+            decimal multiplier = 100;
+
+            TWPosition twpos = FindTWPosition(account, positions.ElementAt(0).Value);
+            if (twpos != null) multiplier = twpos.Multiplier;
+
+
             if (strat.Length >= 8)
             {
                 strat = strat.Substring(0, 8);
@@ -451,11 +468,11 @@ namespace OptionView
                     }
                     if (Math.Abs(strikeRange["Put"]) > Math.Abs(strikeRange["Call"]))
                     {
-                        return Math.Abs(strikeRange["Put"]) * 100;
+                        return Math.Abs(strikeRange["Put"]) * multiplier;
                     }
                     else
                     {
-                        return Math.Abs(strikeRange["Call"]) * 100;
+                        return Math.Abs(strikeRange["Call"]) * multiplier;
                     }
                 }
             }
@@ -480,7 +497,20 @@ namespace OptionView
             return 0;
         }
 
+        private static TWPosition FindTWPosition (string account, Position pos)
+        {
+            // this loop could be eliminated if the long symbol name gets persisted in database
+            foreach (KeyValuePair<string, TWPosition> p in twpositions[account])
+            {
+                TWPosition twpos = p.Value;
+                if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate))
+                {
+                    return twpos;
+                }
+            }
 
+            return null;
+        }
 
 
         private static void ProcessTransactionGroup(string account, string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
