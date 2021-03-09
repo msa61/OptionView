@@ -72,7 +72,7 @@ namespace OptionView
 
                 Tiles.CreateTile(this, MainCanvas, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
-                    (grp.ActionDate > DateTime.MinValue));
+                    (grp.ActionDate > DateTime.MinValue), null);
             }
         }
 
@@ -523,7 +523,7 @@ namespace OptionView
 
         // 
         //
-        // code for second tab
+        // code for results tab
         // 
         //
 
@@ -646,7 +646,7 @@ namespace OptionView
 
         // 
         //
-        // code for third tab
+        // code for Todo tab
         // 
         //
 
@@ -670,7 +670,118 @@ namespace OptionView
                 ((DataGrid)sender).SelectedIndex = -1;
             }
         }
+
+
+        // 
+        //
+        // code for Analysis tab
+        // 
+        //
+
+        private void MainTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.Source is TabControl)
+            {
+                if (((TabControl)sender).SelectedIndex == 1) UpdateAnalysisView();
+            }
+        }
+
+        private void UpdateAnalysisView()
+        {
+            Debug.Print("UpdateAnalysisView");
+            if (AnalysisCanvas.Children.Count > 0) AnalysisCanvas.Children.Clear();
+
+            double height = ((Grid)AnalysisCanvas.Parent).ActualHeight;
+            double width = ((Grid)AnalysisCanvas.Parent).ActualWidth;
+            double margin = 50;
+
+            height -= (8 + 100 + (2 * margin));   //adjust for borders and tile height
+            width -= (200 + 4 + 150 + (2 * margin));  //adjust for panel, borders and tile width
+
+            if (height <= 0) return;
+            decimal minH = 100000;
+            decimal maxH = 0;
+            decimal minW = 100000;
+            decimal maxW = 0;
+
+            //Rectangle rect = new Rectangle();
+            //rect.Width = width + 150;
+            //rect.Height = height + 100;
+            //rect.Stroke = Brushes.LightGray;
+            //rect.StrokeThickness = 1;
+            //Canvas.SetLeft(rect, margin);
+            //Canvas.SetTop(rect, margin);
+            //AnalysisCanvas.Children.Add(rect);
+
+
+            portfolio = new Portfolio();
+            portfolio.GetCurrentHoldings(accounts);
+            foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
+            {
+                TransactionGroup grp = entry.Value;
+
+                if ((grp.CurrentValue + grp.Cost) < minW) minW = (grp.CurrentValue + grp.Cost);
+                if ((grp.CurrentValue + grp.Cost) > maxW) maxW = (grp.CurrentValue + grp.Cost);
+                if (grp.CapitalRequired < minH) minH = grp.CapitalRequired;
+                if (grp.CapitalRequired > maxH) maxH = grp.CapitalRequired;
+            }
+            decimal scaleH = (maxH - minH) / (decimal)height;
+            decimal scaleW = (maxW - minW) / (decimal)width;
+
+            foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
+            {
+                TransactionGroup grp = entry.Value;
+
+                // massage cost to incude per lot value as well
+                string capReq = grp.CapitalRequired.ToString("C0");
+
+                Tiles.CreateTile(this, AnalysisCanvas, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, Convert.ToInt32((decimal)margin + (grp.CurrentValue + grp.Cost - minW) / scaleW), 
+                    Convert.ToInt32((decimal)margin + (decimal)height - ((grp.CapitalRequired - minH) / scaleH)), grp.Strategy, capReq, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
+                    (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(),
+                    (grp.ActionDate > DateTime.MinValue), "CapReq");
+
+            }
+
+            Line line = new Line();
+            line.X1 = Convert.ToInt32((decimal)margin - minW);
+            line.Y1 = margin;
+            line.X2 = Convert.ToInt32((decimal)margin - minW);
+            line.Y2 = height + margin + 100;
+            line.Stroke = Brushes.DimGray;
+            line.StrokeThickness = 1;
+            AnalysisCanvas.Children.Add(line);
+
+
+            TextBlock text = new TextBlock();
+            text.Text = "Capital Requirement";
+            text.Foreground = Brushes.DimGray;
+            text.FontSize = 30;
+            text.LayoutTransform = new RotateTransform(-90);
+            text.HorizontalAlignment = HorizontalAlignment.Right;
+            Canvas.SetLeft(text, margin / 2);
+            Canvas.SetTop(text, 2 * margin);
+            
+            AnalysisCanvas.Children.Add(text);
+
+            text = new TextBlock();
+            text.Text = "Profit";
+            text.Foreground = Brushes.DimGray;
+            text.FontSize = 30;
+            text.HorizontalAlignment = HorizontalAlignment.Right;
+            Canvas.SetLeft(text, width + margin);
+            Canvas.SetTop(text, height + margin + 100);
+
+            AnalysisCanvas.Children.Add(text);
+
+
+        }
+
+
+
     }
+
+
+
 
 
     // 

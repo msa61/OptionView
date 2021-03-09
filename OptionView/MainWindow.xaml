@@ -170,7 +170,7 @@
     </Window.Resources>
 
     <Grid d:DataContext="{d:DesignData /SampleData/PortfolioResultsSampleData.xaml}">
-        <TabControl Name="MainTab" Background="Black">
+        <TabControl Name="MainTab" Background="Black" SelectionChanged="MainTab_SelectionChanged">
             <!-- Holdings tab -->
             <TabItem Width="150" Height="30" Header="Holdings">
                 <Grid Background="Black" >
@@ -306,6 +306,41 @@
                 </Grid>
             </TabItem>
 
+            <!-- Analysis tab -->
+            <TabItem Width="150" Height="30" Header="Analysis">
+                <Grid Background="Black" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition x:Name="AnalysisCol" MinWidth="350" />
+                        <ColumnDefinition x:Name="ViewControlCol" MaxWidth="200" Width="200"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Canvas x:Name="AnalysisCanvas"  Grid.Column="0"  Background="#FF454545" MouseLeftButtonDown="CanvasMouseDown" Margin="4,4,0,4" >
+                    </Canvas>
+
+                    <DockPanel  Background="#FF454545" Margin="4,4,5,5" Grid.Column="1">
+                        <StackPanel Background="Black" Margin="2,4,2,0">
+                            <DockPanel>
+                                <Label Content="View" Margin="6,0,6,0" />
+                            </DockPanel>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <ComboBox Name="cbTemp" Margin="6" Text="None"  >
+                                <ComboBoxItem Content="All" Tag="All" IsSelected="True"/>
+                                <ComboBoxItem Content="Last Year" Tag="LastYear"/>
+                                <ComboBoxItem Content="Year to Date" Tag="YTD"/>
+                                <ComboBoxItem Content="Last 90 Days" Tag="90Days"/>
+                                <ComboBoxItem Content="Last 30 Days" Tag="30Days"/>
+                            </ComboBox>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+
+                </DockPanel>
+
+                </Grid>
+            </TabItem>
+
+            
             <!-- Returns tab -->
             <TabItem Width="150" Height="30" Header="Returns">
                 <Grid Background="Black" SizeChanged="ResultsGrid_SizeChanged" >
@@ -475,6 +510,8 @@
                 </Grid>
 
             </TabItem>
+            
+            <!-- To Do Tab-->
             <TabItem Width="150" Height="30" Header="To Dos">
                 <Grid Background="Black" >
                     <Grid.ColumnDefinitions>
