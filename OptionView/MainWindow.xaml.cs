@@ -70,7 +70,7 @@ namespace OptionView
                 // massage cost to incude per lot value as well
                 string cost = grp.Cost.ToString("C0") + grp.GetPerLotCost();
 
-                Tiles.CreateTile(this, MainCanvas, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
+                Tiles.CreateTile(this, MainCanvas, Tiles.TileSize.Regular, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
                     (grp.ActionDate > DateTime.MinValue), null);
             }
@@ -735,10 +735,10 @@ namespace OptionView
                 // massage cost to incude per lot value as well
                 string capReq = grp.CapitalRequired.ToString("C0");
 
-                Tiles.CreateTile(this, AnalysisCanvas, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, Convert.ToInt32((decimal)margin + (grp.CurrentValue + grp.Cost - minW) / scaleW), 
+                Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, Convert.ToInt32((decimal)margin + (grp.CurrentValue + grp.Cost - minW) / scaleW), 
                     Convert.ToInt32((decimal)margin + (decimal)height - ((grp.CapitalRequired - minH) / scaleH)), grp.Strategy, capReq, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(),
-                    (grp.ActionDate > DateTime.MinValue), "CapReq");
+                    false, "CapReq");
 
             }
 

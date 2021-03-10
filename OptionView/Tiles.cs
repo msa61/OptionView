@@ -19,8 +19,9 @@ namespace OptionView
 {
     public class Tiles
     {
+        public enum TileSize { Regular, Small };
 
-        public static void CreateTile(Window window, Canvas canvas, bool green, int ID, string symbol, string account, int left, int top, string strategy, string cost, string profit, string dte, bool alarm, string altLabel)
+        public static void CreateTile(Window window, Canvas canvas, TileSize size, bool green, int ID, string symbol, string account, int left, int top, string strategy, string cost, string profit, string dte, bool alarm, string altLabel)
         {
             //<ContentControl Canvas.Top = "10" Canvas.Left = "10" Template = "{StaticResource DesignerItemTemplate}" >
             //  <Canvas Style = "{DynamicResource TileCanvas}" >
@@ -31,14 +32,23 @@ namespace OptionView
             //  </ Canvas >
             //</ ContentControl > 
 
+            double height = 100;
+            double width = 150;
+
+            if (size == TileSize.Small)
+            {
+                height = 80;
+                width = 115;
+            }
+
             ContentControl cc = new ContentControl();
             cc.Template = (ControlTemplate)window.Resources["TileTemplate"];
 
 
             Canvas tileCanvas = new Canvas()
             {
-                Height = 100,
-                Width = 150,
+                Height = height,
+                Width = width,
                 Style = (Style)window.Resources["TileCanvas"]
             };
             cc.Content = tileCanvas;
@@ -47,8 +57,8 @@ namespace OptionView
             Border border = new Border()
             {
                 BorderThickness = new Thickness(3),
-                Width = 150,
-                Height = 100
+                Height = height,
+                Width = width
             };
             Canvas.SetTop(border, -10);
             Canvas.SetLeft(border, -10);
@@ -129,10 +139,10 @@ namespace OptionView
 
             TextBlock txtDTE = new TextBlock()
             {
-                Text = (dte.Length > 0) ? dte + " days" : "",
+                Text = (dte.Length > 0) ? dte + "d" : "",
                 Style = (Style)window.Resources["SymbolDetailsRight"]
             };
-            Canvas.SetTop(txtDTE, 68);
+            Canvas.SetTop(txtDTE, (size == TileSize.Regular) ? 68 : 46);
             Canvas.SetRight(txtDTE, 22);
             txtDTE.HorizontalAlignment = HorizontalAlignment.Right;
             tileCanvas.Children.Add(txtDTE);
