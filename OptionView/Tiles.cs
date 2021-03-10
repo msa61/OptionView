@@ -15,7 +15,6 @@ using System.Diagnostics;
 
 
 
-
 namespace OptionView
 {
     public class Tiles
@@ -33,30 +32,58 @@ namespace OptionView
             //</ ContentControl > 
 
             ContentControl cc = new ContentControl();
-            if (green)
-                cc.Template = (ControlTemplate)window.Resources["GreenTileTemplate"];
-            else
-                cc.Template = (ControlTemplate)window.Resources["RedTileTemplate"];
+            cc.Template = (ControlTemplate)window.Resources["TileTemplate"];
 
 
-            Canvas tileCanvas = new Canvas();
-            tileCanvas.Style = (Style)window.Resources["TileCanvas"];
+            Canvas tileCanvas = new Canvas()
+            {
+                Height = 100,
+                Width = 150,
+                Style = (Style)window.Resources["TileCanvas"]
+            };
             cc.Content = tileCanvas;
 
 
-            Rectangle rect = new Rectangle()
+            Border border = new Border()
             {
-                Name = "SelectedFrame",
-                Stroke = Brushes.Gray,
-                Visibility = Visibility.Hidden,
-                StrokeThickness= 1,
-                StrokeDashArray = new DoubleCollection() { 2 },
-                IsHitTestVisible = false,
-                Margin = new Thickness(-10,-10,0,0),
+                BorderThickness = new Thickness(3),
                 Width = 150,
                 Height = 100
             };
-            tileCanvas.Children.Add(rect);
+            Canvas.SetTop(border, -10);
+            Canvas.SetLeft(border, -10);
+            Rectangle rect = new Rectangle()
+            {
+                RadiusX = 5.18,
+                RadiusY = 5.18,
+                IsHitTestVisible = false
+            };
+
+            LinearGradientBrush gradBrush = new LinearGradientBrush();
+            gradBrush.StartPoint = new Point(0.5, 0);
+            gradBrush.EndPoint = new Point(0.5, 1);
+            if (green)
+            {
+                gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF538C2B"), 0.974));
+                gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF45761F"), 0.113));
+            }
+            else
+            {
+                gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FFAE2C20"), 0.974));
+                gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF91151D"), 0.113));
+            }
+
+            RotateTransform rt = new RotateTransform()
+            {
+                CenterX = 0.5,
+                CenterY = 0.5,
+                Angle = 315
+            };
+            gradBrush.RelativeTransform = rt;
+            rect.Fill = gradBrush;
+
+            border.Child = rect;
+            tileCanvas.Children.Add(border);
 
 
             TextBlock txtSymbol = new TextBlock()
@@ -71,6 +98,7 @@ namespace OptionView
                 Text = account,
                 Style = (Style)window.Resources["SymbolDetailsRight"]
             };
+            Canvas.SetRight(txtAccount, 22);
             txtAccount.HorizontalAlignment = HorizontalAlignment.Right;
             tileCanvas.Children.Add(txtAccount);
 
@@ -105,6 +133,7 @@ namespace OptionView
                 Style = (Style)window.Resources["SymbolDetailsRight"]
             };
             Canvas.SetTop(txtDTE, 68);
+            Canvas.SetRight(txtDTE, 22);
             txtDTE.HorizontalAlignment = HorizontalAlignment.Right;
             tileCanvas.Children.Add(txtDTE);
 

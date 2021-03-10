@@ -23,27 +23,9 @@
         </ContextMenu>
 
         <!-- Item Template -->
-        <ControlTemplate x:Key="GreenTileTemplate" TargetType="{x:Type ContentControl}">
-            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100" ContextMenuOpening="ContextMenuValidationCheck" ContextMenu="{StaticResource TileContextMenu}" ToolTip="..." ToolTipOpening="TileTooltip" >
+        <ControlTemplate x:Key="TileTemplate" TargetType="{x:Type ContentControl}">
+            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" ContextMenuOpening="ContextMenuValidationCheck" ContextMenu="{StaticResource TileContextMenu}" ToolTip="..." ToolTipOpening="TileTooltip" Name="grid" >
                 <local:MoveTile Template="{StaticResource MoveThumbTemplate}" DragCompleted="TileDragCompleted" />
-                <Border BorderThickness="3">
-                    <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False">
-                        <Rectangle.Fill>
-                            <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
-                                <LinearGradientBrush.RelativeTransform>
-                                    <TransformGroup>
-                                        <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                                        <SkewTransform CenterY="0.5" CenterX="0.5"/>
-                                        <RotateTransform Angle="315" CenterY="0.5" CenterX="0.5"/>
-                                        <TranslateTransform/>
-                                    </TransformGroup>
-                                </LinearGradientBrush.RelativeTransform>
-                                <GradientStop Color="#FF538C2B" Offset="0.978"/>
-                                <GradientStop Color="#FF45761F" Offset="0.113"/>
-                            </LinearGradientBrush>
-                        </Rectangle.Fill>
-                    </Rectangle>
-                </Border>
                 <ContentPresenter Content="{TemplateBinding Content}"/>
             </Grid>
             <ControlTemplate.Triggers>
@@ -52,35 +34,7 @@
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
-        <ControlTemplate x:Key="RedTileTemplate" TargetType="{x:Type ContentControl}">
-            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" Width="150" Height="100" ContextMenuOpening="ContextMenuValidationCheck" ContextMenu="{StaticResource TileContextMenu}" ToolTip="..." ToolTipOpening="TileTooltip" >
-                <local:MoveTile Template="{StaticResource MoveThumbTemplate}" DragCompleted="TileDragCompleted" />
-                <Border BorderThickness="3" >
-                    <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False" >
-                        <Rectangle.Fill>
-                            <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
-                                <LinearGradientBrush.RelativeTransform>
-                                    <TransformGroup>
-                                        <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                                        <SkewTransform CenterY="0.5" CenterX="0.5"/>
-                                        <RotateTransform Angle="315" CenterY="0.5" CenterX="0.5"/>
-                                        <TranslateTransform/>
-                                    </TransformGroup>
-                                </LinearGradientBrush.RelativeTransform>
-                                <GradientStop Color="#FFAE2C20" Offset="0.974"/>
-                                <GradientStop Color="#FF91151D" Offset="0.113"/>
-                            </LinearGradientBrush>
-                        </Rectangle.Fill>
-                    </Rectangle>
-                </Border>
-                <ContentPresenter Content="{TemplateBinding Content}"/>
-            </Grid>
-            <ControlTemplate.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Panel.ZIndex" Value="1"/>
-                </Trigger>
-            </ControlTemplate.Triggers>
-        </ControlTemplate>
+
 
         <Style TargetType="{x:Type TabControl}">
             <!-- Shared Setters -->
@@ -145,15 +99,16 @@
             <Setter Property="HorizontalAlignment" Value="Right" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="FontSize" Value="11" />
-            <Setter Property="Canvas.Right" Value="-30" />
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
         <Style x:Key="TileCanvas" TargetType="{x:Type Canvas}">
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
+            <!--
             <Setter Property="Height" Value="59" />
             <Setter Property="Width" Value="101" />
-            <Setter Property="Margin" Value="10,10,0,0" />
+-->
+            <Setter Property="Margin" Value="10,10,-10,-10" />
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
 
@@ -181,36 +136,22 @@
 
                     <Canvas x:Name="MainCanvas"  Grid.Column="0"  Background="#FF454545" MouseLeftButtonDown="CanvasMouseDown" Margin="4,4,0,4" >
 
-                        <ContentControl Canvas.Top="10" Canvas.Left="80" Template="{DynamicResource GreenTileTemplate}" Selector.IsSelected="True" >
+                        <ContentControl Canvas.Top="30" Canvas.Left="80" Width="150" Height="100" Template="{DynamicResource TileTemplate}" Selector.IsSelected="True" >
                             <Canvas Style="{DynamicResource TileCanvas}" >
-                                <Rectangle Name="SelectedFrame" Stroke="Gray" Visibility="Hidden" StrokeThickness="1" StrokeDashArray="2" IsHitTestVisible="False" Margin="-10,-10,0,0" Width="150" Height="100" />
+                                <Border BorderThickness="3" Canvas.Top="-10" Canvas.Left="-10" Width="150" Height="100" >
+                                    <Rectangle RadiusY="5.18" RadiusX="5.18" IsHitTestVisible="False" Name="rectangle" Fill="Blue" />
+                                </Border>
 
                                 <TextBlock Text="Symbol" Style="{DynamicResource SymbolHeader}"/>
+                                <TextBlock Text="Acct" Style="{DynamicResource SymbolDetailsRight}" Canvas.Right="22"/>
                                 <TextBlock Text="Text" Canvas.Top="18" Style="{DynamicResource SymbolDetails}" Height="24"/>
                                 <TextBlock Text="Text2" Canvas.Top="32" Style="{DynamicResource SymbolDetails}"/>
-
-                                <TextBlock Text="33" Style="{DynamicResource SymbolDetailsRight}"  Canvas.Top="68"  />
+                                <TextBlock Text="33" Style="{DynamicResource SymbolDetailsRight}"  Canvas.Top="68" Canvas.Right="22" />
                                 <Image Height="16" Canvas.Top="68" Width="16" Source="Icons/Alarm.ico">
 
                                 </Image>
                             </Canvas>
                         </ContentControl>
-                        <ContentControl Canvas.Top="10" Canvas.Left="290" Template="{DynamicResource RedTileTemplate}" Selector.IsSelected="True" >
-                            <Canvas Style="{DynamicResource TileCanvas}" >
-                                <Rectangle  Stroke="Gray" Visibility="Hidden" StrokeThickness="1" StrokeDashArray="2" IsHitTestVisible="False" Margin="-10,-10,0,0" Width="150" Height="100" />
-
-                                <TextBlock Text="Symbol" Style="{DynamicResource SymbolHeader}"/>
-                                <TextBlock Text="Text2" Style="{DynamicResource SymbolDetailsRight}"/>
-                                <TextBlock Text="Text" Canvas.Top="18" Style="{DynamicResource SymbolDetails}" Height="24"/>
-                                <TextBlock Text="Text2" Canvas.Top="32" Style="{DynamicResource SymbolDetails}"/>
-
-                                <TextBlock Text="33" Style="{DynamicResource SymbolDetailsRight}"  Canvas.Top="68"  />
-                                <Image Height="16" Canvas.Top="68" Width="16" Source="Icons/Alarm.ico">
-
-                                </Image>
-                            </Canvas>
-                        </ContentControl>
-
                     </Canvas>
 
                     <DockPanel Grid.Column="1" Margin="4,4,4,4" >
@@ -335,12 +276,12 @@
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
 
-                </DockPanel>
+                    </DockPanel>
 
                 </Grid>
             </TabItem>
 
-            
+
             <!-- Returns tab -->
             <TabItem Width="150" Height="30" Header="Returns">
                 <Grid Background="Black" SizeChanged="ResultsGrid_SizeChanged" >
@@ -510,7 +451,7 @@
                 </Grid>
 
             </TabItem>
-            
+
             <!-- To Do Tab-->
             <TabItem Width="150" Height="30" Header="To Dos">
                 <Grid Background="Black" >
