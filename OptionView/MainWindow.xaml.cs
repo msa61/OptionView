@@ -691,9 +691,20 @@ namespace OptionView
             Debug.Print("UpdateAnalysisView");
             if (AnalysisCanvas.Children.Count > 0) AnalysisCanvas.Children.Clear();
 
+
             double height = ((Grid)AnalysisCanvas.Parent).ActualHeight;
             double width = ((Grid)AnalysisCanvas.Parent).ActualWidth;
             double margin = 50;
+
+            if (height == 0)
+            {
+                string scrnProps = Config.GetProp("Screen");
+                string[] props = scrnProps.Split('|');
+                height = Convert.ToDouble(props[4]) - 77;
+                width = Convert.ToDouble(props[3]) - 22;
+            }
+
+
 
             height -= (8 + 100 + (2 * margin));   //adjust for borders and tile height
             width -= (200 + 4 + 150 + (2 * margin));  //adjust for panel, borders and tile width
@@ -743,9 +754,9 @@ namespace OptionView
             }
 
             Line line = new Line();
-            line.X1 = Convert.ToInt32((decimal)margin - minW);
+            line.X1 = Convert.ToInt32((decimal)margin - (minW / scaleW) + 5);  //fudge it over 5 since the tiles have zero at left edge
             line.Y1 = margin;
-            line.X2 = Convert.ToInt32((decimal)margin - minW);
+            line.X2 = Convert.ToInt32((decimal)margin - (minW / scaleW) + 5);
             line.Y2 = height + margin + 100;
             line.Stroke = Brushes.DimGray;
             line.StrokeThickness = 1;
