@@ -38,6 +38,8 @@ namespace OptionView
         public string Account { get; set; }
         public string AccountName { get; set; }
         public decimal CurrentValue { get; set; }
+        public decimal AnalysisXValue { get; set; }
+        public decimal AnalysisYValue { get; set; }
 
         public Positions Holdings { get; set; }
         public Transactions Transactions { get; set; }
@@ -170,7 +172,7 @@ namespace OptionView
                 decimal amount = Convert.ToDecimal(reader["Amount"]);
                 string transType = reader["TransSubType"].ToString();
 
-                data[time].Add(symbol, type, expDate, strike, quantity, amount, 0, transType, 0);
+                data[time].Add(symbol, type, expDate, strike, quantity, amount, time, 0, transType, 0);
             }
 
             string returnValue = "";

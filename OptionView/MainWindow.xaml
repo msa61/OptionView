@@ -266,9 +266,7 @@
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
-                            <ComboBox Name="cbAnalysisView" Margin="6" Text="None" SelectionChanged="CbAnalysis_SelectionChanged" >
-                                <ComboBoxItem Content="CapReq v Profit" Tag="CapProf" IsSelected="True"/>
-                            </ComboBox>
+                            <ComboBox Name="cbAnalysisView" Margin="6" Text="None" SelectionChanged="CbAnalysis_SelectionChanged" />
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel Background="Black" Margin="2,4,2,0">
