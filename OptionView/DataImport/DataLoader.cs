@@ -576,7 +576,7 @@ namespace OptionView
                     if (process)
                     {
                         // add transaction to the chain
-                        string key = holdings.Add(symbol, type, expDate, strike, quantity, amount, row, openClose, grpID);
+                        string key = holdings.Add(symbol, type, expDate, strike, quantity, amount, null, row, openClose, grpID);
                         Debug.WriteLine("    Opening transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString());
 
                         // add the associated time to the hierarchy for chain

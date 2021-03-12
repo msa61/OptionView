@@ -95,7 +95,7 @@ namespace OptionView
                     TransactionGroup grp = MapTransactionGroup(readerGroup);
 
                     // step thru open holdings
-                    sql = "SELECT * FROM (SELECT symbol, transgroupid, type, datetime(expiredate) AS ExpireDate, strike, sum(quantity) AS total, sum(amount) as amount FROM transactions";
+                    sql = "SELECT * FROM (SELECT symbol, transgroupid, type, datetime(expiredate) AS ExpireDate, strike, sum(quantity) AS total, sum(amount) as amount, datetime(Time) AS TransTime FROM transactions";
                     sql += " WHERE (transgroupid = @gr) GROUP BY symbol, type, expiredate, strike) WHERE (total <> 0)";
                     cmd = new SQLiteCommand(sql, App.ConnStr);
                     cmd.Parameters.AddWithValue("gr", grp.GroupID);
@@ -112,8 +112,11 @@ namespace OptionView
                         if (reader["Amount"] != DBNull.Value) amount = Convert.ToDecimal(reader["Amount"]);
                         DateTime expDate = DateTime.MinValue;
                         if (reader["ExpireDate"] != DBNull.Value) expDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
+                        DateTime transTime = DateTime.MinValue;
+                        if (reader["TransTime"] != DBNull.Value) transTime = Convert.ToDateTime(reader["TransTime"].ToString());
 
-                        grp.Holdings.Add(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, quantity, amount, 0, "", 0);
+
+                        grp.Holdings.Add(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, quantity, amount, transTime, 0, "", 0);
                     }
 
                     grp.EarliestExpiration = FindEarliestDate(grp.Holdings);

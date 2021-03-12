@@ -31,7 +31,7 @@ namespace OptionView
             
         }
 
-        public string Add(string symbol, string type, DateTime expDate, decimal strike, decimal quant, decimal amount, int row, string openClose, int grpID)
+        public string Add(string symbol, string type, DateTime expDate, decimal strike, decimal quant, decimal amount, DateTime? transTime, int row, string openClose, int grpID)
         {
             string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMdd") + strike.ToString("0000.0") + type;
 
@@ -41,6 +41,7 @@ namespace OptionView
                 p = this[key];
                 p.Quantity += quant;
                 p.Amount += amount;
+                if ((transTime != null) && (transTime < p.TransTime)) p.TransTime = (DateTime)transTime;
                 p.Rows.Add(row);
             }
             else
@@ -52,6 +53,7 @@ namespace OptionView
                 p.Type = type;
                 p.Quantity = quant;
                 p.Amount = amount;
+                if (transTime != null) p.TransTime = (DateTime)transTime;
                 p.Rows.Add(row);
                 this.Add(key, p);
             }
@@ -64,7 +66,7 @@ namespace OptionView
 
         public string Add(string symbol, string type, DateTime expDate, decimal strike, decimal quant, int row, string openClose, int grpID)
         {
-            return Add(symbol, type, expDate, strike, quant, 0.0m, row, openClose, grpID);
+            return Add(symbol, type, expDate, strike, quant, 0.0m, null, row, openClose, grpID);
         }
 
         public int GroupID()
