@@ -46,6 +46,7 @@ namespace OptionView
             UpdateResultsGrid();
             UpdateTodosGrid();
 
+            LoadDynamicComboBoxes();
             RestorePreviousSession();
         }
 
@@ -76,7 +77,25 @@ namespace OptionView
             }
         }
 
- 
+
+        private void LoadDynamicComboBoxes()
+        {
+            // load account numbers
+            foreach (KeyValuePair<string, string> a in accounts)
+            {
+                cbAccount.Items.Add(a.Value);
+                cbAnalysisAccount.Items.Add(a.Value);
+            }
+
+            // load analysis views defined in code
+            foreach (AnalysisViews v in viewList)
+            {
+                cbAnalysisView.Items.Add(v.Name);
+            }
+            cbAnalysisView.SelectedIndex = 0;
+        }
+
+
         private void RestorePreviousSession()
         {
             string scrnProps = Config.GetProp("Screen");
@@ -128,13 +147,6 @@ namespace OptionView
             //correct style mismatches
             txtSymbol.Background = new SolidColorBrush(Color.FromArgb(0xFF, 0xAD, 0xAD, 0xAD));
             DateAction_IsEnabledChanged(dateAction, new DependencyPropertyChangedEventArgs());
-
-
-            foreach (KeyValuePair<string, string> a in accounts)
-            {
-                cbAccount.Items.Add(a.Value);
-                cbAnalysisAccount.Items.Add(a.Value);
-            }
         }
 
         void MainWindow_Closing(object sender, CancelEventArgs e)
@@ -687,11 +699,32 @@ namespace OptionView
             }
         }
 
+        private class AnalysisViews
+        {
+            public string Name;
+            public string XLabel;
+            public string YLabel;
+
+            public AnalysisViews(string name, string x, string y)
+            {
+                this.Name = name;
+                this.XLabel = x;
+                this.YLabel = y;
+            }
+        }
+        private AnalysisViews[] viewList = new AnalysisViews[]
+        {
+            new AnalysisViews("CapReq v Profit", "Profit", "Capital Requirement"),
+            new AnalysisViews("CapReq v %Target Profit", "%Target Profit", "Capital Requirement")
+        };
+
         private void UpdateAnalysisView()
         {
             Debug.Print("UpdateAnalysisView");
             if (AnalysisCanvas.Children.Count > 0) AnalysisCanvas.Children.Clear();
 
+            int viewIndex = cbAnalysisView.SelectedIndex;
+            if (viewIndex == -1) return;  // form not initialized yet
 
             double height = ((Grid)AnalysisCanvas.Parent).ActualHeight;
             double width = ((Grid)AnalysisCanvas.Parent).ActualWidth;
@@ -711,10 +744,10 @@ namespace OptionView
             width -= (200 + 4 + 150 + (2 * margin));  //adjust for panel, borders and tile width
 
             if (height <= 0) return;
-            decimal minH = 100000;
-            decimal maxH = 0;
-            decimal minW = 100000;
-            decimal maxW = 0;
+            decimal minX = 100000;
+            decimal maxX = 0;
+            decimal minY = 100000;
+            decimal maxY = 0;
 
             //Rectangle rect = new Rectangle();
             //rect.Width = width + 150;
@@ -737,13 +770,32 @@ namespace OptionView
             {
                 TransactionGroup grp = entry.Value;
 
-                if ((grp.CurrentValue + grp.Cost) < minW) minW = (grp.CurrentValue + grp.Cost);
-                if ((grp.CurrentValue + grp.Cost) > maxW) maxW = (grp.CurrentValue + grp.Cost);
-                if (grp.CapitalRequired < minH) minH = grp.CapitalRequired;
-                if (grp.CapitalRequired > maxH) maxH = grp.CapitalRequired;
+                switch (viewIndex)
+                {
+                    case 0:
+                        grp.AnalysisXValue = grp.CurrentValue + grp.Cost;
+                        grp.AnalysisYValue = grp.CapitalRequired;
+                        break;
+                    case 1:
+                        grp.AnalysisXValue = PercentOfTarget(grp);
+                        grp.AnalysisYValue = grp.CapitalRequired;
+                        break;
+
+                    default:
+                        return;
+                }
+
+                if (grp.AnalysisXValue  < minX) minX = grp.AnalysisXValue;
+                if (grp.AnalysisXValue  > maxX) maxX = grp.AnalysisXValue;
+                if (grp.AnalysisYValue < minY) minY = grp.AnalysisYValue;
+                if (grp.AnalysisYValue > maxY) maxY = grp.AnalysisYValue;
             }
-            decimal scaleH = (maxH - minH) / (decimal)height;
-            decimal scaleW = (maxW - minW) / (decimal)width;
+            decimal scaleX = (maxX - minX) / (decimal)width;
+            decimal scaleY = (maxY - minY) / (decimal)height;
+
+            // just in case min = max, don't want to crash
+            if (scaleX == 0) scaleX = 1;
+            if (scaleY == 0) scaleY = 1;
 
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
@@ -755,36 +807,27 @@ namespace OptionView
                     // massage cost to incude per lot value as well
                     string capReq = grp.CapitalRequired.ToString("C0");
 
-                    Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, Convert.ToInt32((decimal)margin + (grp.CurrentValue + grp.Cost - minW) / scaleW),
-                        Convert.ToInt32((decimal)margin + (decimal)height - ((grp.CapitalRequired - minH) / scaleH)), grp.Strategy, capReq, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
+                    Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, 
+                        Convert.ToInt32((decimal)margin + (grp.AnalysisXValue - minX) / scaleX),
+                        Convert.ToInt32((decimal)margin + (decimal)height - ((grp.AnalysisYValue - minY) / scaleY)), 
+                        grp.Strategy, capReq, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
                         (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(),
                         false, "CapReq");
                 }
             }
 
             Line line = new Line();
-            line.X1 = Convert.ToInt32((decimal)margin - (minW / scaleW) + 5);  //fudge it over 5 since the tiles have zero at left edge
+            line.X1 = Convert.ToInt32((decimal)margin - (minX / scaleX) + 5);  //fudge it over 5 since the tiles have zero at left edge
             line.Y1 = margin;
-            line.X2 = Convert.ToInt32((decimal)margin - (minW / scaleW) + 5);
+            line.X2 = Convert.ToInt32((decimal)margin - (minX / scaleX) + 5);
             line.Y2 = height + margin + 100;
             line.Stroke = Brushes.DimGray;
             line.StrokeThickness = 1;
             AnalysisCanvas.Children.Add(line);
 
-
+            // horizontal axis label
             TextBlock text = new TextBlock();
-            text.Text = "Capital Requirement";
-            text.Foreground = Brushes.DimGray;
-            text.FontSize = 30;
-            text.LayoutTransform = new RotateTransform(-90);
-            text.HorizontalAlignment = HorizontalAlignment.Right;
-            Canvas.SetLeft(text, margin / 2);
-            Canvas.SetTop(text, 2 * margin);
-            
-            AnalysisCanvas.Children.Add(text);
-
-            text = new TextBlock();
-            text.Text = "Profit";
+            text.Text = viewList[viewIndex].XLabel;
             text.Foreground = Brushes.DimGray;
             text.FontSize = 30;
             text.HorizontalAlignment = HorizontalAlignment.Right;
@@ -793,13 +836,53 @@ namespace OptionView
 
             AnalysisCanvas.Children.Add(text);
 
-
+            // vertical axis label
+            text = new TextBlock();
+            text.Text = viewList[viewIndex].YLabel;
+            text.Foreground = Brushes.DimGray;
+            text.FontSize = 30;
+            text.LayoutTransform = new RotateTransform(-90);
+            text.HorizontalAlignment = HorizontalAlignment.Right;
+            Canvas.SetLeft(text, margin / 2);
+            Canvas.SetTop(text, 2 * margin);
+            
+            AnalysisCanvas.Children.Add(text);
         }
 
         private void CbAnalysis_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (AnalysisCanvas.Children.Count > 0) UpdateAnalysisView();
         }
+
+        private decimal PercentOfTarget(TransactionGroup grp)
+        {
+            decimal retval = 0;
+
+            DateTime startDay = DateTime.MaxValue;
+            foreach(KeyValuePair<string,Position> item in grp.Holdings)
+            {
+                if (item.Value.TransTime < startDay) startDay = item.Value.TransTime;
+            }
+            startDay = new DateTime(startDay.Year, startDay.Month, startDay.Day);
+
+            decimal firstDayAmount = 0;
+            foreach (KeyValuePair<string, Position> item in grp.Holdings)
+            {
+                DateTime day = new DateTime(item.Value.TransTime.Year, item.Value.TransTime.Month, item.Value.TransTime.Day);
+                if (day == startDay)
+                    firstDayAmount += item.Value.Amount;
+            }
+
+            retval = firstDayAmount;
+            /// this is the accurate value... need to find target and convert to a +/- percentage
+
+
+
+            return retval;
+        }
+
+
+
     }
 
 
