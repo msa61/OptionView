@@ -133,6 +133,7 @@ namespace OptionView
             foreach (KeyValuePair<string, string> a in accounts)
             {
                 cbAccount.Items.Add(a.Value);
+                cbAnalysisAccount.Items.Add(a.Value);
             }
         }
 
@@ -724,6 +725,11 @@ namespace OptionView
             //Canvas.SetTop(rect, margin);
             //AnalysisCanvas.Children.Add(rect);
 
+            //prepare filter
+            string accountNumber = "";
+            if (cbAnalysisAccount.SelectedIndex != 0) accountNumber = accounts.Keys.ElementAt(cbAnalysisAccount.SelectedIndex - 1);
+
+
 
             portfolio = new Portfolio();
             portfolio.GetCurrentHoldings(accounts);
@@ -743,14 +749,17 @@ namespace OptionView
             {
                 TransactionGroup grp = entry.Value;
 
-                // massage cost to incude per lot value as well
-                string capReq = grp.CapitalRequired.ToString("C0");
+                if ((grp.Account == accountNumber) || (accountNumber.Length == 0))
+                {
 
-                Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, Convert.ToInt32((decimal)margin + (grp.CurrentValue + grp.Cost - minW) / scaleW), 
-                    Convert.ToInt32((decimal)margin + (decimal)height - ((grp.CapitalRequired - minH) / scaleH)), grp.Strategy, capReq, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
-                    (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(),
-                    false, "CapReq");
+                    // massage cost to incude per lot value as well
+                    string capReq = grp.CapitalRequired.ToString("C0");
 
+                    Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, Convert.ToInt32((decimal)margin + (grp.CurrentValue + grp.Cost - minW) / scaleW),
+                        Convert.ToInt32((decimal)margin + (decimal)height - ((grp.CapitalRequired - minH) / scaleH)), grp.Strategy, capReq, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
+                        (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(),
+                        false, "CapReq");
+                }
             }
 
             Line line = new Line();
@@ -787,8 +796,10 @@ namespace OptionView
 
         }
 
-
-
+        private void CbAnalysis_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (AnalysisCanvas.Children.Count > 0) UpdateAnalysisView();
+        }
     }
 
 
