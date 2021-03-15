@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -749,6 +750,8 @@ namespace OptionView
             decimal minY = 100000;
             decimal maxY = 0;
 
+            decimal horizontalOrigin = -1;
+
             //Rectangle rect = new Rectangle();
             //rect.Width = width + 150;
             //rect.Height = height + 100;
@@ -775,10 +778,13 @@ namespace OptionView
                     case 0:
                         grp.AnalysisXValue = grp.CurrentValue + grp.Cost;
                         grp.AnalysisYValue = grp.CapitalRequired;
+                        horizontalOrigin = 0;
                         break;
                     case 1:
                         grp.AnalysisXValue = PercentOfTarget(grp);
                         grp.AnalysisYValue = grp.CapitalRequired;
+                        horizontalOrigin = 1;
+                        maxX = 1;
                         break;
 
                     default:
@@ -816,14 +822,17 @@ namespace OptionView
                 }
             }
 
-            Line line = new Line();
-            line.X1 = Convert.ToInt32((decimal)margin - (minX / scaleX) + 5);  //fudge it over 5 since the tiles have zero at left edge
-            line.Y1 = margin;
-            line.X2 = Convert.ToInt32((decimal)margin - (minX / scaleX) + 5);
-            line.Y2 = height + margin + 100;
-            line.Stroke = Brushes.DimGray;
-            line.StrokeThickness = 1;
-            AnalysisCanvas.Children.Add(line);
+            if (horizontalOrigin != -1)
+            {
+                Line line = new Line();
+                line.X1 = Convert.ToInt32((decimal)margin + ((horizontalOrigin - minX) / scaleX) + 5);  //fudge it over 5 since the tiles have zero at left edge
+                line.Y1 = margin;
+                line.X2 = Convert.ToInt32((decimal)margin + ((horizontalOrigin - minX) / scaleX) + 5);
+                line.Y2 = height + margin + 100;
+                line.Stroke = Brushes.DimGray;
+                line.StrokeThickness = 1;
+                AnalysisCanvas.Children.Add(line);
+            }
 
             // horizontal axis label
             TextBlock text = new TextBlock();
@@ -871,16 +880,27 @@ namespace OptionView
                 DateTime day = new DateTime(item.Value.TransTime.Year, item.Value.TransTime.Month, item.Value.TransTime.Day);
                 if (day == startDay)
                     firstDayAmount += item.Value.Amount;
-            }
+            }           
 
-            retval = firstDayAmount;
             /// this is the accurate value... need to find target and convert to a +/- percentage
-
+            decimal target = ParseTargetValue(grp);
+            retval = (grp.Cost + grp.CurrentValue) / Math.Abs(target * firstDayAmount);
 
 
             return retval;
         }
 
+        private decimal ParseTargetValue(TransactionGroup grp)
+        {
+            decimal retval = 0;
+
+            Match match = Regex.Match(grp.ExitStrategy, "\\d*");
+            if (match.Success)
+            {
+                retval = Convert.ToDecimal(match.Value) / 100;
+            }
+            return retval;
+        }
 
 
     }
