@@ -12,6 +12,9 @@ namespace OptionView
     {
         // add property
         public List<int> Rows { get; set; }
+        public decimal Market { get; set; }
+        public decimal Multiplier { get; set; }
+        public decimal UnderlyingPrice { get; set; }
 
         public Position ()
         {

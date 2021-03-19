@@ -38,6 +38,8 @@ namespace OptionView
         public string Account { get; set; }
         public string AccountName { get; set; }
         public decimal CurrentValue { get; set; }
+        public double ImpliedVolatility { get; set; }
+        public double ImpliedVolatilityRank { get; set; }
         public decimal AnalysisXValue { get; set; }
         public decimal AnalysisYValue { get; set; }
 
