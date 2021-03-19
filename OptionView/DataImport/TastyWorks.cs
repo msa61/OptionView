@@ -23,6 +23,18 @@ namespace OptionView
         }
     }
 
+    class TWMarketInfo
+    {
+        public string Symbol { get; set; }
+        public double ImpliedVolatility { get; set; }
+        public double ImpliedVolatilityRank { get; set; }
+    }
+    class TWMarketInfos : Dictionary<string, TWMarketInfo>
+    {
+    }
+
+
+
     class TWAccount
     {
         public string Name { get; set; }
@@ -57,6 +69,7 @@ namespace OptionView
         public string Type { get; set; }
         public decimal Quantity { get; set; }
         public decimal Market { get; set; }
+        public decimal UnderlyingPrice { get; set; }
         public decimal Multiplier { get; set; }
 
         public TWPosition()
@@ -155,6 +168,39 @@ namespace OptionView
             return false;
         }
 
+
+        public static TWMarketInfos MarketInfo(List<string> symbols)
+        {
+            string symbolString = "";
+            foreach (string sym in symbols)
+            {
+                symbolString += sym + ",";
+            }
+            symbolString = symbolString.TrimEnd(',');
+
+            Web.Headers[HttpRequestHeader.Authorization] = Token;
+            string reply = Web.DownloadString("https://api.tastyworks.com/market-metrics?symbols=" + symbolString);
+
+            JObject package = JObject.Parse(reply);
+
+            TWMarketInfos returnList = new TWMarketInfos();
+
+            List<JToken> list = package["data"]["items"].Children().ToList();
+
+            foreach (JToken item in list)
+            {
+                TWMarketInfo info = new TWMarketInfo();
+                info.Symbol = item["symbol"].ToString();
+                info.ImpliedVolatility = Convert.ToDouble(item["implied-volatility-index"]);
+                info.ImpliedVolatilityRank = Convert.ToDouble(item["implied-volatility-index-rank"]);
+                returnList.Add(info.Symbol, info);
+            }
+
+            return (returnList.Count > 0) ? returnList : null;
+        }
+
+
+
         public static TWAccounts Accounts()
         {
             Web.Headers[HttpRequestHeader.Authorization] = Token;
@@ -178,6 +224,7 @@ namespace OptionView
         }
 
 
+        // used for determining capital requirement during initial load
         public static TWMargins MarginData(string accountNumber)
         {
             SetHeaders();
@@ -262,6 +309,7 @@ namespace OptionView
 
                 inst.Multiplier = Convert.ToDecimal(item["multiplier"]); ;
                 inst.Market = marketValues[inst.OptionSymbol] * inst.Multiplier;
+                inst.UnderlyingPrice = marketValues[inst.Symbol];
 
                 SymbolDecoder symbol = new SymbolDecoder(inst.OptionSymbol, item["instrument-type"].ToString());
                 inst.Type = symbol.Type;

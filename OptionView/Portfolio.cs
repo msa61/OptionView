@@ -17,6 +17,7 @@ namespace OptionView
     public class Portfolio : Dictionary<int, TransactionGroup>
     {
         private Dictionary<string, TWPositions> twpositions = null;   // cache for current value lookup
+        private TWMarketInfos twmarketinfo = null;
         private Accounts accounts = null;
 
         public Portfolio()
@@ -120,7 +121,7 @@ namespace OptionView
                     }
 
                     grp.EarliestExpiration = FindEarliestDate(grp.Holdings);
-                    grp.CurrentValue = DetermineCurrentValue(grp);
+                    RetrieveCurrentData(grp);
 
                     this.Add(grp.GroupID, grp);
                 }  // end of transaction group loop
@@ -146,9 +147,9 @@ namespace OptionView
             return ret;
         }
 
-        private decimal DetermineCurrentValue(TransactionGroup grp)
+        private void RetrieveCurrentData(TransactionGroup grp)
         {
-            decimal returnValue = 0;
+            decimal currentValue = 0;
 
             try
             {
@@ -157,13 +158,22 @@ namespace OptionView
                 {
                     if (TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password")))
                     {
+                        List<string> symbols = new List<string>();
+
                         twpositions = new Dictionary<string, TWPositions>();
                         foreach (KeyValuePair<string, string> a in accounts)
                         {
                             // retrieve Tastyworks positions for given account
                             TWPositions pos = TastyWorks.Positions(a.Key);
                             twpositions.Add(a.Key, pos);
+
+                            foreach (KeyValuePair<string, TWPosition> p in pos)
+                            {
+                                if (!symbols.Contains(p.Value.Symbol)) symbols.Add(p.Value.Symbol);
+                            }
                         }
+
+                        twmarketinfo = TastyWorks.MarketInfo(symbols);  // get IV's
                     }
                 }
 
@@ -181,19 +191,29 @@ namespace OptionView
                             if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate))
                             {
                                 //Debug.WriteLine(twpos.Market);
-                                returnValue += pos.Quantity * twpos.Market;
+                                currentValue += pos.Quantity * twpos.Market;
+
+                                // capture current details while we have it
+                                pos.Market = twpos.Market;
+                                pos.Multiplier = twpos.Multiplier;
+                                pos.UnderlyingPrice = twpos.UnderlyingPrice;
                             }
                         }
                     }
                 }
+
+                grp.CurrentValue = currentValue;
+                if (twmarketinfo.ContainsKey(grp.ShortSymbol))
+                {
+                    grp.ImpliedVolatility = twmarketinfo[grp.ShortSymbol].ImpliedVolatility;
+                    grp.ImpliedVolatilityRank = twmarketinfo[grp.ShortSymbol].ImpliedVolatilityRank;
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("DetermineCurrentValue: " + ex.Message);
+                Debug.WriteLine("RetrieveCurrentData: " + ex.Message);
             }
 
-            //Debug.WriteLine(grp.Symbol + " : " + returnValue.ToString());
-            return returnValue;
         }
 
 
