@@ -716,7 +716,8 @@ namespace OptionView
         private AnalysisViews[] viewList = new AnalysisViews[]
         {
             new AnalysisViews("CapReq v Profit", "Profit", "Capital Requirement"),
-            new AnalysisViews("CapReq v %Target Profit", "%Target Profit", "Capital Requirement")
+            new AnalysisViews("CapReq v %Target Profit", "%Target Profit", "Capital Requirement"),
+            new AnalysisViews("Theta v CapReq", "Theta", "Capital Requirement" )
         };
 
         private void UpdateAnalysisView()
@@ -767,8 +768,11 @@ namespace OptionView
 
 
 
-            portfolio = new Portfolio();
-            portfolio.GetCurrentHoldings(accounts);
+            if (portfolio == null)
+                Debug.Print("oops");
+
+            //portfolio = new Portfolio();
+            //portfolio.GetCurrentHoldings(accounts);
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
                 TransactionGroup grp = entry.Value;
@@ -782,6 +786,12 @@ namespace OptionView
                         break;
                     case 1:
                         grp.AnalysisXValue = PercentOfTarget(grp);
+                        grp.AnalysisYValue = grp.CapitalRequired;
+                        horizontalOrigin = 1;
+                        maxX = 1;
+                        break;
+                    case 2:
+                        grp.AnalysisXValue = CalculateGroupTheta(grp);
                         grp.AnalysisYValue = grp.CapitalRequired;
                         horizontalOrigin = 1;
                         maxX = 1;
@@ -889,6 +899,30 @@ namespace OptionView
 
             return retval;
         }
+
+        private decimal CalculateGroupTheta(TransactionGroup grp)
+        {
+            decimal retval = 0;
+
+            DateTime startDay = DateTime.MaxValue;
+            foreach (KeyValuePair<string, Position> item in grp.Holdings)
+            {
+                Position p = item.Value;
+
+                TimeSpan span = p.ExpDate.Subtract(DateTime.Today);
+
+                decimal t = BlackScholes.Theta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice, 
+                    p.Strike, 0.005, 0.0, grp.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
+
+                Debug.WriteLine("Theta calculated: {0} {1} price:{2} strike:{3} IV:{4} days:{5} -> theta:{6}", grp.Symbol, p.Type, p.UnderlyingPrice, p.Strike, grp.ImpliedVolatility, span.TotalDays, t * p.Quantity * p.Multiplier);
+                retval += t * p.Quantity * p.Multiplier;
+            }
+
+            Debug.WriteLine("Group Theta: {0}", retval);
+            return retval;
+        }
+
+
 
         private decimal ParseTargetValue(TransactionGroup grp)
         {
