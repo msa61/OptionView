@@ -74,7 +74,7 @@ namespace OptionView
 
                 Tiles.CreateTile(this, MainCanvas, Tiles.TileSize.Regular, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
-                    (grp.ActionDate > DateTime.MinValue), null);
+                    (grp.ActionDate > DateTime.MinValue), null, null);
             }
         }
 
@@ -702,23 +702,41 @@ namespace OptionView
 
         private class AnalysisViews
         {
+            public enum Format
+            {
+                Dollar,
+                Number,
+                Percent
+            }
+
             public string Name;
             public string XLabel;
             public string YLabel;
+            public string XAxisLabel;
+            public string YAxisLabel;
+            public Format XFormat;
+            public Format YFormat;
 
-            public AnalysisViews(string name, string x, string y)
+            public AnalysisViews(string name, string xAxis, string yAxis, string x, string y, Format xFormat, Format yFormat)
             {
                 this.Name = name;
                 this.XLabel = x;
                 this.YLabel = y;
+                this.XAxisLabel = xAxis;
+                this.YAxisLabel = yAxis;
+                this.XFormat = xFormat;
+                this.YFormat = yFormat;
             }
         }
+
         private AnalysisViews[] viewList = new AnalysisViews[]
         {
-            new AnalysisViews("CapReq v Profit", "Profit", "Capital Requirement"),
-            new AnalysisViews("CapReq v %Target Profit", "%Target Profit", "Capital Requirement"),
-            new AnalysisViews("Theta v CapReq", "Theta", "Capital Requirement" )
+            new AnalysisViews("CapReq v Profit", "Profit", "Capital Requirement", "Prof", "CapReq", AnalysisViews.Format.Dollar, AnalysisViews.Format.Dollar),
+            new AnalysisViews("CapReq v %Target Profit", "%Target Profit", "Capital Requirement", "%Targ", "CapReq", AnalysisViews.Format.Percent, AnalysisViews.Format.Dollar),
+            new AnalysisViews("CapReq v Theta", "Theta", "Capital Requirement", "Theta", "CapReq", AnalysisViews.Format.Number, AnalysisViews.Format.Dollar),
+            new AnalysisViews("CapReq v Theta Ratio", "Theta Ratio", "Capital Requirement", "Ratio", "CapReq", AnalysisViews.Format.Percent, AnalysisViews.Format.Dollar)
         };
+        
 
         private void UpdateAnalysisView()
         {
@@ -766,6 +784,28 @@ namespace OptionView
             string accountNumber = "";
             if (cbAnalysisAccount.SelectedIndex != 0) accountNumber = accounts.Keys.ElementAt(cbAnalysisAccount.SelectedIndex - 1);
 
+            //adjust max/mins and origin
+            switch (viewIndex)
+            {
+                case 0:
+                    horizontalOrigin = 0;
+                    break;
+                case 1:
+                    horizontalOrigin = 1;
+                    maxX = 1;
+                    break;
+                case 2:
+                    horizontalOrigin = 1;
+                    maxX = 1;
+                    break;
+                case 3:
+                    horizontalOrigin = 0;
+                    maxX = 0;
+                    break;
+
+                default:
+                    return;
+            }
 
 
             if (portfolio == null)
@@ -782,19 +822,18 @@ namespace OptionView
                     case 0:
                         grp.AnalysisXValue = grp.CurrentValue + grp.Cost;
                         grp.AnalysisYValue = grp.CapitalRequired;
-                        horizontalOrigin = 0;
                         break;
                     case 1:
                         grp.AnalysisXValue = PercentOfTarget(grp);
                         grp.AnalysisYValue = grp.CapitalRequired;
-                        horizontalOrigin = 1;
-                        maxX = 1;
                         break;
                     case 2:
                         grp.AnalysisXValue = CalculateGroupTheta(grp);
                         grp.AnalysisYValue = grp.CapitalRequired;
-                        horizontalOrigin = 1;
-                        maxX = 1;
+                        break;
+                    case 3:
+                        grp.AnalysisXValue = CalculateGroupTheta(grp) / grp.CapitalRequired;
+                        grp.AnalysisYValue = grp.CapitalRequired;
                         break;
 
                     default:
@@ -813,22 +852,33 @@ namespace OptionView
             if (scaleX == 0) scaleX = 1;
             if (scaleY == 0) scaleY = 1;
 
+            Debug.WriteLine("Width: {0}  Height: {1}", width, height);
+            Debug.WriteLine("MinX: {0}  MaxX: {1}", minX, maxX);
+            Debug.WriteLine("MinY: {0}  MaxY: {1}", minY, maxY);
+            Debug.WriteLine("ScaleX: {0}  ScaleY: {1}", scaleX, scaleY);
+
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
                 TransactionGroup grp = entry.Value;
 
                 if ((grp.Account == accountNumber) || (accountNumber.Length == 0))
                 {
+                    Debug.WriteLine(grp.Symbol);
 
                     // massage cost to incude per lot value as well
-                    string capReq = grp.CapitalRequired.ToString("C0");
+                    string value1 = FormatValue(grp.AnalysisXValue, viewList[viewIndex].XFormat);
+                    string value2 = FormatValue(grp.AnalysisYValue, viewList[viewIndex].YFormat);
+
+                    int left = Convert.ToInt32((decimal)margin + (grp.AnalysisXValue - minX) / scaleX);
+                    int top = Convert.ToInt32((decimal)margin + (decimal)height - ((grp.AnalysisYValue - minY) / scaleY));
+
+                    Debug.WriteLine("Value1: {0}  Value2: {1}", grp.AnalysisXValue, grp.AnalysisYValue);
+                    Debug.WriteLine("Left:   {0}  Top:    {1}", left, top);
 
                     Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, 
-                        Convert.ToInt32((decimal)margin + (grp.AnalysisXValue - minX) / scaleX),
-                        Convert.ToInt32((decimal)margin + (decimal)height - ((grp.AnalysisYValue - minY) / scaleY)), 
-                        grp.Strategy, capReq, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
-                        (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(),
-                        false, "CapReq");
+                        left, top, grp.Strategy, value2, value1,
+                        (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), false,
+                        viewList[viewIndex].YLabel, viewList[viewIndex].XLabel);
                 }
             }
 
@@ -846,7 +896,7 @@ namespace OptionView
 
             // horizontal axis label
             TextBlock text = new TextBlock();
-            text.Text = viewList[viewIndex].XLabel;
+            text.Text = viewList[viewIndex].XAxisLabel;
             text.Foreground = Brushes.DimGray;
             text.FontSize = 30;
             text.HorizontalAlignment = HorizontalAlignment.Right;
@@ -857,7 +907,7 @@ namespace OptionView
 
             // vertical axis label
             text = new TextBlock();
-            text.Text = viewList[viewIndex].YLabel;
+            text.Text = viewList[viewIndex].YAxisLabel;
             text.Foreground = Brushes.DimGray;
             text.FontSize = 30;
             text.LayoutTransform = new RotateTransform(-90);
@@ -867,6 +917,24 @@ namespace OptionView
             
             AnalysisCanvas.Children.Add(text);
         }
+
+        private string FormatValue(decimal value, AnalysisViews.Format f)
+        {
+            switch (f)
+            {
+                case AnalysisViews.Format.Dollar:
+                    return value.ToString("C0");
+                case AnalysisViews.Format.Number:
+                    return value.ToString("N2");
+                case AnalysisViews.Format.Percent:
+                    return value.ToString("P1");
+                default:
+                    return value.ToString();
+            }
+
+            return value.ToString();
+        }
+
 
         private void CbAnalysis_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
