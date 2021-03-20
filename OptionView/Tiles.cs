@@ -21,7 +21,7 @@ namespace OptionView
     {
         public enum TileSize { Regular, Small };
 
-        public static void CreateTile(Window window, Canvas canvas, TileSize size, bool green, int ID, string symbol, string account, int left, int top, string strategy, string cost, string profit, string dte, bool alarm, string altLabel)
+        public static void CreateTile(Window window, Canvas canvas, TileSize size, bool green, int ID, string symbol, string account, int left, int top, string strategy, string value1, string value2, string dte, bool alarm, string altLabel1, string altLabel2)
         {
             //<ContentControl Canvas.Top = "10" Canvas.Left = "10" Template = "{StaticResource DesignerItemTemplate}" >
             //  <Canvas Style = "{DynamicResource TileCanvas}" >
@@ -123,7 +123,7 @@ namespace OptionView
 
             TextBlock txtDetail2 = new TextBlock()
             {
-                Text = ((altLabel != null) ? altLabel : "Cost") + ": " + cost,
+                Text = ((altLabel1 != null) ? altLabel1 : "Cost") + ": " + value1,
                 Style = (Style)window.Resources["SymbolDetails"]
             };
             Canvas.SetTop(txtDetail2, 32);
@@ -131,7 +131,7 @@ namespace OptionView
 
             TextBlock txtDetail3 = new TextBlock()
             {
-                Text = "P/L: " + profit,
+                Text = ((altLabel2 != null) ? altLabel2 : "P/L") + ": " + value2,
                 Style = (Style)window.Resources["SymbolDetails"]
             };
             Canvas.SetTop(txtDetail3, 46);
