@@ -67,7 +67,7 @@ namespace OptionView
                 case OptionType.Call:
                     return Convert.ToDecimal(Math.Exp(-r * t) * Normal.CDF(0, 1, d1));
                 case OptionType.Put:
-                    return Convert.ToDecimal(-Math.Exp(-r * t) * Normal.CDF(0, 1, -d1));
+                    return Convert.ToDecimal(-Math.Exp(-r * t) * (Normal.CDF(0, 1, d1) - 1));
             }
             return 0;
         }
@@ -97,8 +97,8 @@ namespace OptionView
                 case OptionType.Put:
                     {
                         double theta = -s * sigma * Math.Exp(-q * t) * Normal.PDF(0, 1, d1) / 2 / Math.Sqrt(t);
-                        theta += (r * x * Math.Exp(-r * t) * Normal.CDF(0, 1, d2));
-                        theta -= (q * s * Math.Exp(-q * t) * Normal.CDF(0, 1, d1));
+                        theta += (r * x * Math.Exp(-r * t) * Normal.CDF(0, 1, -d2));
+                        theta -= (q * s * Math.Exp(-q * t) * Normal.CDF(0, 1, -d1));
                         return Convert.ToDecimal(theta / 365);
                     }
             }
