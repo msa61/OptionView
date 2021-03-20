@@ -140,7 +140,17 @@ namespace OptionView
             Int32.TryParse(grouping, out idx);
             cbGrouping1.SelectedIndex = idx;
 
+            string[] analysisView = Config.GetProp("AnalysisView").Split('|');
+            if (analysisView.Length > 1)
+            {
+                Int32 fIdx = 0;
+                //account
+                Int32.TryParse(analysisView[0], out fIdx);
+                cbAnalysisView.SelectedIndex = fIdx;
 
+                Int32.TryParse(analysisView[1], out fIdx);
+                cbAnalysisAccount.SelectedIndex = fIdx;
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -171,6 +181,8 @@ namespace OptionView
 
             Config.SetProp("Grouping", cbGrouping1.SelectedIndex.ToString());
 
+            // save analysis view state
+            Config.SetProp("AnalysisView", cbAnalysisView.SelectedIndex.ToString() + "|" + cbAnalysisAccount.SelectedIndex.ToString());
 
             if ((selectedTag != 0) && detailsDirty) SaveTransactionGroupDetails(selectedTag);
 
@@ -795,11 +807,11 @@ namespace OptionView
                     maxX = 1;
                     break;
                 case 2:
-                    horizontalOrigin = 1;
+                    horizontalOrigin = 0;
                     maxX = 1;
                     break;
                 case 3:
-                    horizontalOrigin = 0;
+                    horizontalOrigin = 0.005M;  //threshold of good ration 0.5%
                     maxX = 0;
                     break;
 
@@ -811,8 +823,6 @@ namespace OptionView
             if (portfolio == null)
                 Debug.Print("oops");
 
-            //portfolio = new Portfolio();
-            //portfolio.GetCurrentHoldings(accounts);
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
                 TransactionGroup grp = entry.Value;
@@ -857,6 +867,52 @@ namespace OptionView
             Debug.WriteLine("MinY: {0}  MaxY: {1}", minY, maxY);
             Debug.WriteLine("ScaleX: {0}  ScaleY: {1}", scaleX, scaleY);
 
+            if (horizontalOrigin != -1)
+            {
+                Int32 x = Convert.ToInt32((decimal)margin + ((horizontalOrigin - minX) / scaleX) + 5);  //fudge it over 5 since the tiles have zero at left edge
+
+                Line line = new Line();
+                line.X1 = x;
+                line.Y1 = margin;
+                line.X2 = x;
+                line.Y2 = height + margin + 100;
+                line.Stroke = Brushes.DimGray;
+                line.StrokeThickness = 1;
+                AnalysisCanvas.Children.Add(line);
+
+                // origin label
+                TextBlock text1 = new TextBlock();
+                text1.Text = FormatValue(horizontalOrigin, viewList[viewIndex].XFormat);
+                text1.Foreground = Brushes.DimGray;
+                text1.FontSize = 15;
+                text1.TextAlignment = TextAlignment.Center;
+                Canvas.SetLeft(text1, x);
+                Canvas.SetTop(text1, height + margin + 105);
+                AnalysisCanvas.Children.Add(text1);
+            }
+
+            // horizontal axis label
+            TextBlock text = new TextBlock();
+            text.Text = viewList[viewIndex].XAxisLabel;
+            text.Foreground = Brushes.DimGray;
+            text.FontSize = 30;
+            text.TextAlignment = TextAlignment.Right;
+            Canvas.SetLeft(text, width + margin);
+            Canvas.SetTop(text, height + margin + 100);
+            AnalysisCanvas.Children.Add(text);
+
+            // vertical axis label
+            text = new TextBlock();
+            text.Text = viewList[viewIndex].YAxisLabel;
+            text.Foreground = Brushes.DimGray;
+            text.FontSize = 30;
+            text.LayoutTransform = new RotateTransform(-90);
+            text.TextAlignment = TextAlignment.Right;
+            Canvas.SetLeft(text, margin / 2);
+            Canvas.SetTop(text, 2 * margin);
+            AnalysisCanvas.Children.Add(text);
+
+            // cycle thru the tiles
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
                 TransactionGroup grp = entry.Value;
@@ -882,40 +938,6 @@ namespace OptionView
                 }
             }
 
-            if (horizontalOrigin != -1)
-            {
-                Line line = new Line();
-                line.X1 = Convert.ToInt32((decimal)margin + ((horizontalOrigin - minX) / scaleX) + 5);  //fudge it over 5 since the tiles have zero at left edge
-                line.Y1 = margin;
-                line.X2 = Convert.ToInt32((decimal)margin + ((horizontalOrigin - minX) / scaleX) + 5);
-                line.Y2 = height + margin + 100;
-                line.Stroke = Brushes.DimGray;
-                line.StrokeThickness = 1;
-                AnalysisCanvas.Children.Add(line);
-            }
-
-            // horizontal axis label
-            TextBlock text = new TextBlock();
-            text.Text = viewList[viewIndex].XAxisLabel;
-            text.Foreground = Brushes.DimGray;
-            text.FontSize = 30;
-            text.HorizontalAlignment = HorizontalAlignment.Right;
-            Canvas.SetLeft(text, width + margin);
-            Canvas.SetTop(text, height + margin + 100);
-
-            AnalysisCanvas.Children.Add(text);
-
-            // vertical axis label
-            text = new TextBlock();
-            text.Text = viewList[viewIndex].YAxisLabel;
-            text.Foreground = Brushes.DimGray;
-            text.FontSize = 30;
-            text.LayoutTransform = new RotateTransform(-90);
-            text.HorizontalAlignment = HorizontalAlignment.Right;
-            Canvas.SetLeft(text, margin / 2);
-            Canvas.SetTop(text, 2 * margin);
-            
-            AnalysisCanvas.Children.Add(text);
         }
 
         private string FormatValue(decimal value, AnalysisViews.Format f)
