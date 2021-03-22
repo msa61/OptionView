@@ -112,12 +112,6 @@ namespace OptionView
                 this.Height = Convert.ToDouble(props[4]);
             }
 
-            string tab = Config.GetProp("Tab");
-            if (tab.Length > 0)
-            {
-                MainTab.SelectedIndex = Convert.ToInt32(tab);
-            }
-
             string[] filters = Config.GetProp("Filters").Split('|');
             if (filters.Length > 4)
             {
@@ -141,8 +135,10 @@ namespace OptionView
             cbGrouping1.SelectedIndex = idx;
 
             string[] analysisView = Config.GetProp("AnalysisView").Split('|');
-            if (analysisView.Length > 1)
+            if (analysisView.Length > 2)
             {
+                chkOutliers.IsChecked = (analysisView[2] == "True");
+
                 Int32 fIdx = 0;
                 //account
                 Int32.TryParse(analysisView[0], out fIdx);
@@ -150,6 +146,13 @@ namespace OptionView
 
                 Int32.TryParse(analysisView[1], out fIdx);
                 cbAnalysisAccount.SelectedIndex = fIdx;
+            }
+
+            // do last to avoid extraineous events
+            string tab = Config.GetProp("Tab");
+            if (tab.Length > 0)
+            {
+                MainTab.SelectedIndex = Convert.ToInt32(tab);
             }
         }
 
@@ -182,7 +185,7 @@ namespace OptionView
             Config.SetProp("Grouping", cbGrouping1.SelectedIndex.ToString());
 
             // save analysis view state
-            Config.SetProp("AnalysisView", cbAnalysisView.SelectedIndex.ToString() + "|" + cbAnalysisAccount.SelectedIndex.ToString());
+            Config.SetProp("AnalysisView", cbAnalysisView.SelectedIndex.ToString() + "|" + cbAnalysisAccount.SelectedIndex.ToString() + "|" + chkOutliers.IsChecked.ToString());
 
             if ((selectedTag != 0) && detailsDirty) SaveTransactionGroupDetails(selectedTag);
 
@@ -502,6 +505,9 @@ namespace OptionView
                 if (response.Length == 0) response = "Success!";
                 MessageBox.Show(response, "Validate Results");
             }
+
+            // refresh cached value - validate method zeros out holdings
+            portfolio.GetCurrentHoldings(accounts);
         }
 
         private void ConfigButton(object sender, RoutedEventArgs e)
@@ -792,9 +798,6 @@ namespace OptionView
             //Canvas.SetTop(rect, margin);
             //AnalysisCanvas.Children.Add(rect);
 
-            //prepare filter
-            string accountNumber = "";
-            if (cbAnalysisAccount.SelectedIndex != 0) accountNumber = accounts.Keys.ElementAt(cbAnalysisAccount.SelectedIndex - 1);
 
             //adjust max/mins and origin
             switch (viewIndex)
@@ -827,33 +830,36 @@ namespace OptionView
             {
                 TransactionGroup grp = entry.Value;
 
-                switch (viewIndex)
+                if (FilterAnalysisTiles(grp, viewIndex))
                 {
-                    case 0:
-                        grp.AnalysisXValue = grp.CurrentValue + grp.Cost;
-                        grp.AnalysisYValue = grp.CapitalRequired;
-                        break;
-                    case 1:
-                        grp.AnalysisXValue = PercentOfTarget(grp);
-                        grp.AnalysisYValue = grp.CapitalRequired;
-                        break;
-                    case 2:
-                        grp.AnalysisXValue = CalculateGroupTheta(grp);
-                        grp.AnalysisYValue = grp.CapitalRequired;
-                        break;
-                    case 3:
-                        grp.AnalysisXValue = CalculateGroupTheta(grp) / grp.CapitalRequired;
-                        grp.AnalysisYValue = grp.CapitalRequired;
-                        break;
+                    switch (viewIndex)
+                    {
+                        case 0:
+                            grp.AnalysisXValue = grp.CurrentValue + grp.Cost;
+                            grp.AnalysisYValue = grp.CapitalRequired;
+                            break;
+                        case 1:
+                            grp.AnalysisXValue = PercentOfTarget(grp);
+                            grp.AnalysisYValue = grp.CapitalRequired;
+                            break;
+                        case 2:
+                            grp.AnalysisXValue = CalculateGroupTheta(grp);
+                            grp.AnalysisYValue = grp.CapitalRequired;
+                            break;
+                        case 3:
+                            grp.AnalysisXValue = CalculateGroupTheta(grp) / grp.CapitalRequired;
+                            grp.AnalysisYValue = grp.CapitalRequired;
+                            break;
 
-                    default:
-                        return;
+                        default:
+                            return;
+                    }
+
+                    if (grp.AnalysisXValue < minX) minX = grp.AnalysisXValue;
+                    if (grp.AnalysisXValue > maxX) maxX = grp.AnalysisXValue;
+                    if (grp.AnalysisYValue < minY) minY = grp.AnalysisYValue;
+                    if (grp.AnalysisYValue > maxY) maxY = grp.AnalysisYValue;
                 }
-
-                if (grp.AnalysisXValue  < minX) minX = grp.AnalysisXValue;
-                if (grp.AnalysisXValue  > maxX) maxX = grp.AnalysisXValue;
-                if (grp.AnalysisYValue < minY) minY = grp.AnalysisYValue;
-                if (grp.AnalysisYValue > maxY) maxY = grp.AnalysisYValue;
             }
             decimal scaleX = (maxX - minX) / (decimal)width;
             decimal scaleY = (maxY - minY) / (decimal)height;
@@ -917,7 +923,7 @@ namespace OptionView
             {
                 TransactionGroup grp = entry.Value;
 
-                if ((grp.Account == accountNumber) || (accountNumber.Length == 0))
+                if (FilterAnalysisTiles(grp, viewIndex))
                 {
                     Debug.WriteLine(grp.Symbol);
 
@@ -953,14 +959,37 @@ namespace OptionView
                 default:
                     return value.ToString();
             }
-
-            return value.ToString();
         }
 
+        private bool FilterAnalysisTiles(TransactionGroup grp, int view)
+        {
+            bool retval = false;
+            
+            string accountNumber = "";
+            if (cbAnalysisAccount.SelectedIndex != 0) accountNumber = accounts.Keys.ElementAt(cbAnalysisAccount.SelectedIndex - 1);
+
+            bool outliers = (bool)chkOutliers.IsChecked;
+
+            if ((grp.Account == accountNumber) || (accountNumber.Length == 0))  //account filter
+            {
+                if ((outliers == true) || (view < 2) || (CalculateGroupTheta(grp) > 0))  // outlier filter
+                    retval = true;
+            }
+
+            return retval;
+        }
 
         private void CbAnalysis_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (AnalysisCanvas.Children.Count > 0) UpdateAnalysisView();
+
+            int view = cbAnalysisView.SelectedIndex;
+            if (chkOutliers != null) chkOutliers.IsEnabled = (view > 1);
+        }
+
+        private void Analysis_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateAnalysisView();
         }
 
         private decimal PercentOfTarget(TransactionGroup grp)
@@ -1025,7 +1054,6 @@ namespace OptionView
             }
             return retval;
         }
-
 
     }
 
