@@ -289,6 +289,19 @@
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
 
+                        <StackPanel VerticalAlignment="Bottom">
+                            <StackPanel  >
+                                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                                <Label Name="lbYVal" Content="filler" Margin="6,0,0,0" />
+                                <TextBox Name="txtYVal" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
+                            </StackPanel>
+                            <StackPanel  >
+                                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                                <Label Name="lbXVal" Content="filler" Margin="6,0,0,0" />
+                                <TextBox Name="txtXVal" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
+                            </StackPanel>
+                        </StackPanel>
+
                     </DockPanel>
 
                 </Grid>
