@@ -892,7 +892,7 @@ namespace OptionView
                 text1.Foreground = Brushes.DimGray;
                 text1.FontSize = 15;
                 text1.TextAlignment = TextAlignment.Center;
-                Canvas.SetLeft(text1, x);
+                Canvas.SetLeft(text1, x - (text1.Text.Length * 4));
                 Canvas.SetTop(text1, height + margin + 105);
                 AnalysisCanvas.Children.Add(text1);
             }
