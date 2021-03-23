@@ -752,7 +752,8 @@ namespace OptionView
             new AnalysisViews("CapReq v Profit", "Profit", "Capital Requirement", "Prof", "CapReq", AnalysisViews.Format.Dollar, AnalysisViews.Format.Dollar),
             new AnalysisViews("CapReq v %Target Profit", "%Target Profit", "Capital Requirement", "%Targ", "CapReq", AnalysisViews.Format.Percent, AnalysisViews.Format.Dollar),
             new AnalysisViews("CapReq v Theta", "Theta", "Capital Requirement", "Theta", "CapReq", AnalysisViews.Format.Number, AnalysisViews.Format.Dollar),
-            new AnalysisViews("CapReq v Theta Ratio", "Theta Ratio", "Capital Requirement", "Ratio", "CapReq", AnalysisViews.Format.Percent, AnalysisViews.Format.Dollar)
+            new AnalysisViews("CapReq v Theta Ratio", "Theta Ratio", "Capital Requirement", "Ratio", "CapReq", AnalysisViews.Format.Percent, AnalysisViews.Format.Dollar),
+            new AnalysisViews("CapReq v Delta", "Delta", "Capital Requirement", "Delta", "CapReq", AnalysisViews.Format.Number, AnalysisViews.Format.Dollar)
         };
         
 
@@ -803,6 +804,7 @@ namespace OptionView
             switch (viewIndex)
             {
                 case 0:
+                case 4:
                     horizontalOrigin = 0;
                     break;
                 case 1:
@@ -822,6 +824,8 @@ namespace OptionView
                     return;
             }
 
+            decimal overallXValue = 0;
+            decimal overallYValue = 0;
 
             if (portfolio == null)
                 Debug.Print("oops");
@@ -837,18 +841,39 @@ namespace OptionView
                         case 0:
                             grp.AnalysisXValue = grp.CurrentValue + grp.Cost;
                             grp.AnalysisYValue = grp.CapitalRequired;
+
+                            overallXValue += grp.AnalysisXValue;
+                            overallYValue += grp.AnalysisYValue;
                             break;
                         case 1:
                             grp.AnalysisXValue = PercentOfTarget(grp);
                             grp.AnalysisYValue = grp.CapitalRequired;
+
+                            overallXValue += grp.AnalysisXValue;
+                            overallYValue += grp.AnalysisYValue;
                             break;
                         case 2:
                             grp.AnalysisXValue = CalculateGroupTheta(grp);
                             grp.AnalysisYValue = grp.CapitalRequired;
+
+                            overallXValue += grp.AnalysisXValue;
+                            overallYValue += grp.AnalysisYValue;
                             break;
                         case 3:
-                            grp.AnalysisXValue = CalculateGroupTheta(grp) / grp.CapitalRequired;
+                            grp.AnalysisXValue = CalculateGroupTheta(grp);
                             grp.AnalysisYValue = grp.CapitalRequired;
+
+                            overallXValue += grp.AnalysisXValue;
+                            overallYValue += grp.AnalysisYValue;
+
+                            grp.AnalysisXValue /= grp.CapitalRequired;
+                            break;
+                        case 4:
+                            grp.AnalysisXValue = CalculateGroupDelta(grp);
+                            grp.AnalysisYValue = grp.CapitalRequired;
+
+                            overallXValue += grp.AnalysisXValue;
+                            overallYValue += grp.AnalysisYValue;
                             break;
 
                         default:
@@ -859,6 +884,7 @@ namespace OptionView
                     if (grp.AnalysisXValue > maxX) maxX = grp.AnalysisXValue;
                     if (grp.AnalysisYValue < minY) minY = grp.AnalysisYValue;
                     if (grp.AnalysisYValue > maxY) maxY = grp.AnalysisYValue;
+
                 }
             }
             decimal scaleX = (maxX - minX) / (decimal)width;
@@ -881,7 +907,7 @@ namespace OptionView
                 line.X1 = x;
                 line.Y1 = margin;
                 line.X2 = x;
-                line.Y2 = height + margin + 100;
+                line.Y2 = height + margin + 80;
                 line.Stroke = Brushes.DimGray;
                 line.StrokeThickness = 1;
                 AnalysisCanvas.Children.Add(line);
@@ -893,7 +919,7 @@ namespace OptionView
                 text1.FontSize = 15;
                 text1.TextAlignment = TextAlignment.Center;
                 Canvas.SetLeft(text1, x - (text1.Text.Length * 4));
-                Canvas.SetTop(text1, height + margin + 105);
+                Canvas.SetTop(text1, height + margin + 85);
                 AnalysisCanvas.Children.Add(text1);
             }
 
@@ -944,6 +970,23 @@ namespace OptionView
                 }
             }
 
+            lbXVal.Content = "Overall " + viewList[viewIndex].XLabel;
+            lbYVal.Content = "Overall " + viewList[viewIndex].YLabel;
+            switch (viewIndex)
+            {
+                case 1:
+                    txtXVal.Text = "";
+                    txtYVal.Text = "";
+                    break;
+                case 3:  // ratio
+                    txtXVal.Text = FormatValue(overallXValue / overallYValue, viewList[viewIndex].XFormat);
+                    txtYVal.Text = FormatValue(overallYValue, viewList[viewIndex].YFormat);
+                    break;
+                default:
+                    txtXVal.Text = FormatValue(overallXValue, viewList[viewIndex].XFormat);
+                    txtYVal.Text = FormatValue(overallYValue, viewList[viewIndex].YFormat);
+                    break;
+            }
         }
 
         private string FormatValue(decimal value, AnalysisViews.Format f)
@@ -972,7 +1015,12 @@ namespace OptionView
 
             if ((grp.Account == accountNumber) || (accountNumber.Length == 0))  //account filter
             {
-                if ((outliers == true) || (view < 2) || (CalculateGroupTheta(grp) > 0))  // outlier filter
+                // outlier filter
+                if ((outliers == true) ||   // flag on, show everything
+                    (view < 2) ||           // ignore flag for first two view types
+                    (((view == 2) || (view == 3)) && (CalculateGroupTheta(grp) > 0))  ||
+                    ((view == 4) && (CalculateGroupDelta(grp) < 100))
+                   )  
                     retval = true;
             }
 
@@ -1031,7 +1079,7 @@ namespace OptionView
                 TimeSpan span = p.ExpDate.Subtract(DateTime.Today);
 
                 decimal t = BlackScholes.Theta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice, 
-                    p.Strike, 0.005, 0.0, grp.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
+                    p.Strike, 0.003, 0.0, grp.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
 
                 Debug.WriteLine("Theta calculated: {0} {1} price:{2} strike:{3} IV:{4} days:{5} -> theta:{6}", grp.Symbol, p.Type, p.UnderlyingPrice, p.Strike, grp.ImpliedVolatility, span.TotalDays, t * p.Quantity * p.Multiplier);
                 retval += t * p.Quantity * p.Multiplier;
@@ -1041,6 +1089,29 @@ namespace OptionView
             return retval;
         }
 
+        private decimal CalculateGroupDelta(TransactionGroup grp)
+        {
+            decimal retval = 0;
+
+            DateTime startDay = DateTime.MaxValue;
+            foreach (KeyValuePair<string, Position> item in grp.Holdings)
+            {
+                Position p = item.Value;
+
+                TimeSpan span = p.ExpDate.Subtract(DateTime.Today);
+
+                decimal t = BlackScholes.Delta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
+                    p.Strike, 0.003, 0.0, grp.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
+
+                if (p.Type == "Put") t = -t;  // not sure why this is backwards
+
+                Debug.WriteLine("Delta calculated: {0} {1} price:{2} strike:{3} IV:{4} days:{5} -> delta:{6}", grp.Symbol, p.Type, p.UnderlyingPrice, p.Strike, grp.ImpliedVolatility, span.TotalDays, t * p.Quantity * p.Multiplier);
+                retval += t * p.Quantity * p.Multiplier;
+            }
+
+            Debug.WriteLine("Group Delta: {0}", retval);
+            return retval;
+        }
 
 
         private decimal ParseTargetValue(TransactionGroup grp)
