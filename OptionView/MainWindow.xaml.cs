@@ -17,6 +17,7 @@ using System.Windows.Shapes;
 using System.Globalization;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Data;
 using Microsoft.Win32;
 
 
@@ -46,6 +47,7 @@ namespace OptionView
             UpdateHoldingsTiles();
             UpdateResultsGrid();
             UpdateTodosGrid();
+            UpdateFooter();
 
             LoadDynamicComboBoxes();
             RestorePreviousSession();
@@ -56,6 +58,85 @@ namespace OptionView
             this.Title += " - " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(Int32.MaxValue));
+        }
+
+        private void UpdateFooter()
+        {
+            /*
+                <StackPanel Orientation="Horizontal" >
+                    <Label Content="Account" Width="80" Style="{StaticResource OverviewText}"/>
+                    <Label Content="Individual" Width="100"  Style="{StaticResource OverviewText}"/>
+                    <Label Content="Roth" Width="100"  Style="{StaticResource OverviewText}"/>
+                </StackPanel>                
+                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+
+
+                <Setter Property="FontFamily" Value="Trebuchet MS" />
+                <Setter Property="FontSize" Value="9" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="Padding" Value="1"/>
+            */
+
+            StackPanel[] sp = new StackPanel[] { new StackPanel(), new StackPanel(), new StackPanel() };
+            for (int i = 0; i < 3; i++)
+            {
+                Label lb = OverviewLabel(100);
+
+                switch (i)
+                {
+                    case 0:
+                        lb.Content = "Account";
+                        break;
+                    case 1:
+                        lb.Content = "Net Liq";
+                        break;
+                    case 2:
+                        lb.Content = "Utilization";
+                        break;
+                }
+
+                sp[i].Orientation = Orientation.Horizontal;
+                sp[i].Children.Add(lb);
+            }
+
+            foreach (KeyValuePair<string, string> a in accounts)
+            {
+                Label lb = OverviewLabel(100);
+                lb.Content = a.Value;
+                sp[0].Children.Add(lb);
+
+                TWBalance bal = TastyWorks.Balances(a.Key);
+                lb = OverviewLabel(100);
+                lb.Content = bal.NetLiq.ToString("C0");
+                sp[1].Children.Add(lb);
+
+                lb = OverviewLabel(100);
+                lb.Content = bal.CommittedPercentage.ToString("P1");
+                sp[2].Children.Add(lb);
+            }
+
+            Border b = new Border()
+            {
+                BorderThickness = new Thickness(0,0,0,1),
+                BorderBrush = Brushes.DarkGray
+            };
+
+            OverviewPanel.Children.Add(sp[0]);
+            OverviewPanel.Children.Add(b);
+            OverviewPanel.Children.Add(sp[1]);
+            OverviewPanel.Children.Add(sp[2]);
+
+        }
+        private Label OverviewLabel(int width)
+        {
+            return new Label()
+            {
+                Width = width,
+                FontSize = 11,
+                FontFamily = new FontFamily("Trebuchet MS"),
+                Foreground = Brushes.White,
+                Padding = new Thickness(2)
+            };
         }
 
 
@@ -773,7 +854,7 @@ namespace OptionView
             {
                 string scrnProps = Config.GetProp("Screen");
                 string[] props = scrnProps.Split('|');
-                height = Convert.ToDouble(props[4]) - 77;
+                height = Convert.ToDouble(props[4]) - 147;
                 width = Convert.ToDouble(props[3]) - 22;
             }
 

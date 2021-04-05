@@ -76,6 +76,7 @@
         <Style BasedOn="{StaticResource DefaultCell}" TargetType="DataGridCell" x:Key="RightJustifiedCell" >
             <Setter Property="FrameworkElement.HorizontalAlignment" Value="Right"/>
         </Style>
+
         <!--
         <Style TargetType="Expander">
             <Setter Property="BorderBrush" Value="Yellow"></Setter>
@@ -124,8 +125,12 @@
 
     </Window.Resources>
 
-    <Grid d:DataContext="{d:DesignData /SampleData/PortfolioResultsSampleData.xaml}">
-        <TabControl Name="MainTab" Background="Black" SelectionChanged="MainTab_SelectionChanged">
+    <Grid d:DataContext="{d:DesignData /SampleData/PortfolioResultsSampleData.xaml}" Background="Black">
+        <Grid.RowDefinitions>
+            <RowDefinition x:Name="ContentRow" />
+            <RowDefinition x:Name="FooterRow" MaxHeight="60"/>
+        </Grid.RowDefinitions>
+        <TabControl Name="MainTab" Background="Black" BorderThickness="0" SelectionChanged="MainTab_SelectionChanged" Grid.Row="0">
             <!-- Holdings tab -->
             <TabItem Width="150" Height="30" Header="Holdings">
                 <Grid Background="Black" >
@@ -154,7 +159,7 @@
                         </ContentControl>
                     </Canvas>
 
-                    <DockPanel Grid.Column="1" Margin="4,4,2,4" >
+                    <DockPanel Background="#FF454545" Grid.Column="1" Margin="6,4,4,4" >
                         <StackPanel >
                             <Label Content="Symbol" Margin="6,0,0,0" />
                             <TextBlock Name="txtSymbol" Background="Gray" Margin="6,0,6,6" Padding="5,4,4,4" IsEnabled="False"/>
@@ -236,12 +241,6 @@
                             <TextBox Name="txtEndTime" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
-
-                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Height="30" Background="Black"  >
-                            <Button x:Name="Sync" HorizontalAlignment="Left" Width="59" Content="Sync"  Click="SyncButton" />
-                            <Button x:Name="Validate" HorizontalAlignment="Left" Width="59" Content="Validate" Margin="6,0,0,0" Click="ValidateButton" />
-                            <Button  HorizontalAlignment="Left" Width="59" Content="Config" Margin="6,0,0,0" Click="ConfigButton" />
-                        </StackPanel>
                     </DockPanel>
                 </Grid>
             </TabItem>
@@ -259,20 +258,20 @@
 
                     <DockPanel Background="#FF454545" Margin="6,4,4,5" Grid.Column="1">
                         <StackPanel >
-                            <Label Content="View" Margin="4,0,4,0" />
-                            <ComboBox Name="cbAnalysisView" Margin="4,0,4,6" Text="None" SelectionChanged="CbAnalysis_SelectionChanged" />
+                            <Label Content="View" Margin="6,0,6,0" />
+                            <ComboBox Name="cbAnalysisView" Margin="6,0,6,6" Text="None" SelectionChanged="CbAnalysis_SelectionChanged" />
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
-                            <Label Content="Filter" Margin="4,0,4,0" />
-                            <ComboBox Name="cbAnalysisAccount" Margin="4,0,4,6" Text="None" SelectionChanged="CbAnalysis_SelectionChanged" >
+                            <Label Content="Filter" Margin="6,0,6,0" />
+                            <ComboBox Name="cbAnalysisAccount" Margin="6,0,6,6" Text="None" SelectionChanged="CbAnalysis_SelectionChanged" >
                                 <ComboBoxItem Content="All" Tag="All" IsSelected="True"/>
                             </ComboBox>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel>
                             <DockPanel>
-                                <Label Content="Outliers:" Margin="4,0,4,0"  />
+                                <Label Content="Outliers:" Margin="6,0,6,0"  />
                                 <CheckBox Name="chkOutliers" IsEnabled="True" IsChecked="True" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="0,0,8,0" Click="Analysis_Click" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
@@ -281,13 +280,13 @@
                         <StackPanel VerticalAlignment="Bottom">
                             <StackPanel  >
                                 <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
-                                <Label Name="lbYVal" Content="filler" Margin="4,0,4,0" />
-                                <TextBox Name="txtYVal" Background="White" Margin="4,0,4,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
+                                <Label Name="lbYVal" Content="filler" Margin="6,0,6,0" />
+                                <TextBox Name="txtYVal" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
                             </StackPanel>
                             <StackPanel  >
                                 <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
-                                <Label Name="lbXVal" Content="filler" Margin="4,0,4,0" />
-                                <TextBox Name="txtXVal" Background="White" Margin="4,0,4,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
+                                <Label Name="lbXVal" Content="filler" Margin="6,0,6,0" />
+                                <TextBox Name="txtXVal" Background="White" Margin="6,0,64,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
                             </StackPanel>
                         </StackPanel>
                     </DockPanel>
@@ -492,12 +491,26 @@
                     </DataGrid>
                     <DockPanel  Background="#FF454545" Margin="6,4,4,5" Grid.Column="1">
 
-
                     </DockPanel>
                 </Grid>
 
             </TabItem>
         </TabControl>
+
+        <DockPanel Background="#FF454545" Margin="6,0,6,5" Grid.Row="1" VerticalAlignment="Center" Height="54" >
+
+            <Button DockPanel.Dock="Right" Width="59" Height="30" Content="Config" Margin="6,0,6,0" Click="ConfigButton" FontFamily="Trebuchet MS" />
+            <Button DockPanel.Dock="Right" x:Name="Validate"  Width="59"  Height="30" Content="Validate" Margin="6,0,0,0" Click="ValidateButton" FontFamily="Trebuchet MS"/>
+            <Button DockPanel.Dock="Right" x:Name="Sync"  Width="59"  Height="30" Content="Sync"  Click="SyncButton" FontFamily="Trebuchet MS"/>
+
+
+            <StackPanel x:Name="OverviewPanel" Orientation="Vertical" DockPanel.Dock="Left" VerticalAlignment="Center" >
+            </StackPanel>
+            <StackPanel  Orientation="Vertical"  VerticalAlignment="Center" MinWidth="500">
+            </StackPanel>
+        </DockPanel>
+
+        
     </Grid>
 
 
