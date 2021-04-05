@@ -58,6 +58,7 @@ namespace OptionView
         public decimal NetLiq { get; set; }
         public decimal OptionBuyingPower { get; set; }
         public decimal EquityBuyingPower { get; set; }
+        public decimal CommittedPercentage { get; set; }
     }
 
     class TWPosition
@@ -71,6 +72,7 @@ namespace OptionView
         public decimal Market { get; set; }
         public decimal UnderlyingPrice { get; set; }
         public decimal Multiplier { get; set; }
+        public decimal PreviousClose { get; set; }
 
         public TWPosition()
         {
@@ -223,7 +225,6 @@ namespace OptionView
             return (returnList.Count > 0) ? returnList : null;
         }
 
-
         // used for determining capital requirement during initial load
         public static TWMargins MarginData(string accountNumber)
         {
@@ -262,6 +263,7 @@ namespace OptionView
             retval.NetLiq = Convert.ToDecimal( package["data"]["net-liquidating-value"] );
             retval.EquityBuyingPower = Convert.ToDecimal(package["data"]["equity-buying-power"]);
             retval.OptionBuyingPower = Convert.ToDecimal(package["data"]["derivative-buying-power"]);
+            retval.CommittedPercentage = 1 - (retval.OptionBuyingPower / retval.NetLiq);
 
             return retval;
         }
@@ -306,6 +308,7 @@ namespace OptionView
                 inst.Quantity = Convert.ToDecimal(item["quantity"]);
                 if (item["quantity-direction"].ToString() == "Short") inst.Quantity *= -1;
                 DateTime exp = Convert.ToDateTime(item["expires-at"]).Trim(TimeSpan.TicksPerDay);
+                inst.PreviousClose = Convert.ToDecimal(item["close-price"]); ;
 
                 inst.Multiplier = Convert.ToDecimal(item["multiplier"]); ;
                 inst.Market = marketValues[inst.OptionSymbol] * inst.Multiplier;
