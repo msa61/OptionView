@@ -505,6 +505,31 @@
 
 
             <StackPanel x:Name="OverviewPanel" Orientation="Vertical" DockPanel.Dock="Left" VerticalAlignment="Center" >
+<!--
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="Account" Width="100"    FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
+                    <Label Content="Individual" Width="100"  FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
+                    <Label Content="Roth" Width="100"  FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="Net Liq" Width="100"                FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
+                    <StackPanel Orientation="Horizontal" Width="100" Margin="0">
+                        <Label Content="$100,000"                       FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
+                        <Label Content="⏶"  Foreground="Red"          FontSize="11" FontFamily="Trebuchet MS" Padding="2"  />
+                        <Label Content="-34" Foreground="Red"          FontSize="11" FontFamily="Trebuchet MS" Padding="2" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Width="100">
+                        <Label Content="$14,000"                       FontSize="11"    FontFamily="Trebuchet MS" Padding="2"/>
+                        <Label Content="⏶"  Foreground="Lime"          FontSize="11" FontFamily="Trebuchet MS" Padding="2"  />
+                        <Label Content="64"  Foreground="Lime"          FontSize="11" FontFamily="Trebuchet MS" Padding="2" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="Utilization" Width="100"    FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
+                    <Label Content="8.8%" Width="100"  FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
+                    <Label Content="10.4%" Width="100"  FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
+                </StackPanel>
+-->
             </StackPanel>
             <StackPanel  Orientation="Vertical"  VerticalAlignment="Center" MinWidth="500">
             </StackPanel>

@@ -19,6 +19,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Data;
 using Microsoft.Win32;
+using System.Web;
 
 
 namespace OptionView
@@ -66,16 +67,24 @@ namespace OptionView
                 <StackPanel Orientation="Horizontal" >
                     <Label Content="Account" Width="80" Style="{StaticResource OverviewText}"/>
                     <Label Content="Individual" Width="100"  Style="{StaticResource OverviewText}"/>
+                    <StackPanel Orientation="Horizontal" Width="100">
+                        <Label Content="A"  Padding="0,4,0,4"/>
+                        <Label Content="⏶" Foreground="Red"  Padding="0,4,0,4"/>
+                        <Label Content="C" Foreground="Green" Padding="0,4,0,4"/>
+                    </StackPanel>
+
                     <Label Content="Roth" Width="100"  Style="{StaticResource OverviewText}"/>
                 </StackPanel>                
                 <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
-
 
                 <Setter Property="FontFamily" Value="Trebuchet MS" />
                 <Setter Property="FontSize" Value="9" />
                 <Setter Property="Foreground" Value="White" />
                 <Setter Property="Padding" Value="1"/>
             */
+
+            string up = HttpUtility.HtmlDecode("&#x2BC5;");
+            string down = HttpUtility.HtmlDecode("&#x2BC6;");
 
             StackPanel[] sp = new StackPanel[] { new StackPanel(), new StackPanel(), new StackPanel() };
             for (int i = 0; i < 3; i++)
@@ -101,14 +110,33 @@ namespace OptionView
 
             foreach (KeyValuePair<string, string> a in accounts)
             {
+                decimal change = 0;
+                if (portfolio != null)
+                {
+                    change = GetAccountChangeSincePrevious(a.Key);
+                }
+
                 Label lb = OverviewLabel(100);
                 lb.Content = a.Value;
                 sp[0].Children.Add(lb);
 
+                StackPanel subpanel = new StackPanel() { Width = 100, Orientation = Orientation.Horizontal, Margin = new Thickness(0) };
+
                 TWBalance bal = TastyWorks.Balances(a.Key);
-                lb = OverviewLabel(100);
+                lb = OverviewLabel(0);
                 lb.Content = bal.NetLiq.ToString("C0");
-                sp[1].Children.Add(lb);
+
+                subpanel.Children.Add(lb);
+                lb = OverviewLabel(0);
+                lb.Content = (change > 0) ? up : down;
+                lb.Foreground = (change > 0) ? Brushes.Lime : Brushes.Red;
+                subpanel.Children.Add(lb);
+                lb = OverviewLabel(0);
+                lb.Content = change.ToString("#,###");
+                lb.Foreground = (change > 0) ? Brushes.Lime : Brushes.Red;
+                subpanel.Children.Add(lb);
+
+                sp[1].Children.Add(subpanel);
 
                 lb = OverviewLabel(100);
                 lb.Content = bal.CommittedPercentage.ToString("P1");
@@ -129,14 +157,34 @@ namespace OptionView
         }
         private Label OverviewLabel(int width)
         {
-            return new Label()
+            Label lb = new Label()
+                {
+                    FontSize = 11,
+                    FontFamily = new FontFamily("Trebuchet MS"),
+                    Foreground = Brushes.White,
+                    Padding = new Thickness(2)
+                };
+            if (width > 0) lb.Width = width;
+            return lb;
+        }
+
+        private decimal GetAccountChangeSincePrevious(string accountNumber)
+        {
+            decimal retval = 0;
+
+            foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
-                Width = width,
-                FontSize = 11,
-                FontFamily = new FontFamily("Trebuchet MS"),
-                Foreground = Brushes.White,
-                Padding = new Thickness(2)
-            };
+                TransactionGroup grp = entry.Value;
+                if (grp.Account == accountNumber)
+                {
+                    retval += grp.ChangeFromPreviousClose;
+                    Debug.WriteLine("Symbol: {0}    {1}", grp.Symbol, grp.ChangeFromPreviousClose.ToString());
+                }
+
+            }
+
+            Debug.WriteLine("Total: {0}", retval);
+            return retval;
         }
 
 
