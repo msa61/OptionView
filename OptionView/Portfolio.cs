@@ -150,6 +150,7 @@ namespace OptionView
         private void RetrieveCurrentData(TransactionGroup grp)
         {
             decimal currentValue = 0;
+            decimal previousCloseValue = 0;
 
             try
             {
@@ -192,6 +193,7 @@ namespace OptionView
                             {
                                 //Debug.WriteLine(twpos.Market);
                                 currentValue += pos.Quantity * twpos.Market;
+                                previousCloseValue += pos.Quantity * twpos.PreviousClose * twpos.Multiplier;
 
                                 // capture current details while we have it
                                 pos.Market = twpos.Market;
@@ -203,6 +205,8 @@ namespace OptionView
                 }
 
                 grp.CurrentValue = currentValue;
+                grp.PreviousCloseValue = previousCloseValue;
+                grp.ChangeFromPreviousClose = currentValue - previousCloseValue;
                 if (twmarketinfo.ContainsKey(grp.ShortSymbol))
                 {
                     grp.ImpliedVolatility = twmarketinfo[grp.ShortSymbol].ImpliedVolatility;
