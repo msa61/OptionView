@@ -21,7 +21,8 @@ namespace OptionView
     {
         public enum TileSize { Regular, Small };
 
-        public static void CreateTile(Window window, Canvas canvas, TileSize size, bool green, int ID, string symbol, string account, int left, int top, string strategy, string value1, string value2, string dte, bool alarm, string altLabel1, string altLabel2)
+        public static void CreateTile(Window window, Canvas canvas, TileSize size, bool green, int ID, string symbol, string account, int left, int top, string strategy, 
+            string value1, string value2, string dte, bool alarm, string altLabel1, string altLabel2, double opacity)
         {
             //<ContentControl Canvas.Top = "10" Canvas.Left = "10" Template = "{StaticResource DesignerItemTemplate}" >
             //  <Canvas Style = "{DynamicResource TileCanvas}" >
@@ -90,6 +91,7 @@ namespace OptionView
                 Angle = 315
             };
             gradBrush.RelativeTransform = rt;
+            gradBrush.Opacity = opacity;
             rect.Fill = gradBrush;
 
             border.Child = rect;
