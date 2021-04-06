@@ -155,7 +155,7 @@ namespace OptionView
 
                 Tiles.CreateTile(this, MainCanvas, Tiles.TileSize.Regular, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
-                    (grp.ActionDate > DateTime.MinValue), null, null);
+                    (grp.ActionDate > DateTime.MinValue), null, null, 1.0);
             }
         }
 
@@ -287,7 +287,8 @@ namespace OptionView
                 Grid grid = (Grid)sender;
                 ContentControl cc = (ContentControl)VisualTreeHelper.GetParent(grid);
 
-                grid.ToolTip = portfolio[Convert.ToInt32(cc.Tag)].GetHistory();
+                int grp = Convert.ToInt32(cc.Tag);
+                if (grp != 0) grid.ToolTip = portfolio[grp].GetHistory();
             }
         }
 
@@ -868,6 +869,7 @@ namespace OptionView
             decimal maxX = 0;
             decimal minY = 100000;
             decimal maxY = 0;
+            bool secondTile = false;
 
             decimal horizontalOrigin = -1;
 
@@ -880,6 +882,7 @@ namespace OptionView
             //Canvas.SetTop(rect, margin);
             //AnalysisCanvas.Children.Add(rect);
 
+            if (viewIndex == 0) secondTile = true;
 
             //adjust max/mins and origin
             switch (viewIndex)
@@ -922,6 +925,8 @@ namespace OptionView
                         case 0:
                             grp.AnalysisXValue = grp.CurrentValue + grp.Cost;
                             grp.AnalysisYValue = grp.CapitalRequired;
+                            grp.PreviousXValue = grp.PreviousCloseValue + grp.Cost; 
+                            grp.PreviousYValue = grp.CapitalRequired;
 
                             overallXValue += grp.AnalysisXValue;
                             overallYValue += grp.AnalysisYValue;
@@ -1044,10 +1049,20 @@ namespace OptionView
                     Debug.WriteLine("Value1: {0}  Value2: {1}", grp.AnalysisXValue, grp.AnalysisYValue);
                     Debug.WriteLine("Left:   {0}  Top:    {1}", left, top);
 
+                    if (secondTile)
+                    {
+                        int left2 = Convert.ToInt32((decimal)margin + (grp.PreviousXValue - minX) / scaleX);
+                        string value1a = FormatValue(grp.PreviousXValue, viewList[viewIndex].XFormat);
+                        Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, (grp.PreviousXValue > 0), 0, grp.Symbol, grp.AccountName,
+                            left2, top, grp.Strategy, value2, value1a,
+                            (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), false,
+                            viewList[viewIndex].YLabel, viewList[viewIndex].XLabel, 0.2);
+                    }
+
                     Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, ((grp.CurrentValue + grp.Cost) > 0), grp.GroupID, grp.Symbol, grp.AccountName, 
                         left, top, grp.Strategy, value2, value1,
                         (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), false,
-                        viewList[viewIndex].YLabel, viewList[viewIndex].XLabel);
+                        viewList[viewIndex].YLabel, viewList[viewIndex].XLabel, 1.0 );
                 }
             }
 
