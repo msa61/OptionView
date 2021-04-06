@@ -38,10 +38,14 @@ namespace OptionView
         public string Account { get; set; }
         public string AccountName { get; set; }
         public decimal CurrentValue { get; set; }
+        public decimal PreviousCloseValue { get; set; }
+        public decimal ChangeFromPreviousClose { get; set; }
         public double ImpliedVolatility { get; set; }
         public double ImpliedVolatilityRank { get; set; }
         public decimal AnalysisXValue { get; set; }
         public decimal AnalysisYValue { get; set; }
+        public decimal PreviousXValue { get; set; }
+        public decimal PreviousYValue { get; set; }
 
         public Positions Holdings { get; set; }
         public Transactions Transactions { get; set; }
