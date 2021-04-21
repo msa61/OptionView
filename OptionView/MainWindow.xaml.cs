@@ -1000,7 +1000,7 @@ namespace OptionView
                             overallXValue += grp.AnalysisXValue;
                             overallYValue += grp.AnalysisYValue;
 
-                            grp.AnalysisXValue /= grp.CapitalRequired;
+                            grp.AnalysisXValue /= (grp.CapitalRequired < 100m) ? 100m : grp.CapitalRequired;
                             break;
                         case 4:
                             grp.AnalysisXValue = CalculateGroupDelta(grp);
