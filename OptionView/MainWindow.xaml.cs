@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -336,7 +335,19 @@ namespace OptionView
                 ContentControl cc = (ContentControl)VisualTreeHelper.GetParent(grid);
 
                 int grp = Convert.ToInt32(cc.Tag);
-                if (grp != 0) grid.ToolTip = portfolio[grp].GetHistory();
+                if (grp != 0)
+                {
+                    string tt = portfolio[grp].GetHistory();
+                    decimal price = portfolio[grp].TargetClosePrice();
+                    if (price != 0)
+                    {
+                        string suf = "\nClose Price = ";
+                        suf += Math.Abs(price).ToString("f2");
+                        suf += (price < 0) ? " (Debit)" : " (Credit)";
+                        tt += suf;
+                    }
+                    grid.ToolTip = tt;
+                }
             }
         }
 
@@ -980,21 +991,21 @@ namespace OptionView
                             overallYValue += grp.AnalysisYValue;
                             break;
                         case 1:
-                            grp.AnalysisXValue = PercentOfTarget(grp);
+                            grp.AnalysisXValue = grp.PercentOfTarget();
                             grp.AnalysisYValue = grp.CapitalRequired;
 
                             overallXValue += grp.AnalysisXValue;
                             overallYValue += grp.AnalysisYValue;
                             break;
                         case 2:
-                            grp.AnalysisXValue = CalculateGroupTheta(grp);
+                            grp.AnalysisXValue = grp.CalculateGroupTheta();
                             grp.AnalysisYValue = grp.CapitalRequired;
 
                             overallXValue += grp.AnalysisXValue;
                             overallYValue += grp.AnalysisYValue;
                             break;
                         case 3:
-                            grp.AnalysisXValue = CalculateGroupTheta(grp);
+                            grp.AnalysisXValue = grp.CalculateGroupTheta();
                             grp.AnalysisYValue = grp.CapitalRequired;
 
                             overallXValue += grp.AnalysisXValue;
@@ -1003,7 +1014,7 @@ namespace OptionView
                             grp.AnalysisXValue /= (grp.CapitalRequired < 100m) ? 100m : grp.CapitalRequired;
                             break;
                         case 4:
-                            grp.AnalysisXValue = CalculateGroupDelta(grp);
+                            grp.AnalysisXValue = grp.CalculateGroupDelta();
                             grp.AnalysisYValue = grp.CapitalRequired;
 
                             overallXValue += grp.AnalysisXValue;
@@ -1162,8 +1173,8 @@ namespace OptionView
                 // outlier filter
                 if ((outliers == true) ||   // flag on, show everything
                     (view < 2) ||           // ignore flag for first two view types
-                    (((view == 2) || (view == 3)) && (CalculateGroupTheta(grp) > 0))  ||
-                    ((view == 4) && (CalculateGroupDelta(grp) < 100))
+                    (((view == 2) || (view == 3)) && (grp.CalculateGroupTheta() > 0))  ||
+                    ((view == 4) && (grp.CalculateGroupDelta() < 100))
                    )  
                     retval = true;
             }
@@ -1184,87 +1195,11 @@ namespace OptionView
             UpdateAnalysisView();
         }
 
-        private decimal PercentOfTarget(TransactionGroup grp)
-        {
-            decimal retval = 0;
-
-            Positions positions = grp.GetOpeningPositions();
-
-            decimal firstDayAmount = 0;
-            foreach (KeyValuePair<string, Position> item in positions)
-            {
-               firstDayAmount += item.Value.Amount;
-            }
-
-            Debug.WriteLine("Open value of group {0}: {1}", grp.Symbol, firstDayAmount.ToString("C0"));
-
-            /// this is the accurate value... need to find target and convert to a +/- percentage
-            decimal target = ParseTargetValue(grp);
-            retval = (grp.Cost + grp.CurrentValue) / Math.Abs(target * firstDayAmount);
-
-            Debug.WriteLine("PercentOfTarget: {0}  Current Profit: {1}   Percent: {2}", target.ToString(), (grp.Cost + grp.CurrentValue).ToString("C0"), retval.ToString());
-
-            return retval;
-        }
-
-        private decimal CalculateGroupTheta(TransactionGroup grp)
-        {
-            decimal retval = 0;
-
-            DateTime startDay = DateTime.MaxValue;
-            foreach (KeyValuePair<string, Position> item in grp.Holdings)
-            {
-                Position p = item.Value;
-
-                TimeSpan span = p.ExpDate.Subtract(DateTime.Today);
-
-                decimal t = BlackScholes.Theta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice, 
-                    p.Strike, 0.003, 0.0, grp.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
-
-                Debug.WriteLine("Theta calculated: {0} {1} price:{2} strike:{3} IV:{4} days:{5} -> theta:{6}", grp.Symbol, p.Type, p.UnderlyingPrice, p.Strike, grp.ImpliedVolatility, span.TotalDays, t * p.Quantity * p.Multiplier);
-                retval += t * p.Quantity * p.Multiplier;
-            }
-
-            Debug.WriteLine("Group Theta: {0}", retval);
-            return retval;
-        }
-
-        private decimal CalculateGroupDelta(TransactionGroup grp)
-        {
-            decimal retval = 0;
-
-            DateTime startDay = DateTime.MaxValue;
-            foreach (KeyValuePair<string, Position> item in grp.Holdings)
-            {
-                Position p = item.Value;
-
-                TimeSpan span = p.ExpDate.Subtract(DateTime.Today);
-
-                decimal t = BlackScholes.Delta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
-                    p.Strike, 0.003, 0.0, grp.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
-
-                if (p.Type == "Put") t = -t;  // not sure why this is backwards
-
-                Debug.WriteLine("Delta calculated: {0} {1} price:{2} strike:{3} IV:{4} days:{5} -> delta:{6}", grp.Symbol, p.Type, p.UnderlyingPrice, p.Strike, grp.ImpliedVolatility, span.TotalDays, t * p.Quantity * p.Multiplier);
-                retval += t * p.Quantity * p.Multiplier;
-            }
-
-            Debug.WriteLine("Group Delta: {0}", retval);
-            return retval;
-        }
 
 
-        private decimal ParseTargetValue(TransactionGroup grp)
-        {
-            decimal retval = 0;
 
-            Match match = Regex.Match(grp.ExitStrategy, "\\d*");
-            if (match.Success)
-            {
-                retval = Convert.ToDecimal(match.Value) / 100;
-            }
-            return retval;
-        }
+
+
 
     }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Data;
 using System.Data.SQLite;
@@ -321,6 +322,118 @@ namespace OptionView
 
             return null;
         }
+
+        public decimal PercentOfTarget()
+        {
+            decimal retval = 0;
+
+            Positions positions = GetOpeningPositions();
+
+            decimal firstDayAmount = 0;
+            foreach (KeyValuePair<string, Position> item in positions)
+            {
+                firstDayAmount += item.Value.Amount;
+            }
+
+            Debug.WriteLine("Open value of group {0}: {1}", this.Symbol, firstDayAmount.ToString("C0"));
+
+            /// this is the accurate value... need to find target and convert to a +/- percentage
+            decimal target = ParseTargetValue();
+            retval = (this.Cost + this.CurrentValue) / Math.Abs(target * firstDayAmount);
+
+            Debug.WriteLine("PercentOfTarget: {0}  Current Profit: {1}   Percent: {2}", target.ToString(), (this.Cost + this.CurrentValue).ToString("C0"), retval.ToString());
+
+            return retval;
+        }
+
+        public decimal TargetClosePrice()
+        {
+            decimal retval = 0;
+
+            Positions positions = this.GetOpeningPositions();
+
+            decimal firstDayAmount = 0;
+            foreach (KeyValuePair<string, Position> item in positions)
+            {
+                firstDayAmount += item.Value.Amount;
+            }
+
+            Debug.WriteLine("Open value of group {0}: {1}", this.Symbol, firstDayAmount.ToString("C0"));
+
+            /// this is the accurate value... need to find target and convert to a +/- percentage
+            decimal target = ParseTargetValue();
+
+            if (this.Holdings.ElementAt(0).Value.Quantity != 0)
+            {
+                retval = (Math.Abs(target * firstDayAmount) - this.Cost) / Math.Abs(this.Holdings.ElementAt(0).Value.Quantity) / 100;
+                Debug.WriteLine("Sell Price: {0}", retval);
+            }
+
+            return retval;
+        }
+
+
+        private decimal ParseTargetValue()
+        {
+            decimal retval = 0;
+
+            Match match = Regex.Match(this.ExitStrategy, "\\d*");
+            if (match.Success)
+            {
+                retval = Convert.ToDecimal(match.Value) / 100;
+            }
+            return retval;
+        }
+
+
+        // group greeks
+
+        public decimal CalculateGroupTheta()
+        {
+            decimal retval = 0;
+
+            DateTime startDay = DateTime.MaxValue;
+            foreach (KeyValuePair<string, Position> item in this.Holdings)
+            {
+                Position p = item.Value;
+
+                TimeSpan span = p.ExpDate.Subtract(DateTime.Today);
+
+                decimal t = BlackScholes.Theta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
+                    p.Strike, 0.003, 0.0, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
+
+                Debug.WriteLine("Theta calculated: {0} {1} price:{2} strike:{3} IV:{4} days:{5} -> theta:{6}", this.Symbol, p.Type, p.UnderlyingPrice, p.Strike, this.ImpliedVolatility, span.TotalDays, t * p.Quantity * p.Multiplier);
+                retval += t * p.Quantity * p.Multiplier;
+            }
+
+            Debug.WriteLine("Group Theta: {0}", retval);
+            return retval;
+        }
+
+        public decimal CalculateGroupDelta()
+        {
+            decimal retval = 0;
+
+            DateTime startDay = DateTime.MaxValue;
+            foreach (KeyValuePair<string, Position> item in this.Holdings)
+            {
+                Position p = item.Value;
+
+                TimeSpan span = p.ExpDate.Subtract(DateTime.Today);
+
+                decimal t = BlackScholes.Delta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
+                    p.Strike, 0.003, 0.0, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
+
+                if (p.Type == "Put") t = -t;  // not sure why this is backwards
+
+                Debug.WriteLine("Delta calculated: {0} {1} price:{2} strike:{3} IV:{4} days:{5} -> delta:{6}", this.Symbol, p.Type, p.UnderlyingPrice, p.Strike, this.ImpliedVolatility, span.TotalDays, t * p.Quantity * p.Multiplier);
+                retval += t * p.Quantity * p.Multiplier;
+            }
+
+            Debug.WriteLine("Group Delta: {0}", retval);
+            return retval;
+        }
+
 
 
     }
