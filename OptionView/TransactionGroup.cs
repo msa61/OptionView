@@ -263,6 +263,65 @@ namespace OptionView
             return returnValue;
         }
 
+        public Positions GetOpeningPositions()
+        {
+            try
+            {
+                Positions retlist = new Positions();
+                Positions allpos = new Positions();
+
+                // establish connection
+                App.OpenConnection();
+
+                // step thru open holdings
+                string sql = "SELECT symbol, transgroupid, type, datetime(expiredate) AS ExpireDate, strike, sum(amount) as amount, datetime(Time) AS TransTime, [Open-Close] FROM transactions";
+                sql += " WHERE (transgroupid = @gr) and [Open-Close] = 'Open' GROUP BY symbol, type, expiredate, strike, [Open-Close]";
+                SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+                cmd.Parameters.AddWithValue("gr", this.GroupID);
+
+                SQLiteDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    //decimal strike = reader["strike"].ToString();
+                    decimal strike = 0m;
+                    if (reader["Strike"] != DBNull.Value) strike = Convert.ToDecimal(reader["Strike"]);
+                    decimal amount = 0.0m;
+                    if (reader["Amount"] != DBNull.Value) amount = Convert.ToDecimal(reader["Amount"]);
+                    DateTime expDate = DateTime.MinValue;
+                    if (reader["ExpireDate"] != DBNull.Value) expDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
+                    DateTime transTime = DateTime.MinValue;
+                    if (reader["TransTime"] != DBNull.Value) transTime = Convert.ToDateTime(reader["TransTime"].ToString());
+
+
+                    allpos.Add(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, 0.0m, amount, transTime, 0, "", 0);
+                }
+
+                // find first day of group
+                DateTime startDay = DateTime.MaxValue;
+                foreach (KeyValuePair<string, Position> item in allpos)
+                {
+                    if (item.Value.TransTime < startDay) startDay = item.Value.TransTime;
+                }
+                startDay = new DateTime(startDay.Year, startDay.Month, startDay.Day);
+
+                // remove all transactions that didn't occur on the first day
+                foreach (KeyValuePair<string, Position> item in allpos)
+                {
+                    DateTime day = new DateTime(item.Value.TransTime.Year, item.Value.TransTime.Month, item.Value.TransTime.Day);
+                    if (day == startDay)
+                        retlist.Add(item.Value);
+                }
+
+                return retlist;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("GetOpeningPositions: " + ex.Message);
+            }
+
+            return null;
+        }
+
 
     }
 }
