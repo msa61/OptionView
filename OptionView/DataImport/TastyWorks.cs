@@ -311,8 +311,8 @@ namespace OptionView
                 inst.PreviousClose = Convert.ToDecimal(item["close-price"]); ;
 
                 inst.Multiplier = Convert.ToDecimal(item["multiplier"]); ;
-                inst.Market = marketValues[inst.OptionSymbol] * inst.Multiplier;
-                inst.UnderlyingPrice = marketValues[inst.Symbol];
+                if (marketValues.ContainsKey(inst.OptionSymbol)) inst.Market = marketValues[inst.OptionSymbol] * inst.Multiplier;
+                if (marketValues.ContainsKey(inst.Symbol)) inst.UnderlyingPrice = marketValues[inst.Symbol];
 
                 SymbolDecoder symbol = new SymbolDecoder(inst.OptionSymbol, item["instrument-type"].ToString());
                 inst.Type = symbol.Type;
