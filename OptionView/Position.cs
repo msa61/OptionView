@@ -34,6 +34,14 @@ namespace OptionView
             
         }
 
+        public string Add(Position pos)
+        {
+            string key = (pos.Type == "Stock") ? pos.Symbol : pos.Symbol + pos.ExpDate.ToString("yyMMdd") + pos.Strike.ToString("0000.0") + pos.Type;
+
+            this.Add(key, pos);
+            return key;
+        }
+
         public string Add(string symbol, string type, DateTime expDate, decimal strike, decimal quant, decimal amount, DateTime? transTime, int row, string openClose, int grpID)
         {
             string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMdd") + strike.ToString("0000.0") + type;
