@@ -1085,7 +1085,7 @@ namespace OptionView
 
                 if (FilterAnalysisTiles(grp, viewIndex))
                 {
-                    Debug.WriteLine(grp.Symbol);
+                    //Debug.WriteLine(grp.Symbol);
 
                     // massage cost to incude per lot value as well
                     string value1 = FormatValue(grp.AnalysisXValue, viewList[viewIndex].XFormat);
@@ -1094,8 +1094,8 @@ namespace OptionView
                     int left = Convert.ToInt32((decimal)margin + (grp.AnalysisXValue - minX) / scaleX);
                     int top = Convert.ToInt32((decimal)margin + (decimal)height - ((grp.AnalysisYValue - minY) / scaleY));
 
-                    Debug.WriteLine("Value1: {0}  Value2: {1}", grp.AnalysisXValue, grp.AnalysisYValue);
-                    Debug.WriteLine("Left:   {0}  Top:    {1}", left, top);
+                    //Debug.WriteLine("Value1: {0}  Value2: {1}", grp.AnalysisXValue, grp.AnalysisYValue);
+                    //Debug.WriteLine("Left:   {0}  Top:    {1}", left, top);
 
                     if (secondTile)
                     {
@@ -1188,25 +1188,21 @@ namespace OptionView
         {
             decimal retval = 0;
 
-            DateTime startDay = DateTime.MaxValue;
-            foreach(KeyValuePair<string,Position> item in grp.Holdings)
-            {
-                if (item.Value.TransTime < startDay) startDay = item.Value.TransTime;
-            }
-            startDay = new DateTime(startDay.Year, startDay.Month, startDay.Day);
+            Positions positions = grp.GetOpeningPositions();
 
             decimal firstDayAmount = 0;
-            foreach (KeyValuePair<string, Position> item in grp.Holdings)
+            foreach (KeyValuePair<string, Position> item in positions)
             {
-                DateTime day = new DateTime(item.Value.TransTime.Year, item.Value.TransTime.Month, item.Value.TransTime.Day);
-                if (day == startDay)
-                    firstDayAmount += item.Value.Amount;
-            }           
+               firstDayAmount += item.Value.Amount;
+            }
+
+            Debug.WriteLine("Open value of group {0}: {1}", grp.Symbol, firstDayAmount.ToString("C0"));
 
             /// this is the accurate value... need to find target and convert to a +/- percentage
             decimal target = ParseTargetValue(grp);
             retval = (grp.Cost + grp.CurrentValue) / Math.Abs(target * firstDayAmount);
 
+            Debug.WriteLine("PercentOfTarget: {0}  Current Profit: {1}   Percent: {2}", target.ToString(), (grp.Cost + grp.CurrentValue).ToString("C0"), retval.ToString());
 
             return retval;
         }
