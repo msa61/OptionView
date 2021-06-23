@@ -1108,7 +1108,7 @@ namespace OptionView
                     //Debug.WriteLine("Value1: {0}  Value2: {1}", grp.AnalysisXValue, grp.AnalysisYValue);
                     //Debug.WriteLine("Left:   {0}  Top:    {1}", left, top);
 
-                    if (secondTile)
+                    if ((secondTile) && (grp.StartTime.Date < DateTime.Today))
                     {
                         int left2 = Convert.ToInt32((decimal)margin + (grp.PreviousXValue - minX) / scaleX);
                         string value1a = FormatValue(grp.PreviousXValue, viewList[viewIndex].XFormat);
