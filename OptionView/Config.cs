@@ -87,7 +87,7 @@ namespace OptionView
             try
             {
                 string value = GetProp(prop);
-                if (value.Length > 0) ret = Convert.ToDateTime(value);
+                if (value.Length > 0) ret = Convert.ToDateTime(value).ToUniversalTime();
             }
             catch (Exception ex)
             {

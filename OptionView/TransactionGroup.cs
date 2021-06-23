@@ -166,6 +166,7 @@ namespace OptionView
             while (reader.Read())
             {
                 DateTime time = ((reader["Time"] != DBNull.Value) ? Convert.ToDateTime(reader["Time"].ToString()) : DateTime.MinValue);
+                time = DateTime.SpecifyKind(time, DateTimeKind.Utc);
                 if (!data.ContainsKey(time)) data.Add(time, new Positions());
 
                 Positions tr = new Positions();
@@ -292,6 +293,7 @@ namespace OptionView
                     if (reader["ExpireDate"] != DBNull.Value) expDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
                     DateTime transTime = DateTime.MinValue;
                     if (reader["TransTime"] != DBNull.Value) transTime = Convert.ToDateTime(reader["TransTime"].ToString());
+                    transTime = DateTime.SpecifyKind(transTime, DateTimeKind.Utc);
 
 
                     allpos.Add(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, 0.0m, amount, transTime, 0, "", 0);

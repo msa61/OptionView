@@ -365,7 +365,8 @@ namespace OptionView
 
                     TWTransaction inst = new TWTransaction();
                     inst.TransID = Convert.ToInt32(item["id"]);
-                    inst.Time = Convert.ToDateTime(item["executed-at"]);
+                    inst.Time = Convert.ToDateTime(item["executed-at"]).ToUniversalTime();
+
                     inst.TransactionCode = item["transaction-type"].ToString();
                     inst.TransactionSubcode = item["transaction-sub-type"].ToString();
                     inst.Description = item["description"].ToString();

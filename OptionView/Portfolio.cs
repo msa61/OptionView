@@ -115,7 +115,7 @@ namespace OptionView
                         if (reader["ExpireDate"] != DBNull.Value) expDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
                         DateTime transTime = DateTime.MinValue;
                         if (reader["TransTime"] != DBNull.Value) transTime = Convert.ToDateTime(reader["TransTime"].ToString());
-
+                        transTime = DateTime.SpecifyKind(transTime, DateTimeKind.Utc);
 
                         grp.Holdings.Add(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, quantity, amount, transTime, 0, "", 0);
                     }
@@ -387,6 +387,7 @@ namespace OptionView
                         Transaction t = new Transaction();
 
                         if (reader["Time"] != DBNull.Value) t.TransTime = Convert.ToDateTime(reader["Time"].ToString());
+                        t.TransTime = DateTime.SpecifyKind(t.TransTime, DateTimeKind.Utc);
                         if (reader["Type"] != DBNull.Value) t.Type = reader["Type"].ToString();
                         if (reader["TransSubType"] != DBNull.Value) t.TransType = reader["TransSubType"].ToString();
 
