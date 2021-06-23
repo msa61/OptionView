@@ -375,7 +375,12 @@ namespace OptionView
         {
             string retval = "";
 
-            if (positions.Count == 2)
+            if (positions.Count == 1)
+            {
+                retval = positions.ElementAt(0).Value.Quantity < 0 ? "Short " : "Long ";
+                retval += positions.ElementAt(0).Value.Type;
+            }
+            else if (positions.Count == 2)
             {
                 if (positions.ElementAt(0).Value.ExpDate != positions.ElementAt(1).Value.ExpDate)
                 {
