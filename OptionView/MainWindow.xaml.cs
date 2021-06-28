@@ -625,6 +625,8 @@ namespace OptionView
             UpdateResultsGrid();
             UpdateTodosGrid();
 
+            if (MainTab.SelectedIndex == 1) UpdateAnalysisView();
+
             this.Cursor = prev;
         }
 
