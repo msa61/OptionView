@@ -308,7 +308,8 @@ namespace OptionView
                 inst.Quantity = Convert.ToDecimal(item["quantity"]);
                 if (item["quantity-direction"].ToString() == "Short") inst.Quantity *= -1;
                 DateTime exp = Convert.ToDateTime(item["expires-at"]).Trim(TimeSpan.TicksPerDay);
-                inst.PreviousClose = Convert.ToDecimal(item["close-price"]); ;
+                inst.PreviousClose = Convert.ToDecimal(item["close-price"]);
+                if (inst.PreviousClose == 0)  inst.PreviousClose = Convert.ToDecimal(item["average-open-price"]);
 
                 inst.Multiplier = Convert.ToDecimal(item["multiplier"]); ;
                 if (marketValues.ContainsKey(inst.OptionSymbol)) inst.Market = marketValues[inst.OptionSymbol] * inst.Multiplier;
