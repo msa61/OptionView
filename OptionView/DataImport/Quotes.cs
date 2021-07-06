@@ -9,9 +9,20 @@ namespace OptionView
 {
     class Quotes
     {
+        public Decimal Price = 0;
+        public string Text = "";
+        public string ChangeText = "";
+
         public static Decimal Get(string symbol)
         {
-            Decimal quote = 0;
+            Quotes value = GetAll(symbol);
+            Decimal retval = value.Price;
+            return retval;
+        }
+
+        public static Quotes GetAll(string symbol)
+        {
+            Quotes retval = new Quotes();
 
             try
             {
@@ -20,15 +31,19 @@ namespace OptionView
                 HtmlDocument doc = web.Load(url);
 
                 var node = doc.GetElementbyId("quote-header-info");
-                string value = node.ChildNodes[2].ChildNodes[0].ChildNodes[0].ChildNodes[0].InnerText;
+                HtmlNode valueText = node.ChildNodes[2].ChildNodes[0].ChildNodes[0];
 
-                quote = Convert.ToDecimal(value);
+                retval.Text = valueText.ChildNodes[0].InnerText;
+                retval.Price = Convert.ToDecimal(retval.Text);
+                retval.ChangeText = valueText.ChildNodes[1].InnerText;
+
+                retval.Text += " " + retval.ChangeText;
             }
             catch (Exception e)
             {
 
             }
-            return quote;
+            return retval;
         }
 
     }
