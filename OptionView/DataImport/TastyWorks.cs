@@ -242,7 +242,7 @@ namespace OptionView
             {
                 TWMargin mar = new TWMargin();
                 mar.Symbol = item["underlying-symbol"].ToString();
-                mar.CapitalRequirement = Convert.ToDecimal(item["margin-requirement"]);
+                mar.CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"]);
                 retval.Add(mar.Symbol, mar);
             }
 
