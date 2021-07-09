@@ -80,6 +80,9 @@ namespace OptionView
                 <Setter Property="FontSize" Value="9" />
                 <Setter Property="Foreground" Value="White" />
                 <Setter Property="Padding" Value="1"/>
+
+
+                <Label Content="VIX:" Width="100" FontSize="16" FontFamily="Trebuchet MS" Padding="2"/>
             */
 
             string up = HttpUtility.HtmlDecode("&#x2BC5;");
@@ -152,6 +155,21 @@ namespace OptionView
             OverviewPanel.Children.Add(b);
             OverviewPanel.Children.Add(sp[1]);
             OverviewPanel.Children.Add(sp[2]);
+
+            // display VIX
+            Decimal vix = Quotes.Get("^VIX");
+            string vixText = String.Format("VIX: {0} - ", vix);
+            if (vix <= 15) vixText += "25%";
+            else if (vix <= 20) vixText += "30%";
+            else if (vix <= 30) vixText += "35%";
+            else if (vix <= 40) vixText += "40%";
+            else vixText += "50%";
+            vixText += " allocation";
+
+            Label lb2 = OverviewLabel(0);
+            lb2.FontSize = 16;
+            lb2.Content = vixText;
+            MetricsPanel.Children.Add(lb2);
 
         }
         private Label OverviewLabel(int width)

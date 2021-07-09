@@ -532,8 +532,11 @@
                 </StackPanel>
 -->
             </StackPanel>
-            <StackPanel  Orientation="Vertical"  VerticalAlignment="Center" MinWidth="500">
+
+            <StackPanel x:Name="MetricsPanel" Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="100" Margin="50,0,0,0">
+                <!--<Label Content="VIX:" Width="100" FontSize="16" FontFamily="Trebuchet MS" Padding="2"/>-->
             </StackPanel>
+
         </DockPanel>
 
         
