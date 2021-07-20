@@ -265,7 +265,8 @@ namespace OptionView
             return returnValue;
         }
 
-        public Positions GetOpeningPositions()
+        // for the purposes of establishing profitability of position
+        public Positions GetInitialPositions()
         {
             try
             {
@@ -329,7 +330,7 @@ namespace OptionView
         {
             decimal retval = 0;
 
-            Positions positions = GetOpeningPositions();
+            Positions positions = GetInitialPositions();
 
             decimal firstDayAmount = 0;
             foreach (KeyValuePair<string, Position> item in positions)
@@ -352,7 +353,7 @@ namespace OptionView
         {
             decimal retval = 0;
 
-            Positions positions = this.GetOpeningPositions();
+            Positions positions = this.GetInitialPositions();
 
             decimal firstDayAmount = 0;
             foreach (KeyValuePair<string, Position> item in positions)
