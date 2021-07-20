@@ -88,6 +88,7 @@ namespace OptionView
         public DateTime Time { get; set; }
         public string TransactionCode { get; set; }
         public string TransactionSubcode { get; set; }
+        public string Action { get; set; }
         public Int32 TransID { get; set; }
         public string Symbol { get; set; }
         public string BuySell { get; set; }
@@ -370,6 +371,7 @@ namespace OptionView
 
                     inst.TransactionCode = item["transaction-type"].ToString();
                     inst.TransactionSubcode = item["transaction-sub-type"].ToString();
+                    if (item["action"] != null) inst.Action = item["action"].ToString();
                     inst.Description = item["description"].ToString();
                     inst.AccountRef = item["account-number"].ToString();
 
@@ -425,6 +427,11 @@ namespace OptionView
                     tr.BuySell = "Expired";
                     tr.OpenClose = "Close";
                 }
+                else if (tr.TransactionSubcode == "Forward Split")
+                {
+                    if ((tr.Action == "Sell to Open") || (tr.Action == "Sell to Close")) tr.Quantity *= -1;
+                    TransactionParse(tr.Action, tr);
+                }
                 else
                 {
                     // all that's left is Sell to Open and Buy to Open
@@ -439,14 +446,33 @@ namespace OptionView
             }
             else if (tr.TransactionCode == "Trade")
             {
-                if (tr.TransactionSubcode.IndexOf("Buy") >= 0) tr.BuySell = "Buy";
-                if (tr.TransactionSubcode.IndexOf("Sell") >= 0) tr.BuySell = "Sell";
-                if (tr.TransactionSubcode.IndexOf("Close") >= 0) tr.OpenClose = "Close";
-                if (tr.TransactionSubcode.IndexOf("Open") >= 0) tr.OpenClose = "Open";
+                TransactionParse(tr.TransactionSubcode, tr);
             }
 
         }
 
+        private static void TransactionParse( string str, TWTransaction tr)
+        {
+            switch (str.ToLower())
+            {
+                case "buy to close":
+                    tr.BuySell = "Buy";
+                    tr.OpenClose = "Close";
+                    break;
+                case "buy to open":
+                    tr.BuySell = "Buy";
+                    tr.OpenClose = "Open";
+                    break;
+                case "sell to close":
+                    tr.BuySell = "Sell";
+                    tr.OpenClose = "Close";
+                    break;
+                case "sell to open":
+                    tr.BuySell = "Sell";
+                    tr.OpenClose = "Open";
+                    break;
+            }
+        }
 
         private static void SetHeaders ()
         {
