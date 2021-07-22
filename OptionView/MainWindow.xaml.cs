@@ -218,9 +218,9 @@ namespace OptionView
                 // massage cost to incude per lot value as well
                 string cost = grp.Cost.ToString("C0") + grp.GetPerLotCost();
 
-                Tiles.CreateTile(this, MainCanvas, Tiles.TileSize.Regular, (grp.CurrentValue + grp.Cost), grp.GroupID, grp.Symbol, grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
+                Tiles.CreateTile(this, MainCanvas, Tiles.TileSize.Regular, (grp.CurrentValue + grp.Cost), grp.GroupID, grp.Symbol, grp.UnderlyingPrice.ToString("C2"), grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
-                    (grp.ActionDate > DateTime.MinValue), null, null, 1.0);
+                    grp.HasInTheMoneyPositions(), (grp.ActionDate > DateTime.MinValue), null, null, 1.0);
             }
         }
 
@@ -1132,15 +1132,15 @@ namespace OptionView
                     {
                         int left2 = Convert.ToInt32((decimal)margin + (grp.PreviousXValue - minX) / scaleX);
                         string value1a = FormatValue(grp.PreviousXValue, viewList[viewIndex].XFormat);
-                        Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, grp.PreviousXValue, 0, grp.Symbol, grp.AccountName,
+                        Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, grp.PreviousXValue, 0, grp.Symbol, "", grp.AccountName,
                             left2, top, grp.Strategy, value2, value1a,
-                            (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), false,
+                            (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), false, false,
                             viewList[viewIndex].YLabel, viewList[viewIndex].XLabel, 0.2);
                     }
 
-                    Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, (grp.CurrentValue + grp.Cost), grp.GroupID, grp.Symbol, grp.AccountName, 
+                    Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, (grp.CurrentValue + grp.Cost), grp.GroupID, grp.Symbol, "", grp.AccountName, 
                         left, top, grp.Strategy, value2, value1,
-                        (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), false,
+                        (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), false, false,
                         viewList[viewIndex].YLabel, viewList[viewIndex].XLabel, 1.0 );
                 }
             }

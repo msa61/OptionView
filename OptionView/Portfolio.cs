@@ -16,8 +16,8 @@ namespace OptionView
 
     public class Portfolio : Dictionary<int, TransactionGroup>
     {
-        private Dictionary<string, TWPositions> twpositions = null;   // cache for current value lookup
-        private TWMarketInfos twmarketinfo = null;
+        private Dictionary<string, TWPositions> twpositions = null;      // cache for current value lookup
+        private TWMarketInfos twmarketinfo = null;                       // cache of IV data
         private Accounts accounts = null;
 
         public Portfolio()
@@ -32,7 +32,7 @@ namespace OptionView
             grp.Account = reader["Account"].ToString();
             grp.AccountName = reader["Name"].ToString().SafeSubstring(0, 4);
             grp.Symbol = reader["Symbol"].ToString();
-            // handle options
+            // handle futures that have prefix
             if (grp.Symbol.Substring(0,1) == "/")
             {
                 grp.ShortSymbol = grp.Symbol.Substring(0, 3);
@@ -79,7 +79,7 @@ namespace OptionView
             {
                 // always start with an empty list
                 this.Clear();
-                twpositions = null;
+                twpositions = null;  // clear cache
 
                 // establish connection
                 App.OpenConnection();
@@ -154,7 +154,7 @@ namespace OptionView
 
             try
             {
-                // retrieve current data from tastyworks for this a subsequent passes
+                // retrieve and cache current data from tastyworks for this a subsequent passes
                 if (twpositions == null)
                 {
                     if (TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password")))
@@ -199,6 +199,9 @@ namespace OptionView
                                 pos.Market = twpos.Market;
                                 pos.Multiplier = twpos.Multiplier;
                                 pos.UnderlyingPrice = twpos.UnderlyingPrice;
+
+                                // capture the underlying price from the first position for the overall group
+                                if (grp.UnderlyingPrice == 0) grp.UnderlyingPrice = twpos.UnderlyingPrice;
                             }
                         }
                     }

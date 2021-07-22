@@ -41,6 +41,7 @@ namespace OptionView
         public decimal CurrentValue { get; set; }
         public decimal PreviousCloseValue { get; set; }
         public decimal ChangeFromPreviousClose { get; set; }
+        public decimal UnderlyingPrice { get; set; }
         public double ImpliedVolatility { get; set; }
         public double ImpliedVolatilityRank { get; set; }
         public decimal AnalysisXValue { get; set; }
@@ -151,6 +152,23 @@ namespace OptionView
             return " - " + String.Format("{0:C0}", this.Cost / defaultAmount) + "/lot";
         }
 
+        public bool HasInTheMoneyPositions()
+        {
+            bool retval = false;
+
+            foreach (KeyValuePair<string, Position> item in this.Holdings)
+            {
+                Position p = item.Value;
+
+                if (((p.Type == "Put") && (this.UnderlyingPrice < p.Strike)) || ((p.Type == "Call") && (this.UnderlyingPrice > p.Strike)))
+                {
+                    retval = true;
+                    break;
+                }
+            }
+
+            return retval;
+        }
 
         public string GetHistory()
         {

@@ -22,8 +22,8 @@ namespace OptionView
         public enum TileSize { Regular, Small };
         public enum TileColor { Green, Red, Gray };
 
-        public static void CreateTile(Window window, Canvas canvas, TileSize size, decimal profit, int ID, string symbol, string account, int left, int top, string strategy, 
-            string value1, string value2, string dte, bool alarm, string altLabel1, string altLabel2, double opacity)
+        public static void CreateTile(Window window, Canvas canvas, TileSize size, decimal profit, int ID, string symbol, string price, string account, int left, int top, string strategy, 
+            string value1, string value2, string dte, bool itm, bool alarm, string altLabel1, string altLabel2, double opacity)
         {
             //<ContentControl Canvas.Top = "10" Canvas.Left = "10" Template = "{StaticResource DesignerItemTemplate}" >
             //  <Canvas Style = "{DynamicResource TileCanvas}" >
@@ -33,6 +33,29 @@ namespace OptionView
             //     < Image Height = "16" Canvas.Top = "68" Width = "16" Source = "Icons/Alarm.ico" >
             //  </ Canvas >
             //</ ContentControl > 
+
+            // version 2
+
+            //     <StackPanel Orientation = "Vertical" Background = "Transparent" Width = "127">
+            //        <DockPanel Margin = "0" >
+            //           <TextBlock Text = "Acct" Style = "{DynamicResource SymbolDetails}" DockPanel.Dock = "Right" />
+            //           <StackPanel DockPanel.Dock = "Top" Background = "Transparent" Orientation = "Horizontal" Margin = "0" >
+            //              <TextBlock Text = "Symbol" Style = "{DynamicResource SymbolHeader}" />
+            //              <TextBlock Text = "$123.00" Style = "{DynamicResource SymbolPrice}" />
+            //           </StackPanel >
+            //        </DockPanel >
+            //        <TextBlock Text = "Text" Style = "{DynamicResource SymbolDetails}"  />
+            //        <TextBlock Text = "Text2" Style = "{DynamicResource SymbolDetails}" />
+            //        <TextBlock Text = "Text3" Style = "{DynamicResource SymbolDetails}" />   
+            //        <DockPanel Margin = "0,6,0,0" LastChildFill = "False" >
+            //           <TextBlock Text = "66" Style = "{DynamicResource SymbolDetails}" DockPanel.Dock = "Right" VerticalAlignment = "Center" />
+            //           <Border DockPanel.Dock = "Left" BorderBrush = "White" BorderThickness = "1" Margin = "0,0,6,0" >
+            //              <TextBlock Text = "ITM" Style = "{DynamicResource SymbolITM}" />
+            //           </Border >
+            //           <Image Source = "Icons/alarm.ico" Height = "16" Width = "16" />
+            //         </DockPanel >
+            //      </StackPanel >
+
 
             TileColor color;
 
@@ -111,22 +134,56 @@ namespace OptionView
             border.Child = rect;
             tileCanvas.Children.Add(border);
 
+            //
+            // start adding text elements
+            //
+
+            StackPanel sp = new StackPanel()
+            {
+                Width = width - 23,
+                Orientation = Orientation.Vertical,
+                Background = Brushes.Transparent
+            };
+            tileCanvas.Children.Add(sp);
+
+            DockPanel dp = new DockPanel()
+            {
+                Margin = new Thickness(0)
+            };
+            sp.Children.Add(dp);
+
+            TextBlock txtAccount = new TextBlock()
+            {
+                Text = account,
+                Style = (Style)window.Resources["SymbolDetails"]
+           
+            };
+            DockPanel.SetDock(txtAccount, Dock.Right);
+            dp.Children.Add(txtAccount);
+
+            StackPanel spInner = new StackPanel()
+            {
+                Orientation = Orientation.Horizontal,
+                Margin = new Thickness(0),
+                Background = Brushes.Transparent
+            };
+            DockPanel.SetDock(spInner, Dock.Top);
+            dp.Children.Add(spInner);
 
             TextBlock txtSymbol = new TextBlock()
             {
                 Text = symbol,
                 Style = (Style)window.Resources["SymbolHeader"]
             };
-            tileCanvas.Children.Add(txtSymbol);
+            spInner.Children.Add(txtSymbol);
 
-            TextBlock txtAccount = new TextBlock()
+            txtSymbol = new TextBlock()
             {
-                Text = account,
-                Style = (Style)window.Resources["SymbolDetailsRight"]
+                Text = price,
+                Style = (Style)window.Resources["SymbolPrice"]
             };
-            Canvas.SetRight(txtAccount, 22);
-            txtAccount.HorizontalAlignment = HorizontalAlignment.Right;
-            tileCanvas.Children.Add(txtAccount);
+            spInner.Children.Add(txtSymbol);
+
 
             TextBlock txtDetail1 = new TextBlock()
             {
@@ -134,45 +191,75 @@ namespace OptionView
                 Style = (Style)window.Resources["SymbolDetails"],
                 Tag = "strategy",
             };
-            Canvas.SetTop(txtDetail1, 18);
-            tileCanvas.Children.Add(txtDetail1);
+            sp.Children.Add(txtDetail1);
 
             TextBlock txtDetail2 = new TextBlock()
             {
                 Text = ((altLabel1 != null) ? altLabel1 : "Cost") + ": " + value1,
                 Style = (Style)window.Resources["SymbolDetails"]
             };
-            Canvas.SetTop(txtDetail2, 32);
-            tileCanvas.Children.Add(txtDetail2);
+            sp.Children.Add(txtDetail2);
 
             TextBlock txtDetail3 = new TextBlock()
             {
                 Text = ((altLabel2 != null) ? altLabel2 : "P/L") + ": " + value2,
                 Style = (Style)window.Resources["SymbolDetails"]
             };
-            Canvas.SetTop(txtDetail3, 46);
-            tileCanvas.Children.Add(txtDetail3);
+            sp.Children.Add(txtDetail3);
 
-            TextBlock txtDTE = new TextBlock()
+            //
+            // end of main dockpanel, start footer dockpanel
+            if (size == TileSize.Regular)
             {
-                Text = (dte.Length > 0) ? dte + "d" : "",
-                Style = (Style)window.Resources["SymbolDetailsRight"]
-            };
-            Canvas.SetTop(txtDTE, (size == TileSize.Regular) ? 68 : 46);
-            Canvas.SetRight(txtDTE, 22);
-            txtDTE.HorizontalAlignment = HorizontalAlignment.Right;
-            tileCanvas.Children.Add(txtDTE);
+                dp = new DockPanel()
+                {
+                    Margin = new Thickness(0, 6, 0, 0),
+                    LastChildFill = false
+                };
+                sp.Children.Add(dp);
 
-            Image img = new Image()
-            {
-                Height = 16,
-                Width = 16,
-                Source = new BitmapImage(new Uri("pack://application:,,,/icons/alarm.ico")),
-                Visibility = alarm ? Visibility.Visible : Visibility.Hidden,
-                Tag = "alarmIcon"
-            };
-            Canvas.SetTop(img, 68);
-            tileCanvas.Children.Add(img);
+                TextBlock txtDTE = new TextBlock()
+                {
+                    Text = (dte.Length > 0) ? dte + "d" : "",
+                    Style = (Style)window.Resources["SymbolDetails"],
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                DockPanel.SetDock(txtDTE, Dock.Right);
+                dp.Children.Add(txtDTE);
+
+                if (itm)
+                {
+                    Border itmBorder = new Border()
+                    {
+                        BorderBrush = Brushes.White,
+                        BorderThickness = new Thickness(1),
+                        Margin = new Thickness(0, 0, 6, 0)
+                    };
+                    DockPanel.SetDock(itmBorder, Dock.Left);
+                    dp.Children.Add(itmBorder);
+
+                    TextBlock txtITM = new TextBlock()
+                    {
+                        Text = "ITM",
+                        Style = (Style)window.Resources["SymbolITM"]
+                    };
+                    itmBorder.Child = txtITM;
+                }
+
+                Image img = new Image()
+                {
+                    Height = 16,
+                    Width = 16,
+                    Source = new BitmapImage(new Uri("pack://application:,,,/icons/alarm.ico")),
+                    Visibility = alarm ? Visibility.Visible : Visibility.Hidden,
+                    Tag = "alarmIcon"
+                };
+                dp.Children.Add(img);
+            }
+
+            //
+            // end of elements
+            //
 
             Canvas.SetLeft(cc, left);
             Canvas.SetTop(cc, top);
@@ -189,8 +276,11 @@ namespace OptionView
                 {
                     Debug.WriteLine("UpdateTile found: " + tag.ToString());
                     UIElementCollection children = ((Canvas)cc.Content).Children;
-                    ((TextBlock)FindChildByTag(children, "strategy")).Text = strategy;
-                    ((Image)FindChildByTag(children, "alarmIcon")).Visibility = alarm ? Visibility.Visible : Visibility.Hidden;
+                    StackPanel sp = (StackPanel)children[1];
+                    ((TextBlock)FindChildByTag(sp.Children, "strategy")).Text = strategy;
+
+                    DockPanel dp = (DockPanel)sp.Children[4];  //footer dockpanel
+                    ((Image)FindChildByTag(dp.Children, "alarmIcon")).Visibility = alarm ? Visibility.Visible : Visibility.Hidden;
                 }
             }
         }
