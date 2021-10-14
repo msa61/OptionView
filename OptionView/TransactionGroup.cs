@@ -420,8 +420,12 @@ namespace OptionView
 
                 TimeSpan span = p.ExpDate.Subtract(DateTime.Today);
 
-                decimal t = BlackScholes.Theta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
-                    p.Strike, 0.003, 0.0, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
+                decimal t = 0;
+                if (p.Type != "Stock")
+                {
+                    t = BlackScholes.Theta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
+                        p.Strike, 0.003, 0.0, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
+                }
 
                 Debug.WriteLine("Theta calculated: {0} {1} price:{2} strike:{3} IV:{4} days:{5} -> theta:{6}", this.Symbol, p.Type, p.UnderlyingPrice, p.Strike, this.ImpliedVolatility, span.TotalDays, t * p.Quantity * p.Multiplier);
                 retval += t * p.Quantity * p.Multiplier;
@@ -442,8 +446,12 @@ namespace OptionView
 
                 TimeSpan span = p.ExpDate.Subtract(DateTime.Today);
 
-                decimal t = BlackScholes.Delta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
-                    p.Strike, 0.003, 0.0, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
+                decimal t = 1;
+                if (p.Type != "Stock")
+                {
+                    t = BlackScholes.Delta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
+                        p.Strike, 0.003, 0.0, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
+                }
 
                 if (p.Type == "Put") t = -t;  // not sure why this is backwards
 
