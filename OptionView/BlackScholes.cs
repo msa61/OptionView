@@ -85,22 +85,25 @@ namespace OptionView
             double d1 = D1(s, x, r, q, sigma, t);
             double d2 = D2(d1, sigma, t);
 
-            switch (type)
+            if (t > 0)
             {
-                case OptionType.Call:
-                    {
-                        double theta = -s * sigma * Math.Exp(-q * t) * Normal.PDF(0, 1, d1) / 2 / Math.Sqrt(t);
-                        theta -= (r * x * Math.Exp(-r * t) * Normal.CDF(0, 1, d2));
-                        theta += (q * s * Math.Exp(-q * t) * Normal.CDF(0, 1, d1));
-                        return Convert.ToDecimal(theta / 365);
-                    }
-                case OptionType.Put:
-                    {
-                        double theta = -s * sigma * Math.Exp(-q * t) * Normal.PDF(0, 1, d1) / 2 / Math.Sqrt(t);
-                        theta += (r * x * Math.Exp(-r * t) * Normal.CDF(0, 1, -d2));
-                        theta -= (q * s * Math.Exp(-q * t) * Normal.CDF(0, 1, -d1));
-                        return Convert.ToDecimal(theta / 365);
-                    }
+                switch (type)
+                {
+                    case OptionType.Call:
+                        {
+                            double theta = -s * sigma * Math.Exp(-q * t) * Normal.PDF(0, 1, d1) / 2 / Math.Sqrt(t);
+                            theta -= (r * x * Math.Exp(-r * t) * Normal.CDF(0, 1, d2));
+                            theta += (q * s * Math.Exp(-q * t) * Normal.CDF(0, 1, d1));
+                            return Convert.ToDecimal(theta / 365);
+                        }
+                    case OptionType.Put:
+                        {
+                            double theta = -s * sigma * Math.Exp(-q * t) * Normal.PDF(0, 1, d1) / 2 / Math.Sqrt(t);
+                            theta += (r * x * Math.Exp(-r * t) * Normal.CDF(0, 1, -d2));
+                            theta -= (q * s * Math.Exp(-q * t) * Normal.CDF(0, 1, -d1));
+                            return Convert.ToDecimal(theta / 365);
+                        }
+                }
             }
             return 0;
         }
@@ -111,7 +114,11 @@ namespace OptionView
             double d1 = D1(s, x, r, q, sigma, t);
             double d2 = D2(d1, sigma, t);
 
-            return s * Math.Exp(-q * t) * Normal.PDF(0, 1, d1) * Math.Sqrt(t) / 100;
+            if (t > 0)
+            {
+                return s * Math.Exp(-q * t) * Normal.PDF(0, 1, d1) * Math.Sqrt(t) / 100;
+            }
+            return 0;
         }
 
         static public double IV(OptionType type, double s, double x, double r, double q, decimal optionPrice, int days)
