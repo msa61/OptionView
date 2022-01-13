@@ -22,6 +22,7 @@ namespace OptionView
 
         public Portfolio()
         {
+            TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
         }
 
 
@@ -157,7 +158,7 @@ namespace OptionView
                 // retrieve and cache current data from tastyworks for this a subsequent passes
                 if (twpositions == null)
                 {
-                    if (TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password")))
+                    if (TastyWorks.ActiveSession())
                     {
                         List<string> symbols = new List<string>();
 
@@ -230,7 +231,7 @@ namespace OptionView
             Dictionary<string, TWPositions> overallPositions = null;
 
             // always start with clean data
-            if (TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password")))
+            if (TastyWorks.ActiveSession())
             {
                 overallPositions = new Dictionary<string, TWPositions>();
                 foreach (KeyValuePair<string, string> a in accounts)

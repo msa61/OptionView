@@ -171,6 +171,18 @@ namespace OptionView
             return false;
         }
 
+        public static bool ActiveSession()
+        {
+            try
+            {
+                 return (Token.Length > 0);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.ToString());
+            }
+            return false;
+        }
 
         public static TWMarketInfos MarketInfo(List<string> symbols)
         {
