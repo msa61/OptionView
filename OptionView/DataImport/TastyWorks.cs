@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Windows;
 
 namespace OptionView
 {
@@ -154,7 +155,7 @@ namespace OptionView
                 if (Token.Length > 0) return true;  // no need to login again
 
                 Web = new EncodedWebClient();
-                SetHeaders();
+                SetHeaders(null);
 
                 string reply = Web.UploadString("https://api.tastyworks.com/sessions", "{ \"login\": \"" + user + "\", \"password\": \"" + password + "\" }");
                 JObject package = JObject.Parse(reply);
@@ -167,6 +168,7 @@ namespace OptionView
             {
                 Debug.WriteLine(e.ToString());
                 alreadyFailedOnce = true;
+                MessageBox.Show(e.Message, "InitiateSession Error");
             }
             return false;
         }
@@ -193,7 +195,7 @@ namespace OptionView
             }
             symbolString = symbolString.TrimEnd(',');
 
-            Web.Headers[HttpRequestHeader.Authorization] = Token;
+            SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/market-metrics?symbols=" + symbolString);
 
             JObject package = JObject.Parse(reply);
@@ -218,7 +220,7 @@ namespace OptionView
 
         public static TWAccounts Accounts()
         {
-            Web.Headers[HttpRequestHeader.Authorization] = Token;
+            SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/customers/me/accounts");
 
             JObject package = JObject.Parse(reply);
@@ -241,8 +243,7 @@ namespace OptionView
         // used for determining capital requirement during initial load
         public static TWMargins MarginData(string accountNumber)
         {
-            SetHeaders();
-            Web.Headers[HttpRequestHeader.Authorization] = Token;
+            SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
 
             JObject package = JObject.Parse(reply);
@@ -265,8 +266,7 @@ namespace OptionView
 
         public static TWBalance Balances(string accountNumber)
         {
-            SetHeaders();
-            Web.Headers[HttpRequestHeader.Authorization] = Token;
+            SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/balances");
 
             JObject package = JObject.Parse(reply);
@@ -285,8 +285,7 @@ namespace OptionView
         {
             Dictionary<string, decimal> marketValues = new Dictionary<string, decimal>();
 
-            SetHeaders();
-            Web.Headers[HttpRequestHeader.Authorization] = Token;
+            SetHeaders(Token);
 
             // retrieve current values
             string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
@@ -304,6 +303,7 @@ namespace OptionView
                 }
             }
 
+            SetHeaders(Token); // reset, lost after previous call
 
             // retrieve specific positions
             reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/positions");
@@ -354,8 +354,7 @@ namespace OptionView
 
         public static TWTransactions Transactions(string accountNumber, DateTime? start, DateTime? end)
         {
-            SetHeaders();
-            Web.Headers[HttpRequestHeader.Authorization] = Token;
+            SetHeaders(Token);
 
             string url = "https://api.tastyworks.com/accounts/" + accountNumber + "/transactions?";
             if (start != null) url += "start-date=" + String.Format("{0:yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'}", start) + "&";
@@ -408,6 +407,7 @@ namespace OptionView
 
                 if (pages > 1)
                 {
+                    SetHeaders(Token);
                     reply = Web.DownloadString(url + "&page-offset=" + ++pageOffset);
                     package = JObject.Parse(reply);
                     list = package["data"]["items"].Children().ToList();
@@ -486,11 +486,17 @@ namespace OptionView
             }
         }
 
-        private static void SetHeaders ()
+        private static void SetHeaders (string token)
         {
             Web.Headers[HttpRequestHeader.ContentType] = "application/json";
             Web.Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate, br";
-        }
+            Web.Headers[HttpRequestHeader.Authorization] = (token == null) ? "null" : token;
+            Web.Headers[HttpRequestHeader.Referer] = "https://trade.tastyworks.com/tw";
+            Web.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)";
+            Web.Headers[HttpRequestHeader.Accept] = "application/json";
 
+            if (Web.Headers["Origin"] == null) Web.Headers.Add("Origin", "https://trade.tastyworks.com");
+        }
+        
     }
 }
