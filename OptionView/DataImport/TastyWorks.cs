@@ -276,8 +276,14 @@ namespace OptionView
             retval.NetLiq = Convert.ToDecimal( package["data"]["net-liquidating-value"] );
             retval.EquityBuyingPower = Convert.ToDecimal(package["data"]["equity-buying-power"]);
             retval.OptionBuyingPower = Convert.ToDecimal(package["data"]["derivative-buying-power"]);
-            retval.CommittedPercentage = 1 - (retval.OptionBuyingPower / retval.NetLiq);
-
+            if (retval.NetLiq == 0)
+            {
+                retval.CommittedPercentage = 0;
+            }
+            else
+            {
+                retval.CommittedPercentage = 1 - (retval.OptionBuyingPower / retval.NetLiq);
+            }
             return retval;
         }
 
