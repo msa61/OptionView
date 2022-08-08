@@ -169,9 +169,12 @@ namespace OptionView
                             TWPositions pos = TastyWorks.Positions(a.Key);
                             twpositions.Add(a.Key, pos);
 
-                            foreach (KeyValuePair<string, TWPosition> p in pos)
+                            if (pos != null)
                             {
-                                if (!symbols.Contains(p.Value.Symbol)) symbols.Add(p.Value.Symbol);
+                                foreach (KeyValuePair<string, TWPosition> p in pos)
+                                {
+                                    if (!symbols.Contains(p.Value.Symbol)) symbols.Add(p.Value.Symbol);
+                                }
                             }
                         }
 
