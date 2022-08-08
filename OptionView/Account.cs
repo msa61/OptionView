@@ -10,13 +10,14 @@ using System.Diagnostics;
 
 namespace OptionView
 {
-    //public class Account
-    //{
-    //    public Int32 ID { get; set; }
-    //    public string Name { get; set; }
-    //}
+    public class Account
+    {
+        public string ID { get; set; }
+        public string Name { get; set; }
+        public bool Active { get; set; }
+    }
 
-    public class Accounts : Dictionary<string,string>
+    public class Accounts : List<Account>
     {
         public Accounts()
         {
@@ -34,12 +35,12 @@ namespace OptionView
                 SQLiteDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    string id = "";
-                    string name = "";
-                    if (reader["ID"] != DBNull.Value) id = reader["ID"].ToString();
-                    if (reader["Name"] != DBNull.Value) name = reader["Name"].ToString();
+                    Account acct = new Account();
+                    if (reader["ID"] != DBNull.Value) acct.ID = reader["ID"].ToString();
+                    if (reader["Name"] != DBNull.Value) acct.Name = reader["Name"].ToString();
+                    if (reader["Active"] != DBNull.Value) acct.Active = Convert.ToBoolean(reader["Active"]);
 
-                    if (id.Length > 0) this.Add(id, name);
+                    if (acct.ID.Length > 0) this.Add(acct);
                 }
             }
             catch (Exception ex)

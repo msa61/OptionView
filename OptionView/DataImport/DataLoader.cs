@@ -29,32 +29,38 @@ namespace OptionView
                     // cache the current positions for details required to establish default risk and capreq
                     twpositions = new Dictionary<string, TWPositions>();
                     twMarginReq = new Dictionary<string, TWMargins>();
-                    foreach (KeyValuePair<string, string> a in accounts)
+                    foreach (Account a in accounts)
                     {
-                        // retrieve Tastyworks positions for given account
-                        TWPositions pos = TastyWorks.Positions(a.Key);
-                        twpositions.Add(a.Key, pos);
+                        if (a.Active)
+                        {
+                            // retrieve Tastyworks positions for given account
+                            TWPositions pos = TastyWorks.Positions(a.ID);
+                            twpositions.Add(a.ID, pos);
 
-                        TWMargins mar = TastyWorks.MarginData(a.Key);
-                        twMarginReq.Add(a.Key, mar);
+                            TWMargins mar = TastyWorks.MarginData(a.ID);
+                            twMarginReq.Add(a.ID, mar);
+                        }
                     }
 
                     // proceed with transactions from all accounts
-                    foreach (KeyValuePair<string, string> a in accounts)
+                    foreach (Account a in accounts)
                     {
-                        Debug.WriteLine(a.Key);
+                        if (a.Active)
+                        {
+                            Debug.WriteLine(a.ID);
 
-                        // retrieve Tastyworks transactions for the past month
-                        TWTransactions transactions = TastyWorks.Transactions(a.Key, DateTime.Today.AddDays(-30), null);
+                            // retrieve Tastyworks transactions for the past month
+                            TWTransactions transactions = TastyWorks.Transactions(a.ID, DateTime.Today.AddDays(-30), null);
 
-                        SaveTransactions(transactions);  // transfer transaction array to database
+                            SaveTransactions(transactions);  // transfer transaction array to database
 
-                        // save latest transaction for next upload
-                        SQLiteCommand cmd = new SQLiteCommand("SELECT max(time) FROM transactions WHERE Account = @ac", App.ConnStr);
-                        cmd.Parameters.AddWithValue("ac", a.Key);
-                        SQLiteDataReader rdr = cmd.ExecuteReader();
-                        string propName = "LastDate-" + a.Key;
-                        if (rdr.Read()) Config.SetProp(propName, rdr[0].ToString());
+                            // save latest transaction for next upload
+                            SQLiteCommand cmd = new SQLiteCommand("SELECT max(time) FROM transactions WHERE Account = @ac", App.ConnStr);
+                            cmd.Parameters.AddWithValue("ac", a.ID);
+                            SQLiteDataReader rdr = cmd.ExecuteReader();
+                            string propName = "LastDate-" + a.ID;
+                            if (rdr.Read()) Config.SetProp(propName, rdr[0].ToString());
+                        }
                     }
 
                     UpdateNewTransactions();  // matches unassociated asignments and exercises

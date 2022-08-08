@@ -110,39 +110,42 @@ namespace OptionView
                 sp[i].Children.Add(lb);
             }
 
-            foreach (KeyValuePair<string, string> a in accounts)
+            foreach (Account a in accounts)
             {
-                decimal change = 0;
-                if (portfolio != null)
+                if (a.Active)
                 {
-                    change = GetAccountChangeSincePrevious(a.Key);
+                    decimal change = 0;
+                    if (portfolio != null)
+                    {
+                        change = GetAccountChangeSincePrevious(a.ID);
+                    }
+
+                    Label lb = OverviewLabel(100);
+                    lb.Content = a.Name;
+                    sp[0].Children.Add(lb);
+
+                    StackPanel subpanel = new StackPanel() { Width = 100, Orientation = Orientation.Horizontal, Margin = new Thickness(0) };
+
+                    TWBalance bal = TastyWorks.Balances(a.ID);
+                    lb = OverviewLabel(0);
+                    lb.Content = bal.NetLiq.ToString("C0");
+
+                    subpanel.Children.Add(lb);
+                    lb = OverviewLabel(0);
+                    lb.Content = (change > 0) ? up : down;
+                    lb.Foreground = (change > 0) ? Brushes.Lime : Brushes.Red;
+                    subpanel.Children.Add(lb);
+                    lb = OverviewLabel(0);
+                    lb.Content = change.ToString("#,###");
+                    lb.Foreground = (change > 0) ? Brushes.Lime : Brushes.Red;
+                    subpanel.Children.Add(lb);
+
+                    sp[1].Children.Add(subpanel);
+
+                    lb = OverviewLabel(100);
+                    lb.Content = bal.CommittedPercentage.ToString("P1");
+                    sp[2].Children.Add(lb);
                 }
-
-                Label lb = OverviewLabel(100);
-                lb.Content = a.Value;
-                sp[0].Children.Add(lb);
-
-                StackPanel subpanel = new StackPanel() { Width = 100, Orientation = Orientation.Horizontal, Margin = new Thickness(0) };
-
-                TWBalance bal = TastyWorks.Balances(a.Key);
-                lb = OverviewLabel(0);
-                lb.Content = bal.NetLiq.ToString("C0");
-
-                subpanel.Children.Add(lb);
-                lb = OverviewLabel(0);
-                lb.Content = (change > 0) ? up : down;
-                lb.Foreground = (change > 0) ? Brushes.Lime : Brushes.Red;
-                subpanel.Children.Add(lb);
-                lb = OverviewLabel(0);
-                lb.Content = change.ToString("#,###");
-                lb.Foreground = (change > 0) ? Brushes.Lime : Brushes.Red;
-                subpanel.Children.Add(lb);
-
-                sp[1].Children.Add(subpanel);
-
-                lb = OverviewLabel(100);
-                lb.Content = bal.CommittedPercentage.ToString("P1");
-                sp[2].Children.Add(lb);
             }
 
             Border b = new Border()
@@ -228,10 +231,10 @@ namespace OptionView
         private void LoadDynamicComboBoxes()
         {
             // load account numbers
-            foreach (KeyValuePair<string, string> a in accounts)
+            foreach (Account a in accounts)
             {
-                cbAccount.Items.Add(a.Value);
-                cbAnalysisAccount.Items.Add(a.Value);
+                cbAccount.Items.Add(a.Name);
+                cbAnalysisAccount.Items.Add(a.Name);
             }
 
             // load analysis views defined in code
@@ -766,7 +769,7 @@ namespace OptionView
 
             string dateTag = ((ComboBoxItem)cbDateFilter.SelectedItem).Tag.ToString();
             string accountNumber = "";
-            if (cbAccount.SelectedIndex != 0) accountNumber = accounts.Keys.ElementAt(cbAccount.SelectedIndex - 1);
+            if (cbAccount.SelectedIndex != 0) accountNumber = accounts[cbAccount.SelectedIndex - 1].ID; 
 
             TransactionGroup t = (TransactionGroup)item;
             if (t != null)
@@ -1184,7 +1187,7 @@ namespace OptionView
             bool retval = false;
             
             string accountNumber = "";
-            if (cbAnalysisAccount.SelectedIndex != 0) accountNumber = accounts.Keys.ElementAt(cbAnalysisAccount.SelectedIndex - 1);
+            if (cbAnalysisAccount.SelectedIndex != 0) accountNumber = accounts[cbAnalysisAccount.SelectedIndex - 1].ID; 
 
             bool outliers = (bool)chkOutliers.IsChecked;
 
@@ -1278,7 +1281,11 @@ namespace OptionView
             }
             else if (mode == "Account")
             {
-                return mw.accounts[(string)value];
+                foreach (Account a in mw.accounts)
+                {
+                    if (a.ID == (string)value) return a.Name;
+                }
+                return "<empty>";
             }
             else if (mode == "EarningsTrade")
             {

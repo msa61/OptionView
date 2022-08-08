@@ -163,17 +163,20 @@ namespace OptionView
                         List<string> symbols = new List<string>();
 
                         twpositions = new Dictionary<string, TWPositions>();
-                        foreach (KeyValuePair<string, string> a in accounts)
+                        foreach (Account a in accounts)
                         {
-                            // retrieve Tastyworks positions for given account
-                            TWPositions pos = TastyWorks.Positions(a.Key);
-                            twpositions.Add(a.Key, pos);
-
-                            if (pos != null)
+                            if (a.Active)
                             {
-                                foreach (KeyValuePair<string, TWPosition> p in pos)
+                                // retrieve Tastyworks positions for given account
+                                TWPositions pos = TastyWorks.Positions(a.ID);
+                                twpositions.Add(a.ID, pos);
+
+                                if (pos != null)
                                 {
-                                    if (!symbols.Contains(p.Value.Symbol)) symbols.Add(p.Value.Symbol);
+                                    foreach (KeyValuePair<string, TWPosition> p in pos)
+                                    {
+                                        if (!symbols.Contains(p.Value.Symbol)) symbols.Add(p.Value.Symbol);
+                                    }
                                 }
                             }
                         }
@@ -237,11 +240,14 @@ namespace OptionView
             if (TastyWorks.ActiveSession())
             {
                 overallPositions = new Dictionary<string, TWPositions>();
-                foreach (KeyValuePair<string, string> a in accounts)
+                foreach (Account a in accounts)
                 {
-                    // retrieve Tastyworks positions for given account
-                    TWPositions pos = TastyWorks.Positions(a.Key);
-                    overallPositions.Add(a.Key, pos);
+                    if (a.Active)
+                    {
+                        // retrieve Tastyworks positions for given account
+                        TWPositions pos = TastyWorks.Positions(a.ID);
+                        overallPositions.Add(a.ID, pos);
+                    }
                 }
             }
             else
