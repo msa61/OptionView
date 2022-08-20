@@ -29,6 +29,7 @@ namespace OptionView
         public string Symbol { get; set; }
         public double ImpliedVolatility { get; set; }
         public double ImpliedVolatilityRank { get; set; }
+        public double DividendYield { get; set; }
     }
     class TWMarketInfos : Dictionary<string, TWMarketInfo>
     {
@@ -74,10 +75,12 @@ namespace OptionView
         public decimal UnderlyingPrice { get; set; }
         public decimal Multiplier { get; set; }
         public decimal PreviousClose { get; set; }
+        public bool OrderActive { get; set; }
 
         public TWPosition()
         {
             Quantity = 0;
+            OrderActive = false;
         }
     }
     class TWPositions : Dictionary<string, TWPosition>
@@ -210,6 +213,7 @@ namespace OptionView
                 info.Symbol = item["symbol"].ToString();
                 info.ImpliedVolatility = Convert.ToDouble(item["implied-volatility-index"]);
                 info.ImpliedVolatilityRank = Convert.ToDouble(item["implied-volatility-index-rank"]);
+                info.DividendYield = Convert.ToDouble(item["dividend-yield"]);
                 returnList.Add(info.Symbol, info);
             }
 
@@ -290,6 +294,7 @@ namespace OptionView
         public static TWPositions Positions(string accountNumber)
         {
             Dictionary<string, decimal> marketValues = new Dictionary<string, decimal>();
+            Dictionary<string, Int32> orderIds = new Dictionary<string, Int32>();
 
             SetHeaders(Token);
 
@@ -301,11 +306,23 @@ namespace OptionView
 
             foreach (JToken item in list)
             {
-                JToken underlaying = item["marks"];
-
-                foreach (JProperty symbol in underlaying)
+                // capture the value of all of the options plus the underlaying
+                JToken prices = item["marks"];
+                foreach (JProperty price in prices)
                 {
-                    if (!marketValues.ContainsKey(symbol.Name)) marketValues.Add(symbol.Name, Convert.ToDecimal(symbol.Value));
+                    if (!marketValues.ContainsKey(price.Name)) marketValues.Add(price.Name, Convert.ToDecimal(price.Value));
+                }
+
+                // capture any orders associated with the underlying
+                string symbol = item["underlying-symbol"].ToString();
+                JToken orders = item["order-ids"];
+                for (int i = 0; i < orders.Count(); i++)
+                {
+                    if (!orderIds.ContainsKey(symbol))
+                    {
+                        Int32 order = Convert.ToInt32(orders[i]);
+                        orderIds.Add(symbol, order);
+                    }
                 }
             }
 
@@ -333,6 +350,8 @@ namespace OptionView
                 inst.Multiplier = Convert.ToDecimal(item["multiplier"]); ;
                 if (marketValues.ContainsKey(inst.OptionSymbol)) inst.Market = marketValues[inst.OptionSymbol] * inst.Multiplier;
                 if (marketValues.ContainsKey(inst.Symbol)) inst.UnderlyingPrice = marketValues[inst.Symbol];
+
+                inst.OrderActive = orderIds.ContainsKey(inst.Symbol);
 
                 SymbolDecoder symbol = new SymbolDecoder(inst.OptionSymbol, item["instrument-type"].ToString());
                 inst.Type = symbol.Type;
