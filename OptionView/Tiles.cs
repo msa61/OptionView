@@ -23,7 +23,7 @@ namespace OptionView
         public enum TileColor { Green, Red, Gray };
 
         public static void CreateTile(Window window, Canvas canvas, TileSize size, decimal profit, int ID, string symbol, string price, string account, int left, int top, string strategy, 
-            string value1, string value2, string dte, bool itm, bool alarm, string altLabel1, string altLabel2, double opacity)
+            string value1, string value2, string dte, bool itm, bool alarm, bool warning, string altLabel1, string altLabel2, double opacity)
         {
             //<ContentControl Canvas.Top = "10" Canvas.Left = "10" Template = "{StaticResource DesignerItemTemplate}" >
             //  <Canvas Style = "{DynamicResource TileCanvas}" >
@@ -46,7 +46,11 @@ namespace OptionView
             //        </DockPanel >
             //        <TextBlock Text = "Text" Style = "{DynamicResource SymbolDetails}"  />
             //        <TextBlock Text = "Text2" Style = "{DynamicResource SymbolDetails}" />
-            //        <TextBlock Text = "Text3" Style = "{DynamicResource SymbolDetails}" />   
+            //        <DockPanel LastChildFill = "False" >
+            //          <TextBlock Text = "Text3" Style = "{DynamicResource SymbolDetails}" DockPanel.Dock = "Left" />
+            //          <TextBlock Text = "!" Style = "{DynamicResource SymbolDetails}" DockPanel.Dock = "Right" />
+            //         </DockPanel >
+            //        
             //        <DockPanel Margin = "0,6,0,0" LastChildFill = "False" >
             //           <TextBlock Text = "66" Style = "{DynamicResource SymbolDetails}" DockPanel.Dock = "Right" VerticalAlignment = "Center" />
             //           <Border DockPanel.Dock = "Left" BorderBrush = "White" BorderThickness = "1" Margin = "0,0,6,0" >
@@ -200,12 +204,31 @@ namespace OptionView
             };
             sp.Children.Add(txtDetail2);
 
+            dp = new DockPanel()  // for second to last row
+            {
+                LastChildFill = false
+            };
+            sp.Children.Add(dp);
+
             TextBlock txtDetail3 = new TextBlock()
             {
                 Text = ((altLabel2 != null) ? altLabel2 : "P/L") + ": " + value2,
                 Style = (Style)window.Resources["SymbolDetails"]
             };
-            sp.Children.Add(txtDetail3);
+            DockPanel.SetDock(txtDetail3, Dock.Left);
+            dp.Children.Add(txtDetail3);
+
+            // warning symbol for lack of cooresponding order
+            if ((size == TileSize.Regular) && warning)
+            {
+                TextBlock txtOrder = new TextBlock()
+                {
+                    Text = "∆",
+                    Style = (Style)window.Resources["SymbolHeader"]
+                };
+                DockPanel.SetDock(txtOrder, Dock.Right);
+                dp.Children.Add(txtOrder);
+            }
 
             //
             // end of main dockpanel, start footer dockpanel

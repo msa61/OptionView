@@ -181,7 +181,10 @@
 
                                     <TextBlock Text="Text" Style="{DynamicResource SymbolDetails}"  />
                                     <TextBlock Text="Text2 - dafa;jkda adfj;daf fafafadf" Style="{DynamicResource SymbolDetails}" />
-                                    <TextBlock Text="Text3" Style="{DynamicResource SymbolDetails}" />
+                                    <DockPanel LastChildFill="False" >
+                                        <TextBlock Text="Text3" Style="{DynamicResource SymbolDetails}" DockPanel.Dock="Left"/>
+                                        <TextBlock Text="!" Style="{DynamicResource SymbolDetails}" DockPanel.Dock="Right"/>
+                                    </DockPanel>
                                     <DockPanel Margin="0,6,0,0" LastChildFill="False"  >
                                         <TextBlock Text="66" Style="{DynamicResource SymbolDetails}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
                                         <Border DockPanel.Dock="Left" BorderBrush="White" BorderThickness="1" Margin="0,0,6,0" >
