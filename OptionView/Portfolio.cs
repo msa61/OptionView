@@ -209,6 +209,9 @@ namespace OptionView
 
                                 // capture the underlying price from the first position for the overall group
                                 if (grp.UnderlyingPrice == 0) grp.UnderlyingPrice = twpos.UnderlyingPrice;
+
+                                // update groups order status based on any of items constituent holdings
+                                grp.OrderActive = twpos.OrderActive;
                             }
                         }
                     }
@@ -221,6 +224,7 @@ namespace OptionView
                 {
                     grp.ImpliedVolatility = twmarketinfo[grp.ShortSymbol].ImpliedVolatility;
                     grp.ImpliedVolatilityRank = twmarketinfo[grp.ShortSymbol].ImpliedVolatilityRank;
+                    grp.DividendYield = twmarketinfo[grp.ShortSymbol].DividendYield;
                 }
             }
             catch (Exception ex)

@@ -44,10 +44,12 @@ namespace OptionView
         public decimal UnderlyingPrice { get; set; }
         public double ImpliedVolatility { get; set; }
         public double ImpliedVolatilityRank { get; set; }
+        public double DividendYield { get; set; }
         public decimal AnalysisXValue { get; set; }
         public decimal AnalysisYValue { get; set; }
         public decimal PreviousXValue { get; set; }
         public decimal PreviousYValue { get; set; }
+        public bool OrderActive { get; set; }
 
         public Positions Holdings { get; set; }
         public Transactions Transactions { get; set; }
@@ -424,7 +426,7 @@ namespace OptionView
                 if (p.Type != "Stock")
                 {
                     t = BlackScholes.Theta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
-                        p.Strike, 0.003, 0.0, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
+                        p.Strike, 0.003, this.DividendYield, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
                 }
 
                 Debug.WriteLine("Theta calculated: {0} {1} price:{2} strike:{3} IV:{4} days:{5} -> theta:{6}", this.Symbol, p.Type, p.UnderlyingPrice, p.Strike, this.ImpliedVolatility, span.TotalDays, t * p.Quantity * p.Multiplier);
@@ -450,7 +452,7 @@ namespace OptionView
                 if (p.Type != "Stock")
                 {
                     t = BlackScholes.Delta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
-                        p.Strike, 0.003, 0.0, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
+                        p.Strike, 0.0275, this.DividendYield, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
                 }
 
                 if (p.Type == "Put") t = -t;  // not sure why this is backwards
