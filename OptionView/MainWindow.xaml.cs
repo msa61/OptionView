@@ -60,6 +60,9 @@ namespace OptionView
             ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(Int32.MaxValue));
         }
 
+        string up = HttpUtility.HtmlDecode("&#x2BC5;");
+        string down = HttpUtility.HtmlDecode("&#x2BC6;");
+
         private void UpdateFooter()
         {
             /*
@@ -85,9 +88,6 @@ namespace OptionView
                 <Label Content="VIX:" Width="100" FontSize="16" FontFamily="Trebuchet MS" Padding="2"/>
             */
 
-            string up = HttpUtility.HtmlDecode("&#x2BC5;");
-            string down = HttpUtility.HtmlDecode("&#x2BC6;");
-
             StackPanel[] sp = new StackPanel[] { new StackPanel(), new StackPanel(), new StackPanel() };
             for (int i = 0; i < 3; i++)
             {
@@ -110,6 +110,9 @@ namespace OptionView
                 sp[i].Children.Add(lb);
             }
 
+            decimal combinedChange = 0;
+            decimal combinedNetLiq = 0;
+            decimal combinedBP = 0;
             foreach (Account a in accounts)
             {
                 if (a.Active)
@@ -118,6 +121,7 @@ namespace OptionView
                     if (portfolio != null)
                     {
                         change = GetAccountChangeSincePrevious(a.ID);
+                        combinedChange += change;
                     }
 
                     Label lb = OverviewLabel(100);
@@ -127,6 +131,9 @@ namespace OptionView
                     StackPanel subpanel = new StackPanel() { Width = 100, Orientation = Orientation.Horizontal, Margin = new Thickness(0) };
 
                     TWBalance bal = TastyWorks.Balances(a.ID);
+                    combinedNetLiq += bal.NetLiq;
+                    combinedBP += bal.OptionBuyingPower;
+
                     lb = OverviewLabel(0);
                     lb.Content = bal.NetLiq.ToString("C0");
 
@@ -147,7 +154,8 @@ namespace OptionView
                     sp[2].Children.Add(lb);
                 }
             }
-
+            AppendTotals(sp, combinedChange, combinedNetLiq, combinedBP);
+            
             Border b = new Border()
             {
                 BorderThickness = new Thickness(0,0,0,1),
@@ -207,6 +215,35 @@ namespace OptionView
             return retval;
         }
 
+        private void AppendTotals(StackPanel[] sp, decimal change, decimal netLiq, decimal bp)
+        {
+            Label lb = OverviewLabel(100);
+            lb.Content = "Combined";
+            sp[0].Children.Add(lb);
+
+            StackPanel subpanel = new StackPanel() { Width = 100, Orientation = Orientation.Horizontal, Margin = new Thickness(0) };
+
+            lb = OverviewLabel(0);
+            lb.Content = netLiq.ToString("C0");
+
+            subpanel.Children.Add(lb);
+            lb = OverviewLabel(0);
+            lb.Content = (change > 0) ? up : down;
+            lb.Foreground = (change > 0) ? Brushes.Lime : Brushes.Red;
+            subpanel.Children.Add(lb);
+            lb = OverviewLabel(0);
+            lb.Content = change.ToString("#,###");
+            lb.Foreground = (change > 0) ? Brushes.Lime : Brushes.Red;
+            subpanel.Children.Add(lb);
+
+            sp[1].Children.Add(subpanel);
+
+            lb = OverviewLabel(100);
+            decimal committedPercentage = (netLiq - bp) / netLiq;
+            lb.Content = committedPercentage.ToString("P1");
+            sp[2].Children.Add(lb);
+
+        }
 
         private void UpdateHoldingsTiles()
         {
