@@ -47,8 +47,6 @@ namespace OptionView
         public double DividendYield { get; set; }
         public decimal AnalysisXValue { get; set; }
         public decimal AnalysisYValue { get; set; }
-        public decimal PreviousXValue { get; set; }
-        public decimal PreviousYValue { get; set; }
         public bool OrderActive { get; set; }
 
         public Positions Holdings { get; set; }
