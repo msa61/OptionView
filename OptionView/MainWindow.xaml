@@ -111,6 +111,14 @@
             <Setter Property="Padding" Value="0,2,0,0" />
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
+        <Style x:Key="SymbolChangeInValue" TargetType="{x:Type TextBlock}">
+            <Setter Property="Foreground" Value="LightGray"/>
+            <Setter Property="FontSize" Value="9"/>
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Padding" Value="8,2,0,0" />
+        </Style>
+
         <Style x:Key="SymbolDetailsRight" TargetType="{x:Type TextBlock}">
             <Setter Property="HorizontalAlignment" Value="Right" />
             <Setter Property="Foreground" Value="White" />
@@ -183,6 +191,7 @@
                                     <TextBlock Text="Text2 - dafa;jkda adfj;daf fafafadf" Style="{DynamicResource SymbolDetails}" />
                                     <DockPanel LastChildFill="False" >
                                         <TextBlock Text="Text3" Style="{DynamicResource SymbolDetails}" DockPanel.Dock="Left"/>
+                                        <TextBlock Text="Text3a" Style="{DynamicResource SymbolChangeInValue}" DockPanel.Dock="Left"/>
                                         <TextBlock Text="!" Style="{DynamicResource SymbolDetails}" DockPanel.Dock="Right"/>
                                     </DockPanel>
                                     <DockPanel Margin="0,6,0,0" LastChildFill="False"  >
@@ -574,8 +583,8 @@
 -->
             </StackPanel>
 
-            <StackPanel x:Name="MetricsPanel" Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="100" Margin="50,0,0,0">
-                <!--<Label Content="VIX:" Width="100" FontSize="16" FontFamily="Trebuchet MS" Padding="2"/>-->
+            <StackPanel x:Name="MetricsPanel" Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="100" Margin="150,0,0,0">
+                <!--<Label Content="VIX: 20 - 30% Allocation" FontSize="16" FontFamily="Trebuchet MS" Padding="2"/>-->
             </StackPanel>
 
         </DockPanel>

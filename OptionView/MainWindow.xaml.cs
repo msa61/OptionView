@@ -260,7 +260,7 @@ namespace OptionView
 
                 Tiles.CreateTile(this, MainCanvas, Tiles.TileSize.Regular, (grp.CurrentValue + grp.Cost), grp.GroupID, grp.Symbol, grp.UnderlyingPrice.ToString("C2"), grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
-                    grp.HasInTheMoneyPositions(), (grp.ActionDate > DateTime.MinValue), !grp.OrderActive, null, null, 1.0);
+                    grp.HasInTheMoneyPositions(), (grp.ActionDate > DateTime.MinValue), !grp.OrderActive, (grp.Cost > 0) ? "Prem" : "Cost", null, grp.ChangeFromPreviousClose.ToString("+#;-#"), 1.0);
             }
         }
 
@@ -1175,13 +1175,13 @@ namespace OptionView
                         Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, grp.PreviousXValue, 0, grp.Symbol, "", grp.AccountName,
                             left2, top, grp.Strategy, value2, value1a,
                             (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), false, false, false,
-                            viewList[viewIndex].YLabel, viewList[viewIndex].XLabel, 0.2);
+                            viewList[viewIndex].YLabel, viewList[viewIndex].XLabel, null, 0.2);
                     }
 
                     Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, (grp.CurrentValue + grp.Cost), grp.GroupID, grp.Symbol, "", grp.AccountName, 
                         left, top, grp.Strategy, value2, value1,
                         (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), false, false, false,
-                        viewList[viewIndex].YLabel, viewList[viewIndex].XLabel, 1.0 );
+                        viewList[viewIndex].YLabel, viewList[viewIndex].XLabel, null, 1.0 );
                 }
             }
 

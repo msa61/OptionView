@@ -23,7 +23,7 @@ namespace OptionView
         public enum TileColor { Green, Red, Gray };
 
         public static void CreateTile(Window window, Canvas canvas, TileSize size, decimal profit, int ID, string symbol, string price, string account, int left, int top, string strategy, 
-            string value1, string value2, string dte, bool itm, bool alarm, bool warning, string altLabel1, string altLabel2, double opacity)
+            string value1, string value2, string dte, bool itm, bool alarm, bool warning, string altLabel1, string altLabel2, string value2a, double opacity)
         {
             //<ContentControl Canvas.Top = "10" Canvas.Left = "10" Template = "{StaticResource DesignerItemTemplate}" >
             //  <Canvas Style = "{DynamicResource TileCanvas}" >
@@ -217,6 +217,17 @@ namespace OptionView
             };
             DockPanel.SetDock(txtDetail3, Dock.Left);
             dp.Children.Add(txtDetail3);
+
+            if (value2a != null)
+            {
+                TextBlock txtDetail3a = new TextBlock()
+                {
+                    Text = value2a,
+                    Style = (Style)window.Resources["SymbolChangeInValue"]
+                };
+                DockPanel.SetDock(txtDetail3, Dock.Left);
+                dp.Children.Add(txtDetail3a);
+            }
 
             // warning symbol for lack of cooresponding order
             if ((size == TileSize.Regular) && warning)
