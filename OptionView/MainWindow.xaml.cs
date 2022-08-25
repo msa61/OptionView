@@ -395,15 +395,18 @@ namespace OptionView
                 int grp = Convert.ToInt32(cc.Tag);
                 if (grp != 0)
                 {
-                    string tt = portfolio[grp].GetHistory();
+                    string ttText = portfolio[grp].GetHistory();
                     decimal price = portfolio[grp].TargetClosePrice();
                     if (price != 0)
                     {
                         string suf = "\nClose Price = ";
                         suf += Math.Abs(price).ToString("f2");
                         suf += (price < 0) ? " (Debit)" : " (Credit)";
-                        tt += suf;
+                        ttText += suf;
                     }
+
+                    ToolTip tt = new ToolTip() { HasDropShadow = true };
+                    tt.Content = ttText;
                     grid.ToolTip = tt;
                 }
             }

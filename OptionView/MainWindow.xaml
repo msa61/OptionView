@@ -24,9 +24,12 @@
 
         <!-- Item Template -->
         <ControlTemplate x:Key="TileTemplate" TargetType="{x:Type ContentControl}">
-            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" ContextMenuOpening="ContextMenuValidationCheck" ContextMenu="{StaticResource TileContextMenu}" ToolTip="..." ToolTipOpening="TileTooltip" Name="grid" >
+            <Grid DataContext="{Binding RelativeSource={RelativeSource TemplatedParent}}" ContextMenuOpening="ContextMenuValidationCheck" ContextMenu="{StaticResource TileContextMenu}" ToolTipOpening="TileTooltip" Name="grid" >
                 <local:MoveTile Template="{StaticResource MoveThumbTemplate}" DragCompleted="TileDragCompleted" />
                 <ContentPresenter Content="{TemplateBinding Content}"/>
+                <Grid.ToolTip>
+                    <ToolTip Content="..." />
+                </Grid.ToolTip>
             </Grid>
             <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
