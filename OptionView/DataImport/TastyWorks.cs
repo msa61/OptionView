@@ -30,6 +30,8 @@ namespace OptionView
         public double ImpliedVolatility { get; set; }
         public double ImpliedVolatilityRank { get; set; }
         public double DividendYield { get; set; }
+        public double Beta { get; set; }
+        public double CorrelationToSPY { get; set; }
     }
     class TWMarketInfos : Dictionary<string, TWMarketInfo>
     {
@@ -67,6 +69,7 @@ namespace OptionView
     {
         public string Symbol { get; set; }
         public string OptionSymbol { get; set; }
+        public string ShortOptionSymbol { get; set; }
         public DateTime ExpDate { get; set; }
         public decimal Strike { get; set; }
         public string Type { get; set; }
@@ -130,6 +133,12 @@ namespace OptionView
     }
     class TWTransactions : List<TWTransaction>
     {
+    }
+
+    class StreamingParams
+    {
+        public string Address { get; set; }
+        public string Token { get; set; }
     }
 
 
@@ -214,6 +223,9 @@ namespace OptionView
                 info.ImpliedVolatility = Convert.ToDouble(item["implied-volatility-index"]);
                 info.ImpliedVolatilityRank = Convert.ToDouble(item["implied-volatility-index-rank"]);
                 info.DividendYield = Convert.ToDouble(item["dividend-yield"]);
+                info.Beta = Convert.ToDouble(item["beta"]);
+                info.CorrelationToSPY = Convert.ToDouble(item["corr-spy-3month"]);
+
                 returnList.Add(info.Symbol, info);
             }
 
@@ -357,6 +369,8 @@ namespace OptionView
                 inst.Type = symbol.Type;
                 inst.ExpDate = symbol.Expiration;
                 inst.Strike = symbol.Strike;
+
+                inst.ShortOptionSymbol = string.Format(".{0}{1:yyMMdd}{2}{3}", inst.Symbol, inst.ExpDate, inst.Type.Substring(0, 1), inst.Strike);
 
                 returnList.Add(inst.OptionSymbol.Length > 0 ? inst.OptionSymbol : inst.Symbol, inst);
             }
@@ -522,6 +536,24 @@ namespace OptionView
 
             if (Web.Headers["Origin"] == null) Web.Headers.Add("Origin", "https://trade.tastyworks.com");
         }
-        
+
+
+
+        public static StreamingParams StreamingInfo()
+        {
+            SetHeaders(Token);
+            string reply = Web.DownloadString("https://api.tastyworks.com/quote-streamer-tokens");
+
+            JObject package = JObject.Parse(reply);
+
+            StreamingParams strmParams = new StreamingParams();
+
+            JToken data = package["data"];
+            strmParams.Address = data["streamer-url"].ToString();
+            strmParams.Token = data["token"].ToString();
+
+            return strmParams;
+        }
+
     }
 }
