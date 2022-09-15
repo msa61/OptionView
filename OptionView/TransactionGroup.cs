@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.Windows;
+using OptionView.DataImport;
 
 namespace OptionView
 {
@@ -48,6 +49,7 @@ namespace OptionView
         public decimal AnalysisXValue { get; set; }
         public decimal AnalysisYValue { get; set; }
         public bool OrderActive { get; set; }
+        public Greek GreekData { get; set; }
 
         public Positions Holdings { get; set; }
         public Transactions Transactions { get; set; }
@@ -74,6 +76,7 @@ namespace OptionView
             Comments = "";
             Holdings = new Positions();
             Transactions = new Transactions();
+            GreekData = new Greek();
 
             shiftAmount += 15;
         }
@@ -407,61 +410,6 @@ namespace OptionView
         }
 
 
-        // group greeks
-
-        public decimal CalculateGroupTheta()
-        {
-            decimal retval = 0;
-
-            DateTime startDay = DateTime.MaxValue;
-            foreach (KeyValuePair<string, Position> item in this.Holdings)
-            {
-                Position p = item.Value;
-
-                TimeSpan span = p.ExpDate.Subtract(DateTime.Today);
-
-                decimal t = 0;
-                if (p.Type != "Stock")
-                {
-                    t = BlackScholes.Theta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
-                        p.Strike, 0.003, this.DividendYield, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
-                }
-
-                Debug.WriteLine("Theta calculated: {0} {1} price:{2} strike:{3} IV:{4} days:{5} -> theta:{6}", this.Symbol, p.Type, p.UnderlyingPrice, p.Strike, this.ImpliedVolatility, span.TotalDays, t * p.Quantity * p.Multiplier);
-                retval += t * p.Quantity * p.Multiplier;
-            }
-
-            Debug.WriteLine("Group Theta: {0}", retval);
-            return retval;
-        }
-
-        public decimal CalculateGroupDelta()
-        {
-            decimal retval = 0;
-
-            DateTime startDay = DateTime.MaxValue;
-            foreach (KeyValuePair<string, Position> item in this.Holdings)
-            {
-                Position p = item.Value;
-
-                TimeSpan span = p.ExpDate.Subtract(DateTime.Today);
-
-                decimal t = 1;
-                if (p.Type != "Stock")
-                {
-                    t = BlackScholes.Delta(p.Type == "Call" ? BlackScholes.OptionType.Call : BlackScholes.OptionType.Put, p.UnderlyingPrice,
-                        p.Strike, 0.0275, this.DividendYield, this.ImpliedVolatility, Convert.ToInt32(span.TotalDays));
-                }
-
-                if (p.Type == "Put") t = -t;  // not sure why this is backwards
-
-                Debug.WriteLine("Delta calculated: {0} {1} price:{2} strike:{3} IV:{4} days:{5} -> delta:{6}", this.Symbol, p.Type, p.UnderlyingPrice, p.Strike, this.ImpliedVolatility, span.TotalDays, t * p.Quantity * p.Multiplier);
-                retval += t * p.Quantity * p.Multiplier;
-            }
-
-            Debug.WriteLine("Group Delta: {0}", retval);
-            return retval;
-        }
 
 
 
