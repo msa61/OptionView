@@ -132,5 +132,29 @@ namespace OptionView
         }
 
 
+
+        static public decimal DeltaFromPrice(OptionType type, decimal s, decimal x, double r, double q, decimal optionPrice, int days)
+        {
+            return DeltaFromPrice(type, Convert.ToDouble(s), Convert.ToDouble(x), r, q, optionPrice, days);
+        }
+
+        static public decimal DeltaFromPrice(OptionType type, double s, double x, double r, double q, decimal optionPrice, int days)
+        {
+            try
+            {
+                double sigma = IV(type, s, x, r, q, optionPrice, days);
+
+                return Delta(type, s, x, r, q, sigma, days);
+            }
+            catch (Exception ex)
+            {
+
+            }
+            return 0;
+        }
+
+
+
+
     }
 }
