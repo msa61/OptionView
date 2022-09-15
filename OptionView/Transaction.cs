@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OptionView.DataImport;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,7 @@ namespace OptionView
         public string Type { get; set; }
         public decimal Quantity { get; set; }
         public decimal Amount { get; set; }
+        public Greek GreekData { get; set; }
 
         public Transaction()
         {

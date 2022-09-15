@@ -9,7 +9,7 @@ using System.Data.Common;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.Windows;
-
+using OptionView.DataImport;
 
 namespace OptionView
 {
@@ -18,6 +18,7 @@ namespace OptionView
     {
         private Dictionary<string, TWPositions> twpositions = null;      // cache for current value lookup
         private TWMarketInfos twmarketinfo = null;                       // cache of IV data
+        private Greeks optionGreeks = null;                              // cache of greek data
         private Accounts accounts = null;
 
         public Portfolio()
@@ -161,6 +162,7 @@ namespace OptionView
                     if (TastyWorks.ActiveSession())
                     {
                         List<string> symbols = new List<string>();
+                        List<string> optionSymbols = new List<string>();
 
                         twpositions = new Dictionary<string, TWPositions>();
                         foreach (Account a in accounts)
@@ -176,12 +178,24 @@ namespace OptionView
                                     foreach (KeyValuePair<string, TWPosition> p in pos)
                                     {
                                         if (!symbols.Contains(p.Value.Symbol)) symbols.Add(p.Value.Symbol);
+
+                                        // individual option list
+                                        if (p.Value.Type.Substring(0, 1) != "S")
+                                        {
+                                            if (!optionSymbols.Contains(p.Value.ShortOptionSymbol)) optionSymbols.Add(p.Value.ShortOptionSymbol);
+                                        }
                                     }
                                 }
                             }
                         }
 
                         twmarketinfo = TastyWorks.MarketInfo(symbols);  // get IV's
+                        optionGreeks = DataFeed.GetGreeks(optionSymbols);
+
+                        //foreach (KeyValuePair<string, Greek> g in optionGreeks)
+                        //{
+                        //    Debug.WriteLine("Greek: {0}, Delta{1}", g.Key, g.Value.Delta);
+                        //}
                     }
                 }
 
@@ -212,6 +226,14 @@ namespace OptionView
 
                                 // update groups order status based on any of items constituent holdings
                                 grp.OrderActive = twpos.OrderActive;
+
+                                if (optionGreeks.ContainsKey(twpos.ShortOptionSymbol))
+                                {
+                                    pos.GreekData = optionGreeks[twpos.ShortOptionSymbol];
+
+                                    grp.GreekData.Delta += pos.GreekData.Delta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
+                                    grp.GreekData.Theta += pos.GreekData.Theta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
+                                }
                             }
                         }
                     }

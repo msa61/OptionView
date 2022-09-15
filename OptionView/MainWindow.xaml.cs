@@ -1057,14 +1057,14 @@ namespace OptionView
                             overallYValue += grp.AnalysisYValue;
                             break;
                         case 2:
-                            grp.AnalysisXValue = grp.CalculateGroupTheta();
+                            grp.AnalysisXValue = Convert.ToDecimal(grp.GreekData.Theta);
                             grp.AnalysisYValue = grp.CapitalRequired;
 
                             overallXValue += grp.AnalysisXValue;
                             overallYValue += grp.AnalysisYValue;
                             break;
                         case 3:
-                            grp.AnalysisXValue = grp.CalculateGroupTheta();
+                            grp.AnalysisXValue = Convert.ToDecimal(grp.GreekData.Theta);
                             grp.AnalysisYValue = grp.CapitalRequired;
 
                             overallXValue += grp.AnalysisXValue;
@@ -1073,7 +1073,7 @@ namespace OptionView
                             grp.AnalysisXValue /= (grp.CapitalRequired < 100m) ? 100m : grp.CapitalRequired;
                             break;
                         case 4:
-                            grp.AnalysisXValue = grp.CalculateGroupDelta();
+                            grp.AnalysisXValue = Convert.ToDecimal(grp.GreekData.Delta);
                             grp.AnalysisYValue = grp.CapitalRequired;
 
                             overallXValue += grp.AnalysisXValue;
@@ -1222,8 +1222,8 @@ namespace OptionView
                 // outlier filter
                 if ((outliers == true) ||   // flag on, show everything
                     (view < 2) ||           // ignore flag for first two view types
-                    (((view == 2) || (view == 3)) && (grp.CalculateGroupTheta() > 0))  ||
-                    ((view == 4) && (grp.CalculateGroupDelta() < 100))
+                    (((view == 2) || (view == 3)) && (grp.GreekData.Theta > 0))  ||
+                    ((view == 4) && (grp.GreekData.Delta < 100))
                    )  
                     retval = true;
             }
