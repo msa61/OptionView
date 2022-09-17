@@ -162,7 +162,7 @@
     <Grid d:DataContext="{d:DesignData /SampleData/PortfolioResultsSampleData.xaml}" Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition x:Name="ContentRow" />
-            <RowDefinition x:Name="FooterRow" MaxHeight="60"/>
+            <RowDefinition x:Name="FooterRow" MaxHeight="80"/>
         </Grid.RowDefinitions>
         <TabControl Name="MainTab" Background="Black" BorderThickness="0" SelectionChanged="MainTab_SelectionChanged" Grid.Row="0">
             <!-- Holdings tab -->
@@ -551,7 +551,7 @@
             </TabItem>
         </TabControl>
 
-        <DockPanel Background="#FF454545" Margin="6,0,6,5" Grid.Row="1" VerticalAlignment="Center" Height="54" >
+        <DockPanel Background="#FF454545" Margin="6,0,6,5" Grid.Row="1" VerticalAlignment="Center" Height="74" >
 
             <Button DockPanel.Dock="Right" Width="59" Height="30" Content="Config" Margin="6,0,6,0" Click="ConfigButton" FontFamily="Trebuchet MS" />
             <Button DockPanel.Dock="Right" x:Name="Validate"  Width="59"  Height="30" Content="Validate" Margin="6,0,0,0" Click="ValidateButton" FontFamily="Trebuchet MS"/>
@@ -565,17 +565,18 @@
                     <Label Content="Individual" Width="100"  FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
                     <Label Content="Roth" Width="100"  FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
                 </StackPanel>
+                <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Net Liq" Width="100"                FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
                     <StackPanel Orientation="Horizontal" Width="100" Margin="0">
                         <Label Content="$100,000"                       FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
-                        <Label Content="⏶"  Foreground="Red"          FontSize="11" FontFamily="Trebuchet MS" Padding="2"  />
-                        <Label Content="-34" Foreground="Red"          FontSize="11" FontFamily="Trebuchet MS" Padding="2" />
+                        <Label Content="⏶"  Foreground="LightSalmon"          FontSize="11" FontFamily="Trebuchet MS" Padding="2"  />
+                        <Label Content="-34" Foreground="PaleVioletRed"          FontSize="11" FontFamily="Trebuchet MS" Padding="2" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Width="100">
                         <Label Content="$14,000"                       FontSize="11"    FontFamily="Trebuchet MS" Padding="2"/>
                         <Label Content="⏶"  Foreground="Lime"          FontSize="11" FontFamily="Trebuchet MS" Padding="2"  />
-                        <Label Content="64"  Foreground="Lime"          FontSize="11" FontFamily="Trebuchet MS" Padding="2" />
+                        <Label Content="64"  Foreground="PaleGreen"          FontSize="11" FontFamily="Trebuchet MS" Padding="2" />
                     </StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
@@ -587,7 +588,11 @@
             </StackPanel>
 
             <StackPanel x:Name="MetricsPanel" Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center" MinWidth="100" Margin="150,0,0,0">
-                <!--<Label Content="VIX: 20 - 30% Allocation" FontSize="16" FontFamily="Trebuchet MS" Padding="2"/>-->
+                <!--<Label x:Name="VIX" Content="VIX: 20 - 30% Allocation" FontSize="16" FontFamily="Trebuchet MS" Padding="2"/>
+                <Label Width="50"/>
+                <Label x:Name="GREEKS" Content="fafa, adfdafa" FontSize="16" FontFamily="Trebuchet MS" Padding="2" />
+                -->
+                
             </StackPanel>
 
         </DockPanel>

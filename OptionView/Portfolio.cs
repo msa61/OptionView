@@ -19,6 +19,7 @@ namespace OptionView
         private Dictionary<string, TWPositions> twpositions = null;      // cache for current value lookup
         private TWMarketInfos twmarketinfo = null;                       // cache of IV data
         private Greeks optionGreeks = null;                              // cache of greek data
+        private double SPYPrice = 0;
         private Accounts accounts = null;
 
         public Portfolio()
@@ -175,6 +176,7 @@ namespace OptionView
 
                                 if (pos != null)
                                 {
+                                    symbols.Add("SPY");
                                     foreach (KeyValuePair<string, TWPosition> p in pos)
                                     {
                                         if (!symbols.Contains(p.Value.Symbol)) symbols.Add(p.Value.Symbol);
@@ -196,6 +198,12 @@ namespace OptionView
                         //{
                         //    Debug.WriteLine("Greek: {0}, Delta{1}", g.Key, g.Value.Delta);
                         //}
+
+                        List<string> pSymbols = new List<string>();
+                        pSymbols.Add("SPY");
+                        Dictionary<string, double> prices = DataFeed.GetPrices(pSymbols);
+                        if (prices.ContainsKey("SPY")) SPYPrice = prices["SPY"];
+
                     }
                 }
 
@@ -247,6 +255,8 @@ namespace OptionView
                     grp.ImpliedVolatility = twmarketinfo[grp.ShortSymbol].ImpliedVolatility;
                     grp.ImpliedVolatilityRank = twmarketinfo[grp.ShortSymbol].ImpliedVolatilityRank;
                     grp.DividendYield = twmarketinfo[grp.ShortSymbol].DividendYield;
+
+                    grp.GreekData.WeightedDelta = Convert.ToDouble(grp.UnderlyingPrice) * grp.GreekData.Delta * twmarketinfo[grp.ShortSymbol].Beta / SPYPrice;
                 }
             }
             catch (Exception ex)
@@ -376,6 +386,30 @@ namespace OptionView
 
 
             return returnValue;
+        }
+
+
+        public double GetWeightedDelta(string acct = "")
+        {
+            double retval = 0;
+            foreach (KeyValuePair<int, TransactionGroup> grpItem in this)
+            {
+                TransactionGroup grp = grpItem.Value;
+                if ((grp.Account == acct) || (acct == "")) retval += grp.GreekData.WeightedDelta;
+            }
+
+            return retval;
+        }
+        public double GetTheta(string acct = "")
+        {
+            double retval = 0;
+            foreach (KeyValuePair<int, TransactionGroup> grpItem in this)
+            {
+                TransactionGroup grp = grpItem.Value;
+                if ((grp.Account == acct) || (acct == "")) retval += grp.GreekData.Theta;
+            }
+
+            return retval;
         }
     }
 
