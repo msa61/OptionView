@@ -193,9 +193,9 @@ namespace OptionView
 
             OverviewLabel(subpanel, val.ToString("C0"));
             Label lb = OverviewLabel(subpanel, (change > 0) ? up : down);
-            lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.PaleVioletRed;
+            lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.LightCoral;
             lb = OverviewLabel(subpanel, change.ToString("#,###"));
-            lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.PaleVioletRed;
+            lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.LightCoral;
 
             sp.Children.Add(subpanel);
         }
