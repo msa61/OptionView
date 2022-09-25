@@ -163,6 +163,8 @@ namespace OptionView
         {
             try
             {
+                App.UpdateLoadStatusMessage("InitiateSession");
+
                 if (alreadyFailedOnce) return false;
                 if (Token.Length > 0) return true;  // no need to login again
 
@@ -200,6 +202,8 @@ namespace OptionView
 
         public static TWMarketInfos MarketInfo(List<string> symbols)
         {
+            App.UpdateLoadStatusMessage("TW MarketInfo");
+
             string symbolString = "";
             foreach (string sym in symbols)
             {
@@ -236,6 +240,8 @@ namespace OptionView
 
         public static TWAccounts Accounts()
         {
+            App.UpdateLoadStatusMessage("TW Accounts");
+
             SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/customers/me/accounts");
 
@@ -259,6 +265,8 @@ namespace OptionView
         // used for determining capital requirement during initial load
         public static TWMargins MarginData(string accountNumber)
         {
+            App.UpdateLoadStatusMessage("TW MarginData : " + accountNumber);
+
             SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
 
@@ -282,6 +290,8 @@ namespace OptionView
 
         public static TWBalance Balances(string accountNumber)
         {
+            App.UpdateLoadStatusMessage("TW Balances : " + accountNumber);
+
             SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/balances");
 
@@ -305,6 +315,8 @@ namespace OptionView
 
         public static TWPositions Positions(string accountNumber)
         {
+            App.UpdateLoadStatusMessage("TW Positions 1/2 : " + accountNumber);
+
             Dictionary<string, decimal> marketValues = new Dictionary<string, decimal>();
             Dictionary<string, Int32> orderIds = new Dictionary<string, Int32>();
 
@@ -337,6 +349,8 @@ namespace OptionView
                     }
                 }
             }
+
+            App.UpdateLoadStatusMessage("TW Positions 2/2 : " + accountNumber);
 
             SetHeaders(Token); // reset, lost after previous call
 
@@ -393,6 +407,8 @@ namespace OptionView
 
         public static TWTransactions Transactions(string accountNumber, DateTime? start, DateTime? end)
         {
+            App.UpdateLoadStatusMessage("TW Transations");
+
             SetHeaders(Token);
 
             string url = "https://api.tastyworks.com/accounts/" + accountNumber + "/transactions?";
@@ -541,6 +557,8 @@ namespace OptionView
 
         public static StreamingParams StreamingInfo()
         {
+            App.UpdateLoadStatusMessage("TW StreamingInfo");
+
             SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/quote-streamer-tokens");
 

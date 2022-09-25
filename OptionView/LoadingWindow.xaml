@@ -1,0 +1,16 @@
+﻿<Window x:Class="OptionView.LoadingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OptionView"
+        mc:Ignorable="d" Height="70"  Width="250" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" BorderBrush="#FF8A2323" WindowStyle="None">
+    <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.WindowFrameBrushKey}}">
+        <StackPanel>
+            <Label Name="lbStatus" Content="{Binding Path=Message }" Margin="0,6,0,3" />
+            <ProgressBar Name="pbStatus" Height="14"  Value="0" Maximum="35" Margin="6,3"/>
+            <Label  Content="{Binding ElementName=pbStatus, Path=Value }" Margin="0,6" />
+            <TextBlock Name="tbStatus" TextWrapping="Wrap"  Margin="6,6" />
+        </StackPanel>
+    </Border>
+</Window>

@@ -116,6 +116,9 @@
     <Compile Include="DataImport\SymbolDecoder.cs" />
     <Compile Include="DBUtilities.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="LoadingWindow.xaml.cs">
+      <DependentUpon>LoadingWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Login.xaml.cs">
       <DependentUpon>Login.xaml</DependentUpon>
     </Compile>
@@ -133,6 +136,10 @@
     <Compile Include="Transaction.cs" />
     <Compile Include="TransactionGroup.cs" />
     <Compile Include="UIHelper.cs" />
+    <Page Include="LoadingWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Login.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

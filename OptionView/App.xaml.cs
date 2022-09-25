@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Data.SQLite;
 using System.IO;
+using System.Windows.Threading;
 
 namespace OptionView
 {
@@ -16,6 +17,23 @@ namespace OptionView
     public partial class App : Application
     {
         public static SQLiteConnection ConnStr = null;
+        private static LoadingWindow loadWindow = null;
+
+
+        private void OnStartup(object sender, StartupEventArgs e)
+        {
+            loadWindow = new LoadingWindow();
+            loadWindow.Show();
+
+            MainWindow wnd = new MainWindow();
+            loadWindow.Close();
+            wnd.Show();
+        }
+
+        public static void UpdateLoadStatusMessage(string txt)
+        {
+            if (loadWindow.IsActive) loadWindow.Message = txt;
+        }
 
         public static void OpenConnection()
         {

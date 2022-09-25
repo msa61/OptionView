@@ -76,6 +76,8 @@ namespace OptionView
 
         public void GetCurrentHoldings(Accounts acc)
         {
+            App.UpdateLoadStatusMessage("Get current holdings");
+
             accounts = acc;
 
             try
@@ -124,6 +126,7 @@ namespace OptionView
                     }
 
                     grp.EarliestExpiration = FindEarliestDate(grp.Holdings);
+                    App.UpdateLoadStatusMessage("Retrieve current data - " + grp.Symbol);
                     RetrieveCurrentData(grp);
 
                     this.Add(grp.GroupID, grp);
@@ -160,6 +163,8 @@ namespace OptionView
                 // retrieve and cache current data from tastyworks for this a subsequent passes
                 if (twpositions == null)
                 {
+                    App.UpdateLoadStatusMessage("Fetching current data for cache");
+
                     if (TastyWorks.ActiveSession())
                     {
                         List<string> symbols = new List<string>();

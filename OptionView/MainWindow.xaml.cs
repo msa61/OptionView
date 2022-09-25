@@ -43,10 +43,15 @@ namespace OptionView
             InitializeApp();
             accounts = new Accounts();
 
+            App.UpdateLoadStatusMessage("Update tiles");
             UpdateHoldingsTiles();
+            App.UpdateLoadStatusMessage("Updating results");
             UpdateResultsGrid();
+            App.UpdateLoadStatusMessage("Updating todos");
             UpdateTodosGrid();
+            App.UpdateLoadStatusMessage("Updating footer");
             UpdateFooter();
+            App.UpdateLoadStatusMessage("Restoring previous session");
 
             LoadDynamicComboBoxes();
             RestorePreviousSession();
