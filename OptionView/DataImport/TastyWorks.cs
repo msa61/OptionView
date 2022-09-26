@@ -182,7 +182,8 @@ namespace OptionView
             {
                 Debug.WriteLine(e.ToString());
                 alreadyFailedOnce = true;
-                MessageBox.Show(e.Message, "InitiateSession Error");
+                MessageBoxResult yesNo = MessageBox.Show(e.Message + "\n\nContinue?", "InitiateSession Error", MessageBoxButton.YesNo);
+                if (yesNo == MessageBoxResult.No) System.Windows.Application.Current.Shutdown();
             }
             return false;
         }
@@ -291,6 +292,7 @@ namespace OptionView
         public static TWBalance Balances(string accountNumber)
         {
             App.UpdateLoadStatusMessage("TW Balances : " + accountNumber);
+            if (Token.Length == 0) return new TWBalance();
 
             SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/balances");

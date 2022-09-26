@@ -255,7 +255,7 @@ namespace OptionView
                 grp.CurrentValue = currentValue;
                 grp.PreviousCloseValue = previousCloseValue;
                 grp.ChangeFromPreviousClose = currentValue - previousCloseValue;
-                if (twmarketinfo.ContainsKey(grp.ShortSymbol))
+                if ((twmarketinfo != null) && (twmarketinfo.ContainsKey(grp.ShortSymbol)))
                 {
                     grp.ImpliedVolatility = twmarketinfo[grp.ShortSymbol].ImpliedVolatility;
                     grp.ImpliedVolatilityRank = twmarketinfo[grp.ShortSymbol].ImpliedVolatilityRank;

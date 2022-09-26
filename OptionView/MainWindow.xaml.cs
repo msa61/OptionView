@@ -148,7 +148,7 @@ namespace OptionView
             DecoratedValueLabel(sp, combinedNetLiq, combinedChange);
 
             // 3rd column
-            decimal committedPercentage = (combinedNetLiq - combinedBP) / combinedNetLiq;
+            decimal committedPercentage = (combinedNetLiq == 0) ? 0 : (combinedNetLiq - combinedBP) / combinedNetLiq;
             OverviewLabel(sp, committedPercentage.ToString("P1"), 80);
 
             // 4th column
