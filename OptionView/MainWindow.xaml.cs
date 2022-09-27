@@ -607,7 +607,7 @@ namespace OptionView
             if (Decimal.TryParse(txtRisk.Text.Replace("$", ""), out retval)) grp.Risk = retval;
 
             grp.Update();
-            portfolio.GetCurrentHoldings(accounts);  //refresh
+            portfolio.GetCurrentHoldings(accounts, true);  //refresh
             if (uiDirty)
             {
                 grp = portfolio[tag];

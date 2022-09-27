@@ -74,7 +74,7 @@ namespace OptionView
             return (reader.GetOrdinal(column) >= 0);
         }
 
-        public void GetCurrentHoldings(Accounts acc)
+        public void GetCurrentHoldings(Accounts acc, Boolean minorUpdate = false)
         {
             App.UpdateLoadStatusMessage("Get current holdings");
 
@@ -82,9 +82,12 @@ namespace OptionView
 
             try
             {
+                if (!minorUpdate)
+                {
+                    twpositions = null;  // clear cache
+                }
                 // always start with an empty list
                 this.Clear();
-                twpositions = null;  // clear cache
 
                 // establish connection
                 App.OpenConnection();
