@@ -731,7 +731,7 @@ namespace OptionView
                         Debug.WriteLine("contextmenu tile id: " + tag.ToString());
                         combineRequestTag = tag;
                         // don't bother showing combine menu for any of these reasons
-                        if ((combineRequestTag == selectedTag) || (portfolio[selectedTag].Symbol != portfolio[tag].Symbol) || (portfolio[selectedTag].Account != portfolio[tag].Account))
+                        if ((selectedTag == 0) || (combineRequestTag == selectedTag) || (portfolio[selectedTag].Symbol != portfolio[tag].Symbol) || (portfolio[selectedTag].Account != portfolio[tag].Account))
                         {
                             e.Handled = true;
                         }

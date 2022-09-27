@@ -19,7 +19,7 @@
         </ControlTemplate>
 
         <!-- Context menu for tiles -->
-        <ContextMenu x:Key="TileContextMenu" HorizontalOffset="150" >
+        <ContextMenu x:Key="TileContextMenu" HorizontalOffset="10" >
             <MenuItem Header="Combine" Click="CombineClick"></MenuItem>
         </ContextMenu>
 
