@@ -85,6 +85,8 @@ namespace OptionView
             */
             App.UpdateLoadStatusMessage("Updating footer");
 
+            OverviewPanel.Children.Clear();
+
             StackPanel sp = new StackPanel { Orientation = Orientation.Horizontal };
             OverviewLabel(sp, "Account",80);
             OverviewLabel(sp, "Net Liq", 100);
@@ -156,6 +158,8 @@ namespace OptionView
 
 
             // display VIX
+            MetricsPanel.Children.Clear();
+            
             Decimal vix = Quotes.Get("^VIX");
             string vixText = String.Format("VIX: {0} - ", vix);
             if (vix <= 15) vixText += "25%";
@@ -663,6 +667,7 @@ namespace OptionView
             UpdateHoldingsTiles();
             UpdateResultsGrid();
             UpdateTodosGrid();
+            UpdateFooter();
 
             if (MainTab.SelectedIndex == 1) UpdateAnalysisView();
 
