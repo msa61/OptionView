@@ -28,11 +28,12 @@ namespace OptionView
 
     public class Positions : SortedDictionary<string,Position>
     {
+        public bool hasAssignment { get; set; }
         private int groupID = 0;
 
         public Positions ()
         {
-            
+            hasAssignment = false;
         }
 
         public string Add(Position pos)

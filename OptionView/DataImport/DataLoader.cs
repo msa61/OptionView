@@ -221,7 +221,8 @@ namespace OptionView
                 // establish connection
                 App.OpenConnection();
 
-                string sql = "SELECT DISTINCT account, symbol from Transactions WHERE TransGroupID is NULL AND symbol != '' AND TransType != 'Money Movement' ORDER BY symbol";
+                // get list of symbols that aren't in a group yet
+                string sql = "SELECT DISTINCT account, symbol, transSubType from Transactions WHERE TransGroupID is NULL AND symbol != '' AND TransType != 'Money Movement' ORDER BY symbol";
                 //string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol = 'AMD' ORDER BY symbol";
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
                 SQLiteDataReader reader = cmd.ExecuteReader();
@@ -249,17 +250,16 @@ namespace OptionView
                     DataTable dt = new DataTable();
                     da.Fill(dt);
 
-                    PurgeSymbolChanges(dt);
+                    PurgeSymbolChanges(dt);  // remove transactions that don't impact holdings or calculations
 
                     while (dt.Rows.Count > 0)
                     {
                         int numOfRows = dt.Rows.Count;
-                        string t = dt.Rows[0]["TransTime"].ToString(); // maintain sqlite date format as a string 
+                        string t = dt.Rows[0]["TransTime"].ToString(); // maintain sqlite date format as a string, initiate process with the earliest time
                         ProcessTransactionChain(account, symbol, dt, t);
 
                         if (dt.Rows.Count == numOfRows) break;  // nothing happened, so avoid endless loop
                     }
-
 
                 }  // end of symbol loop
             }
@@ -326,11 +326,42 @@ namespace OptionView
                 if (groupID > 0)
                 {
                     // update chain status
-                    string sql = "UPDATE TransGroup SET Open = @op WHERE ID=@row";
-                    SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
-                    cmdUpd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
-                    cmdUpd.Parameters.AddWithValue("row", groupID);
-                    cmdUpd.ExecuteNonQuery();
+                    if (!holdings.hasAssignment)
+                    {
+                        string sql = "UPDATE TransGroup SET Open = @op WHERE ID=@row";
+                        SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                        cmdUpd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
+                        cmdUpd.Parameters.AddWithValue("row", groupID);
+                        cmdUpd.ExecuteNonQuery();
+                    }
+                    else
+                    { 
+                        string newComments = "";
+                        //get current comment
+                        string sqlSel = "SELECT comments FROM TransGroup WHERE ID = @id";
+                        SQLiteCommand cmd = new SQLiteCommand(sqlSel, App.ConnStr);
+                        cmd.Parameters.AddWithValue("id", groupID);
+                        SQLiteDataReader reader = cmd.ExecuteReader();
+                        if (reader.Read())
+                        {
+                            string stamp = "Assigned " + DateTime.Today.ToString("M/d");
+                            newComments = reader["Comments"].ToString();
+                            if (newComments.IndexOf(stamp) == -1)
+                            {
+                                if (newComments.Length > 0) newComments += "\n";
+                                newComments += stamp;
+                            }
+                        }
+
+                        string sql = "UPDATE TransGroup SET Open = @op, ActionDate = @dt, Comments = @cm WHERE ID=@row";
+                        SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                        cmdUpd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
+                        cmdUpd.Parameters.AddWithValue("dt", DateTime.Today);
+                        cmdUpd.Parameters.AddWithValue("cm", newComments);
+                        cmdUpd.Parameters.AddWithValue("row", groupID);
+                        cmdUpd.ExecuteNonQuery();
+                    }
+
                 }
                 else
                 {
@@ -548,7 +579,7 @@ namespace OptionView
 
         private static void ProcessTransactionGroup(string account, string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
         {
-            Debug.WriteLine("Entering ProcessTransactionGroup (" + symbol + ")");
+            Debug.WriteLine("Entering ProcessTransactionGroup (" + symbol + "   " + time.ToString() + ")");
 
             // Collect all 'opens' for the selected time
             DataRow[] rows = dt.Select("TransTime = '" + time + "'");
@@ -588,7 +619,7 @@ namespace OptionView
                     {
                         // add transaction to the chain
                         string key = holdings.Add(symbol, type, expDate, strike, quantity, amount, null, row, openClose, grpID);
-                        Debug.WriteLine("    Opening transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString());
+                        Debug.WriteLine("    Opening transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString() + "   row: " + r.Field<Int64>("id").ToString());
 
                         // add the associated time to the hierarchy for chain
                         if (!times.ContainsKey(time)) times.Add(time, time);
@@ -641,7 +672,9 @@ namespace OptionView
                             if (r["TransGroupID"] != DBNull.Value) grpID = (int)r.Field<Int64>("TransGroupID");
 
                             string key = holdings.Add(p.Symbol, p.Type, p.ExpDate, p.Strike, (Int32)r.Field<Int64>("Quantity"), (Int32)r.Field<Int64>("ID"), r.Field<string>("Open-Close").ToString(), grpID);
-                            Debug.WriteLine("    Closing transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString());
+                            Debug.WriteLine("    Closing transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString() + "   row: " + r.Field<Int64>("id").ToString());
+
+                            if (r.Field<String>("TransSubType") == "Assignment") holdings.hasAssignment = true;
 
                             // add the associated time to the hierarchy for chain
                             string t = r.Field<string>("TransTime");
@@ -671,7 +704,7 @@ namespace OptionView
                     ProcessTransactionGroup(account, symbol, dt, t, holdings, times);
             }
 
-            Debug.WriteLine("Exiting ProcessTransactionGroup (" + symbol + ")");
+            Debug.WriteLine("Exiting ProcessTransactionGroup (" + symbol + "     rows left: " + dt.Rows.Count + ")");
 
         }
     }
