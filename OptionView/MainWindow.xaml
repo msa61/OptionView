@@ -8,6 +8,7 @@
         Title="Option View" Height="933" Width="1251" Left="100" Top="100"
         Closing="MainWindow_Closing"
         Loaded="Window_Loaded">
+    
 
 
     <Window.Resources>
@@ -527,7 +528,16 @@
             </TabItem>
 
             <!-- To Do Tab-->
-            <TabItem Width="150" Height="30" Header="To Dos">
+            <TabItem Width="150" Height="30"  >
+                <TabItem.Header >
+                    <StackPanel Orientation="Horizontal" Background="Transparent" >
+                        <TextBlock Text="To Dos" Margin="22,0,0,0"/>
+                        <Grid Name="TodoIcon" Visibility="Hidden">
+                            <Ellipse Name="TodoCountColor" Width="16" Height="16" Fill="Green" Margin="6,0,0,0"/>
+                            <TextBlock Name="tbTodoCount" Text="15" Foreground="White" Margin="6,0,0,0" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </TabItem.Header>
                 <Grid Background="Black" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition x:Name="ToDoCol" MinWidth="400" />

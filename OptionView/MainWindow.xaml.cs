@@ -437,6 +437,7 @@ namespace OptionView
                         {
                             Debug.WriteLine("Previous group {0} was dirty", selectedTag);
                             SaveTransactionGroupDetails(selectedTag);
+                            UpdateTodosGrid();
                         }
 
                         TransactionGroup grp = portfolio[tag];
@@ -879,7 +880,34 @@ namespace OptionView
             todos.GetTodos();
 
             todoGrid.ItemsSource = todos;
+
+            UpdateTodoIcon(todos);
         }
+
+        private void UpdateTodoIcon(PortfolioTodos todos)
+        {
+            bool isUrgent = false;
+            foreach (TransactionGroup grp in todos)
+            {
+                if (grp.ActionDate <= DateTime.Today)
+                {
+                    isUrgent = true;
+                    break;
+                }
+            }
+
+            if (todos.Count == 0)
+            {
+                TodoIcon.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                TodoIcon.Visibility = Visibility.Visible;
+                TodoCountColor.Fill = isUrgent ? Brushes.Red : Brushes.Green;
+                tbTodoCount.Text = todos.Count.ToString();
+            }
+        }
+
 
         private void ResultsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
         {
