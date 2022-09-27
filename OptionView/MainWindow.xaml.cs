@@ -43,15 +43,10 @@ namespace OptionView
             InitializeApp();
             accounts = new Accounts();
 
-            App.UpdateLoadStatusMessage("Update tiles");
             UpdateHoldingsTiles();
-            App.UpdateLoadStatusMessage("Updating results");
             UpdateResultsGrid();
-            App.UpdateLoadStatusMessage("Updating todos");
             UpdateTodosGrid();
-            App.UpdateLoadStatusMessage("Updating footer");
             UpdateFooter();
-            App.UpdateLoadStatusMessage("Restoring previous session");
 
             LoadDynamicComboBoxes();
             RestorePreviousSession();
@@ -88,8 +83,8 @@ namespace OptionView
 
                 <Label Content="VIX:" Width="100" FontSize="16" FontFamily="Trebuchet MS" Padding="2"/>
             */
+            App.UpdateLoadStatusMessage("Updating footer");
 
-            
             StackPanel sp = new StackPanel { Orientation = Orientation.Horizontal };
             OverviewLabel(sp, "Account",80);
             OverviewLabel(sp, "Net Liq", 100);
@@ -226,6 +221,8 @@ namespace OptionView
 
         private void UpdateHoldingsTiles()
         {
+            App.UpdateLoadStatusMessage("Update tiles");
+
             if (MainCanvas.Children.Count > 0) MainCanvas.Children.Clear();
 
             portfolio = new Portfolio();
@@ -264,6 +261,8 @@ namespace OptionView
 
         private void RestorePreviousSession()
         {
+            App.UpdateLoadStatusMessage("Restoring previous session");
+
             string scrnProps = Config.GetProp("Screen");
             string[] props = scrnProps.Split('|');
 
@@ -744,6 +743,8 @@ namespace OptionView
 
         private void UpdateResultsGrid()
         {
+            App.UpdateLoadStatusMessage("Updating results");
+
             PortfolioResults results = new PortfolioResults();
             results.GetResults();
 
@@ -867,6 +868,8 @@ namespace OptionView
 
         private void UpdateTodosGrid()
         {
+            App.UpdateLoadStatusMessage("Updating todos");
+
             PortfolioTodos todos = new PortfolioTodos();
             todos.GetTodos();
 
