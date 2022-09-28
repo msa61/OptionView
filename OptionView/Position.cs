@@ -29,6 +29,7 @@ namespace OptionView
     public class Positions : SortedDictionary<string,Position>
     {
         public bool hasAssignment { get; set; }
+        public DateTime AssignmentDate { get; set; }
         private int groupID = 0;
 
         public Positions ()

@@ -344,7 +344,7 @@ namespace OptionView
                         SQLiteDataReader reader = cmd.ExecuteReader();
                         if (reader.Read())
                         {
-                            string stamp = "Assigned " + DateTime.Today.ToString("M/d");
+                            string stamp = "Assigned " + holdings.AssignmentDate.ToString("M/d");
                             newComments = reader["Comments"].ToString();
                             if (newComments.IndexOf(stamp) == -1)
                             {
@@ -674,7 +674,11 @@ namespace OptionView
                             string key = holdings.Add(p.Symbol, p.Type, p.ExpDate, p.Strike, (Int32)r.Field<Int64>("Quantity"), (Int32)r.Field<Int64>("ID"), r.Field<string>("Open-Close").ToString(), grpID);
                             Debug.WriteLine("    Closing transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString() + "   row: " + r.Field<Int64>("id").ToString());
 
-                            if (r.Field<String>("TransSubType") == "Assignment") holdings.hasAssignment = true;
+                            if (r.Field<String>("TransSubType") == "Assignment")
+                            {
+                                holdings.hasAssignment = true;
+                                holdings.AssignmentDate = Convert.ToDateTime(r.Field<string>("TransTime")).Date;
+                            }
 
                             // add the associated time to the hierarchy for chain
                             string t = r.Field<string>("TransTime");
