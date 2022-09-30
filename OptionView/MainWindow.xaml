@@ -96,7 +96,8 @@
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
         <Style x:Key="SymbolPrice" TargetType="{x:Type TextBlock}">
-            <Setter Property="Foreground" Value="LightGray"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Opacity" Value="0.6"/>
             <Setter Property="FontSize" Value="10"/>
             <Setter Property="IsHitTestVisible" Value="False" />
             <Setter Property="VerticalAlignment" Value="Center" />
@@ -116,8 +117,9 @@
             <Setter Property="IsHitTestVisible" Value="False" />
         </Style>
         <Style x:Key="SymbolChangeInValue" TargetType="{x:Type TextBlock}">
-            <Setter Property="Foreground" Value="LightGray"/>
-            <Setter Property="FontSize" Value="9"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Opacity" Value="0.6"/>
+            <Setter Property="FontSize" Value="10"/>
             <Setter Property="IsHitTestVisible" Value="False" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Padding" Value="8,2,0,0" />
@@ -202,7 +204,7 @@
                                     <TextBlock Text="Text2 - dafa;jkda adfj;daf fafafadf" Style="{DynamicResource SymbolDetails}" />
                                     <DockPanel LastChildFill="False" >
                                         <TextBlock Text="Text3" Style="{DynamicResource SymbolDetails}" DockPanel.Dock="Left"/>
-                                        <TextBlock Text="Text3a" Style="{DynamicResource SymbolChangeInValue}" DockPanel.Dock="Left"/>
+                                        <TextBlock Text="Text3a" Style="{DynamicResource SymbolChangeInValue}" DockPanel.Dock="Left" />
                                         <TextBlock Text="!" Style="{DynamicResource SymbolDetails}" DockPanel.Dock="Right"/>
                                     </DockPanel>
                                     <DockPanel Margin="0,6,0,0" LastChildFill="False"  >
