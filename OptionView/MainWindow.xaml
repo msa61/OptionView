@@ -357,8 +357,8 @@
 
 
             <!-- Returns tab -->
-            <TabItem Width="150" Height="30" Header="Returns">
-                <Grid Background="Black" SizeChanged="ResultsGrid_SizeChanged" >
+            <TabItem Width="150" Height="30" Header="Returns" >
+                <Grid Background="Black" SizeChanged="Grid_SizeChanged" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition x:Name="ResultsCol" MinWidth="400" />
                         <ColumnDefinition x:Name="ControlsCol" MaxWidth="150" Width="150"/>
@@ -368,7 +368,7 @@
                     <DataGrid Name="resultsGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" Background="#FF454545" RowBackground="#FF454545"
                               HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,4,0,4" HeadersVisibility="Column"
                               VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
-                              Width="1000" RowDetailsVisibilityChanged="ResultsGrid_RowDetailsVisibilityChanged">
+                              Width="1000" RowDetailsVisibilityChanged="Grid_RowDetailsVisibilityChanged">
                         <DataGrid.Resources>
                             <local:GroupTotalConverter x:Key="GroupTotal"/>
                             <local:GroupNameConverter x:Key="GroupName"/>
@@ -441,13 +441,13 @@
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
-                            <ComboBox Name="cbAccount" Margin="6" Text="None" SelectionChanged="ComboBox_SelectionChanged" >
+                            <ComboBox Name="cbAccount" Margin="6" Text="None" SelectionChanged="ComboBox_ResultsSelectionChanged" >
                                 <ComboBoxItem Content="All" Tag="All" IsSelected="True"/>
                             </ComboBox>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
-                            <ComboBox Name="cbDateFilter" Margin="6" Text="None" SelectionChanged="ComboBox_SelectionChanged" >
+                            <ComboBox Name="cbDateFilter" Margin="6" Text="None" SelectionChanged="ComboBox_ResultsSelectionChanged" >
                                 <ComboBoxItem Content="All" Tag="All" IsSelected="True"/>
                                 <ComboBoxItem Content="Last Year" Tag="LastYear"/>
                                 <ComboBoxItem Content="Year to Date" Tag="YTD"/>
@@ -460,21 +460,21 @@
                         <StackPanel >
                             <DockPanel>
                                 <Label Content="Earnings:" Margin="6,0,6,0"  />
-                                <CheckBox Name="chkEarningsFilter" IsThreeState="True" IsEnabled="True" ToolTip="Yes/No/All" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
+                                <CheckBox Name="chkEarningsFilter" IsThreeState="True" IsEnabled="True" ToolTip="Yes/No/All" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="ResultsFilterClick" Click="ResultsFilterClick" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
                             <DockPanel>
                                 <Label Content="Neutral:" Margin="6,0,6,0"  />
-                                <CheckBox Name="chkNeutralFilter" IsThreeState="True" IsEnabled="True" ToolTip="Yes/No/All" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
+                                <CheckBox Name="chkNeutralFilter" IsThreeState="True" IsEnabled="True" ToolTip="Yes/No/All" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="ResultsFilterClick" Click="ResultsFilterClick" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
                             <DockPanel>
                                 <Label Content="Defined Risk:" Margin="6,0,6,0" />
-                                <CheckBox Name="chkRiskFilter" IsThreeState="True" IsEnabled="True" ToolTip="Yes/No/All" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="FilterClick" Click="FilterClick" />
+                                <CheckBox Name="chkRiskFilter" IsThreeState="True" IsEnabled="True" ToolTip="Yes/No/All" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="ResultsFilterClick" Click="ResultsFilterClick" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
@@ -486,7 +486,7 @@
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
-                            <ComboBox Name="cbGrouping1" Margin="6" SelectionChanged="CbGrouping1_SelectionChanged" x:FieldModifier="public">
+                            <ComboBox Name="cbResultsGrouping" Margin="6" SelectionChanged="CbResultsGrouping_SelectionChanged" x:FieldModifier="public">
                                 <ComboBoxItem Content="None" Tag="None" IsSelected="True"/>
                                 <ComboBoxItem Content="By Account" Tag="Account"/>
                                 <ComboBoxItem Content="By Symbol" Tag="ShortSymbol"/>
@@ -526,6 +526,105 @@
                 </Grid>
 
             </TabItem>
+
+            <!-- Recent Transactions -->
+            <TabItem Width="150" Height="30" Header="Transactions">
+                <Grid Background="Black" SizeChanged="Grid_SizeChanged" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition MinWidth="400" />
+                        <ColumnDefinition MaxWidth="150" Width="150"/>
+                    </Grid.ColumnDefinitions>
+
+
+                    <DataGrid Name="transactionsGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" Background="#FF454545" RowBackground="#FF454545"
+                              HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,4,0,4" HeadersVisibility="Column"
+                              VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
+                              Width="1200" RowDetailsVisibilityChanged="Grid_RowDetailsVisibilityChanged">
+                        <DataGrid.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="{x:Type GroupItem}">
+                                        <Setter Property="Margin" Value="0,0,0,5"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type GroupItem}" >
+                                                    <Expander IsExpanded="True" Background="Gray" >
+                                                        <Expander.Header>
+                                                            <DockPanel >
+                                                                <TextBlock Text="{Binding Path=Name}" VerticalAlignment="Center" Padding="6,3,4,3" Foreground="White" Width="65"/>
+                                                            </DockPanel>
+                                                        </Expander.Header>
+                                                        <Expander.Content>
+                                                            <ItemsPresenter />
+                                                        </Expander.Content>
+                                                    </Expander>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
+                            </GroupStyle>
+                        </DataGrid.GroupStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Account" Binding="{Binding Account}" Width="90" />
+                            <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="70" />
+                            <DataGridTextColumn Header="Group" Binding="{Binding GroupID}" Width="70" />
+                            <DataGridTextColumn Header="Trans Time" Binding="{Binding Path=TransTime, StringFormat={}{0:dd-MMM-yy hh:mm:ss}}" Width="140" />
+                            <DataGridTextColumn Header="Trans Type" Binding="{Binding TransType}" Width="100" />
+                            <DataGridTextColumn Header="Sub Type" Binding="{Binding TransSubType}" Width="100" />
+                            <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="70" />
+                            <DataGridTextColumn Header="Exp Date" Binding="{Binding Path=ExpDate, StringFormat={}{0:dd MMM}}" Width="90" />
+                            <DataGridTextColumn Header="Strike" Binding="{Binding Strike}" Width="70" />
+                            <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="70"  />
+                            <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="80"  />
+                            <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" Width="80" />
+                            <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="80" />
+                            <DataGridTextColumn Header="Fees" Binding="{Binding Fees}" Width="80" />
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="300" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <DockPanel  Background="#FF454545" Margin="6,4,4,5" Grid.Column="1">
+
+                        <StackPanel Background="Black" Margin="2,4,2,0">
+                            <DockPanel>
+                                <Label Content="Filters" Margin="6,0,6,0" />
+                            </DockPanel>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <ComboBox Name="cbtAccount" Margin="6" Text="None" SelectionChanged="ComboBox_TransactionsSelectionChanged" >
+                                <ComboBoxItem Content="All" Tag="All" IsSelected="True"/>
+                            </ComboBox>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <!--
+                        <StackPanel >
+                            <ComboBox Name="cbtDateFilter" Margin="6" Text="None" SelectionChanged="ComboBox_TransactionsSelectionChanged" >
+                                <ComboBoxItem Content="All" Tag="All" IsSelected="True"/>
+                                <ComboBoxItem Content="Last Year" Tag="LastYear"/>
+                                <ComboBoxItem Content="Year to Date" Tag="YTD"/>
+                                <ComboBoxItem Content="Last 90 Days" Tag="90Days"/>
+                                <ComboBoxItem Content="Last 30 Days" Tag="30Days"/>
+                            </ComboBox>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        -->
+                        <StackPanel >
+                            <DockPanel>
+                                <Label Content="Group:" Margin="6,0,6,0"  />
+                                <CheckBox Name="chkGroupTransactions"  IsEnabled="True"  VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="TransactionsGroupClick" Click="TransactionsGroupClick" />
+                            </DockPanel>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+
+
+
+                    </DockPanel>
+                </Grid>
+
+            </TabItem>
+
+
 
             <!-- To Do Tab-->
             <TabItem Width="150" Height="30"  >

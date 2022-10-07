@@ -45,6 +45,7 @@ namespace OptionView
 
             UpdateHoldingsTiles();
             UpdateResultsGrid();
+            UpdateTransactionsGrid();
             UpdateTodosGrid();
             UpdateFooter();
 
@@ -252,6 +253,7 @@ namespace OptionView
             {
                 cbAccount.Items.Add(a.Name);
                 cbAnalysisAccount.Items.Add(a.Name);
+                cbtAccount.Items.Add(a.Name);
             }
 
             // load analysis views defined in code
@@ -300,7 +302,7 @@ namespace OptionView
             string grouping = Config.GetProp("Grouping");
             Int32 idx = 0;
             Int32.TryParse(grouping, out idx);
-            cbGrouping1.SelectedIndex = idx;
+            cbResultsGrouping.SelectedIndex = idx;
 
             string[] analysisView = Config.GetProp("AnalysisView").Split('|');
             if (analysisView.Length > 2)
@@ -350,7 +352,7 @@ namespace OptionView
                 filters += "-1";
             Config.SetProp("Filters", filters);
 
-            Config.SetProp("Grouping", cbGrouping1.SelectedIndex.ToString());
+            Config.SetProp("Grouping", cbResultsGrouping.SelectedIndex.ToString());
 
             // save analysis view state
             Config.SetProp("AnalysisView", cbAnalysisView.SelectedIndex.ToString() + "|" + cbAnalysisAccount.SelectedIndex.ToString() + "|" + chkOutliers.IsChecked.ToString());
@@ -667,6 +669,7 @@ namespace OptionView
             DataLoader.Load(accounts);
             UpdateHoldingsTiles();
             UpdateResultsGrid();
+            UpdateTransactionsGrid();
             UpdateTodosGrid();
             UpdateFooter();
 
@@ -741,6 +744,38 @@ namespace OptionView
         }
 
 
+
+        //
+        // common for both data grids
+        //
+        private void Grid_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            resultsGrid.Width = ((Grid)sender).ActualWidth - 156;
+            transactionsGrid.Width = ((Grid)sender).ActualWidth - 156;
+        }
+
+        private void Grid_RowDetailsVisibilityChanged(object sender, DataGridRowDetailsEventArgs e)
+        {
+            if (((DataGridRowDetailsEventArgs)e).Row.DetailsVisibility == Visibility.Collapsed)
+            {
+                ((DataGrid)sender).SelectedIndex = -1;
+            }
+        }
+
+        private void DataGridRow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            DataGridRow row = sender as DataGridRow;
+            if ((row != null) && (row.DetailsTemplate != null))
+            {
+                if (row.DetailsVisibility == Visibility.Visible)
+                    row.DetailsVisibility = Visibility.Collapsed;
+                else
+                    row.DetailsVisibility = Visibility.Visible;
+            }
+
+        }
+
+
         // 
         //
         // code for results tab
@@ -760,16 +795,16 @@ namespace OptionView
             resultsGrid.ItemsSource = lcv;
         }
 
-        private void FilterClick(object sender, RoutedEventArgs e)
+        private void ResultsFilterClick(object sender, RoutedEventArgs e)
         {
             CollectionViewSource.GetDefaultView(resultsGrid.ItemsSource).Refresh();
 
             UpdateFilterStats();
         }
-        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ComboBox_ResultsSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (resultsGrid.ItemsSource != null)   // grid not initialized yet
-                FilterClick(null, new RoutedEventArgs());  
+                ResultsFilterClick(null, new RoutedEventArgs());  
         }
 
         private void UpdateFilterStats()
@@ -832,20 +867,8 @@ namespace OptionView
         }
 
 
-        private void DataGridRow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            DataGridRow row = sender as DataGridRow;
-            if (row != null)
-            {
-                if (row.DetailsVisibility == Visibility.Visible)
-                    row.DetailsVisibility = Visibility.Collapsed;
-                else
-                    row.DetailsVisibility = Visibility.Visible;
-            }
 
-        }
-
-        private void CbGrouping1_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void CbResultsGrouping_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ComboBox cb = (ComboBox)sender;
             ListCollectionView lcv = (ListCollectionView)resultsGrid.ItemsSource;
@@ -865,6 +888,84 @@ namespace OptionView
                 }
             }
         }
+
+        // 
+        //
+        // code for transaction tab
+        // 
+        //
+
+        private void UpdateTransactionsGrid()
+        {
+            App.UpdateLoadStatusMessage("Updating transactions");
+
+            Transactions results = new Transactions();
+            results.GetRecent();
+
+            ListCollectionView lcv = (ListCollectionView)CollectionViewSource.GetDefaultView(results);
+            lcv.Filter = TransactionsFilter;
+
+            transactionsGrid.ItemsSource = lcv;
+        }
+        private void ComboBox_TransactionsSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (transactionsGrid.ItemsSource != null)   // grid not initialized yet
+                CollectionViewSource.GetDefaultView(transactionsGrid.ItemsSource).Refresh();
+        }
+
+        private bool TransactionsFilter(object item)
+        {
+            bool ret = false;
+
+            //string dateTag = ((ComboBoxItem)cbDateFilter.SelectedItem).Tag.ToString();
+
+            string accountNumber = "";
+            if (cbtAccount.SelectedIndex != 0) accountNumber = accounts[cbtAccount.SelectedIndex - 1].ID;
+
+            Transaction t = (Transaction)item;
+            if (t != null)
+            // If filter is turned on, filter completed items.
+            {
+                if ((accountNumber.Length > 0) && (t.Account != accountNumber))
+                    ret = false;
+                /*
+                else if ((dateTag == "LastYear") && ((t.EndTime < new DateTime(DateTime.Now.Year - 1, 1, 1)) || (t.EndTime >= new DateTime(DateTime.Now.Year, 1, 1))))
+                    ret = false;
+                else if ((dateTag == "YTD") && (t.EndTime < new DateTime(DateTime.Now.Year, 1, 1)))
+                    ret = false;
+                else if ((dateTag == "90Days") && ((DateTime.Now - t.EndTime) > TimeSpan.FromDays(90)))
+                    ret = false;
+                else if ((dateTag == "30Days") && ((DateTime.Now - t.EndTime) > TimeSpan.FromDays(30)))
+                    ret = false;
+                    */
+                else
+                {
+                    ret = true;
+                }
+            }
+            return ret;
+            
+        }
+        private void TransactionsGroupClick(object sender, RoutedEventArgs e)
+        {
+            CheckBox cb = (CheckBox)sender;
+            ListCollectionView lcv = (ListCollectionView)transactionsGrid.ItemsSource;
+
+            if (lcv != null)
+            {
+                lcv.GroupDescriptions.Clear();
+
+                if (cb.IsChecked == true)
+                {
+                    lcv.GroupDescriptions.Add(new PropertyGroupDescription("GroupID"));
+                }
+            }
+        }
+        //lcv.SortDescriptions.Clear();
+
+        //lcv.SortDescriptions.Add(new SortDescription(grpName, ListSortDirection.Ascending));
+
+
 
         // 
         //
@@ -908,19 +1009,6 @@ namespace OptionView
             }
         }
 
-
-        private void ResultsGrid_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            resultsGrid.Width = ((Grid)sender).ActualWidth - 156;
-        }
-
-        private void ResultsGrid_RowDetailsVisibilityChanged(object sender, DataGridRowDetailsEventArgs e)
-        {
-            if (((DataGridRowDetailsEventArgs)e).Row.DetailsVisibility == Visibility.Collapsed)
-            {
-                ((DataGrid)sender).SelectedIndex = -1;
-            }
-        }
 
 
         // 
@@ -1310,7 +1398,7 @@ namespace OptionView
         {
             MainWindow mw = (MainWindow)Application.Current.Windows[0];
 
-            string mode = ((ComboBoxItem)mw.cbGrouping1.SelectedItem).Tag.ToString();
+            string mode = ((ComboBoxItem)mw.cbResultsGrouping.SelectedItem).Tag.ToString();
 
             if ((mode == "ShortSymbol") || (mode == "Year"))
             {
