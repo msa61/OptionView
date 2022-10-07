@@ -84,94 +84,100 @@ namespace OptionView
 
                 <Label Content="VIX:" Width="100" FontSize="16" FontFamily="Trebuchet MS" Padding="2"/>
             */
-            App.UpdateLoadStatusMessage("Updating footer");
-
-            OverviewPanel.Children.Clear();
-
-            StackPanel sp = new StackPanel { Orientation = Orientation.Horizontal };
-            OverviewLabel(sp, "Account",80);
-            OverviewLabel(sp, "Net Liq", 100);
-            OverviewLabel(sp, "Allocation", 80);
-            OverviewLabel(sp, "Β-Delta", 60);
-            OverviewLabel(sp, "Theta", 60);
-
-            OverviewPanel.Children.Add(sp);
-
-            OverviewPanel.Children.Add(new Border { BorderThickness = new Thickness(0, 0, 0, 1), BorderBrush = Brushes.DarkGray } );
-
-            decimal combinedChange = 0;
-            decimal combinedNetLiq = 0;
-            decimal combinedBP = 0;
-            foreach (Account a in accounts)
+            try
             {
-                if (a.Active)
+                App.UpdateLoadStatusMessage("Updating footer");
+
+                OverviewPanel.Children.Clear();
+
+                StackPanel sp = new StackPanel { Orientation = Orientation.Horizontal };
+                OverviewLabel(sp, "Account", 80);
+                OverviewLabel(sp, "Net Liq", 100);
+                OverviewLabel(sp, "Allocation", 80);
+                OverviewLabel(sp, "Β-Delta", 60);
+                OverviewLabel(sp, "Theta", 60);
+
+                OverviewPanel.Children.Add(sp);
+
+                OverviewPanel.Children.Add(new Border { BorderThickness = new Thickness(0, 0, 0, 1), BorderBrush = Brushes.DarkGray });
+
+                decimal combinedChange = 0;
+                decimal combinedNetLiq = 0;
+                decimal combinedBP = 0;
+                foreach (Account a in accounts)
                 {
-                    sp = new StackPanel { Orientation = Orientation.Horizontal };
-                    decimal change = 0;
-                    if (portfolio != null)
+                    if (a.Active)
                     {
-                        change = GetAccountChangeSincePrevious(a.ID);
-                        combinedChange += change;
+                        sp = new StackPanel { Orientation = Orientation.Horizontal };
+                        decimal change = 0;
+                        if (portfolio != null)
+                        {
+                            change = GetAccountChangeSincePrevious(a.ID);
+                            combinedChange += change;
+                        }
+
+                        Label lb = OverviewLabel(sp, a.Name, 80);
+
+                        // 2nd column
+                        TWBalance bal = TastyWorks.Balances(a.ID);
+                        combinedNetLiq += bal.NetLiq;
+                        combinedBP += bal.OptionBuyingPower;
+
+                        DecoratedValueLabel(sp, bal.NetLiq, change);
+
+                        // 3rd column
+                        OverviewLabel(sp, bal.CommittedPercentage.ToString("P1"), 80);
+
+                        // 4th column
+                        OverviewLabel(sp, portfolio.GetWeightedDelta(a.ID).ToString("N0"), 60);
+
+                        // 5th column
+                        OverviewLabel(sp, portfolio.GetTheta(a.ID).ToString("C0"), 60);
+
+                        OverviewPanel.Children.Add(sp);
                     }
-
-                    Label lb = OverviewLabel(sp, a.Name, 80);
-
-                    // 2nd column
-                    TWBalance bal = TastyWorks.Balances(a.ID);
-                    combinedNetLiq += bal.NetLiq;
-                    combinedBP += bal.OptionBuyingPower;
-
-                    DecoratedValueLabel(sp, bal.NetLiq, change);
-
-                    // 3rd column
-                    OverviewLabel(sp, bal.CommittedPercentage.ToString("P1"), 80);
-
-                    // 4th column
-                    OverviewLabel(sp, portfolio.GetWeightedDelta(a.ID).ToString("N0"), 60);
-
-                    // 5th column
-                    OverviewLabel(sp, portfolio.GetTheta(a.ID).ToString("C0"), 60);
-
-                    OverviewPanel.Children.Add(sp);
                 }
+
+                OverviewPanel.Children.Add(new Border { BorderThickness = new Thickness(0, 0, 0, 1), BorderBrush = Brushes.DarkGray });
+
+                // totals row
+                sp = new StackPanel { Orientation = Orientation.Horizontal };
+                OverviewLabel(sp, "Overall", 80);
+
+                // 2nd column
+                DecoratedValueLabel(sp, combinedNetLiq, combinedChange);
+
+                // 3rd column
+                decimal committedPercentage = (combinedNetLiq == 0) ? 0 : (combinedNetLiq - combinedBP) / combinedNetLiq;
+                OverviewLabel(sp, committedPercentage.ToString("P1"), 80);
+
+                // 4th column
+                OverviewLabel(sp, portfolio.GetWeightedDelta().ToString("N0"), 60);
+
+                // 5th column
+                OverviewLabel(sp, portfolio.GetTheta().ToString("C0"), 60);
+
+                OverviewPanel.Children.Add(sp);
+
+
+                // display VIX
+                MetricsPanel.Children.Clear();
+
+                Decimal vix = Quotes.Get("^VIX");
+                string vixText = String.Format("VIX: {0} - ", vix);
+                if (vix <= 15) vixText += "25%";
+                else if (vix <= 20) vixText += "30%";
+                else if (vix <= 30) vixText += "35%";
+                else if (vix <= 40) vixText += "40%";
+                else vixText += "50%";
+                vixText += " allocation";
+
+                OverviewLabel(MetricsPanel, vixText, 0, 16);
             }
-
-            OverviewPanel.Children.Add(new Border { BorderThickness = new Thickness(0, 0, 0, 1), BorderBrush = Brushes.DarkGray });
-
-            // totals row
-            sp = new StackPanel { Orientation = Orientation.Horizontal };
-            OverviewLabel(sp, "Overall", 80);
-
-            // 2nd column
-            DecoratedValueLabel(sp, combinedNetLiq, combinedChange);
-
-            // 3rd column
-            decimal committedPercentage = (combinedNetLiq == 0) ? 0 : (combinedNetLiq - combinedBP) / combinedNetLiq;
-            OverviewLabel(sp, committedPercentage.ToString("P1"), 80);
-
-            // 4th column
-            OverviewLabel(sp, portfolio.GetWeightedDelta().ToString("N0"), 60);
-
-            // 5th column
-            OverviewLabel(sp, portfolio.GetTheta().ToString("C0"), 60);
-
-            OverviewPanel.Children.Add(sp);
-
-
-            // display VIX
-            MetricsPanel.Children.Clear();
-            
-            Decimal vix = Quotes.Get("^VIX");
-            string vixText = String.Format("VIX: {0} - ", vix);
-            if (vix <= 15) vixText += "25%";
-            else if (vix <= 20) vixText += "30%";
-            else if (vix <= 30) vixText += "35%";
-            else if (vix <= 40) vixText += "40%";
-            else vixText += "50%";
-            vixText += " allocation";
-
-            OverviewLabel(MetricsPanel, vixText, 0, 16);
-
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "UpdateFooter Error");
+            }
         }
 
         private Label OverviewLabel(StackPanel sp, string txt, int width = 0, int fontSize = 11)
@@ -784,15 +790,23 @@ namespace OptionView
 
         private void UpdateResultsGrid()
         {
-            App.UpdateLoadStatusMessage("Updating results");
+            try
+            { 
+                App.UpdateLoadStatusMessage("Updating results");
 
-            PortfolioResults results = new PortfolioResults();
-            results.GetResults();
+                PortfolioResults results = new PortfolioResults();
+                results.GetResults();
 
-            ListCollectionView lcv = (ListCollectionView)CollectionViewSource.GetDefaultView(results);
-            lcv.Filter = ResultsFilter;
+                ListCollectionView lcv = (ListCollectionView)CollectionViewSource.GetDefaultView(results);
+                lcv.Filter = ResultsFilter;
 
-            resultsGrid.ItemsSource = lcv;
+                resultsGrid.ItemsSource = lcv;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "UpdateResultsGrid Error");
+            }
+
         }
 
         private void ResultsFilterClick(object sender, RoutedEventArgs e)
@@ -897,15 +911,22 @@ namespace OptionView
 
         private void UpdateTransactionsGrid()
         {
-            App.UpdateLoadStatusMessage("Updating transactions");
+            try
+            {
+                App.UpdateLoadStatusMessage("Updating transactions");
 
-            Transactions results = new Transactions();
-            results.GetRecent();
+                Transactions results = new Transactions();
+                results.GetRecent();
 
-            ListCollectionView lcv = (ListCollectionView)CollectionViewSource.GetDefaultView(results);
-            lcv.Filter = TransactionsFilter;
+                ListCollectionView lcv = (ListCollectionView)CollectionViewSource.GetDefaultView(results);
+                lcv.Filter = TransactionsFilter;
 
-            transactionsGrid.ItemsSource = lcv;
+                transactionsGrid.ItemsSource = lcv;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "UpdateTransactionsGrid Error");
+            }
         }
         private void ComboBox_TransactionsSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -975,14 +996,21 @@ namespace OptionView
 
         private void UpdateTodosGrid()
         {
-            App.UpdateLoadStatusMessage("Updating todos");
+            try
+            {
+                App.UpdateLoadStatusMessage("Updating todos");
 
-            PortfolioTodos todos = new PortfolioTodos();
-            todos.GetTodos();
+                PortfolioTodos todos = new PortfolioTodos();
+                todos.GetTodos();
 
-            todoGrid.ItemsSource = todos;
+                todoGrid.ItemsSource = todos;
 
-            UpdateTodoIcon(todos);
+                UpdateTodoIcon(todos);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "UpdateTodosGrid Error");
+            }
         }
 
         private void UpdateTodoIcon(PortfolioTodos todos)
