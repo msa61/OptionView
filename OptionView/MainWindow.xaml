@@ -162,7 +162,7 @@
 
     </Window.Resources>
 
-    <Grid d:DataContext="{d:DesignData /SampleData/PortfolioResultsSampleData.xaml}" Background="Black">
+    <Grid Background="Black">
         <Grid.RowDefinitions>
             <RowDefinition x:Name="ContentRow" />
             <RowDefinition x:Name="FooterRow" MaxHeight="80"/>
@@ -359,7 +359,7 @@
 
 
             <!-- Returns tab -->
-            <TabItem Width="150" Height="30" Header="Returns" >
+            <TabItem Width="150" Height="30" Header="Returns" d:DataContext="{d:DesignData /SampleData/PortfolioResultsSampleData.xaml}" >
                 <Grid Background="Black" SizeChanged="Grid_SizeChanged" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition x:Name="ResultsCol" MinWidth="400" />
@@ -530,7 +530,7 @@
             </TabItem>
 
             <!-- Recent Transactions -->
-            <TabItem Width="150" Height="30" Header="Transactions">
+            <TabItem Width="150" Height="30" Header="Transactions" d:DataContext="{d:DesignData /SampleData/TransactionSampleData.xaml}">
                 <Grid Background="Black" SizeChanged="Grid_SizeChanged" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition MinWidth="400" />
@@ -542,6 +542,9 @@
                               HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,4,0,4" HeadersVisibility="Column"
                               VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
                               Width="1200" RowDetailsVisibilityChanged="Grid_RowDetailsVisibilityChanged">
+                        <DataGrid.Resources>
+                            <local:ExpDateToBlank x:Key="ExpDateBlank"/>
+                        </DataGrid.Resources>
                         <DataGrid.GroupStyle>
                             <GroupStyle>
                                 <GroupStyle.ContainerStyle>
@@ -580,18 +583,17 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Account" Binding="{Binding Account}" Width="90" />
                             <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="70" />
-                            <DataGridTextColumn Header="Group" Binding="{Binding GroupID}" Width="70" />
+                            <DataGridTextColumn Header="Group" Binding="{Binding GroupID, StringFormat={}{0:0;;' '}}" Width="70" />
                             <DataGridTextColumn Header="Trans Time" Binding="{Binding Path=TransTime, StringFormat={}{0:dd-MMM-yy H:mm:ss}}" Width="140" />
                             <DataGridTextColumn Header="Trans Type" Binding="{Binding TransType}" Width="100" />
                             <DataGridTextColumn Header="Sub Type" Binding="{Binding TransSubType}" Width="100" />
                             <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="70" />
-                            <DataGridTextColumn Header="Exp Date" Binding="{Binding Path=ExpDate, StringFormat={}{0:dd MMM}}" Width="90" />
-                            <DataGridTextColumn Header="Strike" Binding="{Binding Strike}" Width="70" />
-                            <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="70"  />
-                            <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity}" Width="80"  />
+                            <DataGridTextColumn Header="Exp Date" Binding="{Binding Path=ExpDate, Converter={StaticResource ExpDateBlank}, StringFormat={}{0:dd MMM}}" Width="90" />
+                            <DataGridTextColumn Header="Strike" Binding="{Binding Strike, StringFormat={}{0:0.##;;' '}}" Width="70" />
+                            <DataGridTextColumn Header="Quantity" Binding="{Binding Quantity, StringFormat={}{0:0;;' '}}" Width="80"  />
                             <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" Width="80" />
-                            <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="80" />
-                            <DataGridTextColumn Header="Fees" Binding="{Binding Fees}" Width="80" />
+                            <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat={}{0:0.00;;' '}}" Width="80" />
+                            <DataGridTextColumn Header="Fees" Binding="{Binding Fees, StringFormat={}{0:0.00;;' '}}" Width="80" />
                             <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="300" />
                         </DataGrid.Columns>
                     </DataGrid>

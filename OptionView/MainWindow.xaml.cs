@@ -1487,6 +1487,30 @@ namespace OptionView
         }
     }
 
+    public class ExpDateToBlank : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value.GetType() == typeof(DateTime))
+            {
+                DateTime t = (DateTime)value;
+                if (t == DateTime.MinValue)
+                {
+                    return "";
+                }
+                else
+                {
+                    return string.Format("{0:dd MMM}", t);
+                }
+            }
+            return value;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return 0;
+        }
+    }
 
 
 }

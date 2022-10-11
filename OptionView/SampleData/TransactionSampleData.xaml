@@ -1,0 +1,8 @@
+﻿<OptionView:Transactions xmlns:OptionView="clr-namespace:OptionView" xmlns:System="clr-namespace:System;assembly=mscorlib" Capacity="4">
+    <OptionView:Transaction Account="1234XYZ" ExpDate="04/19/2019 11:47:42" Symbol="AAPL" TransTime="04/19/2019 11:47:42" Type="Call" TransType="Trade" Strike="100" TransSubType="Buy to Open" Quantity="1" Price="2.34" Fees="1.23" Description="Desc adkjdf a;fj" Amount="345" GroupID="123"/>
+    <OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="NVDA" TransTime="04/19/2019 11:47:42" Type="Call" TransType="Trade" Strike="100" TransSubType="Buy to Open" Quantity="1" Price="2" Fees="1.23" Description="Desc adkjdf a;fj" Amount="120" GroupID="123"/>
+    <OptionView:Transaction ExpDate="01/01/0001 00:00:00" Symbol="IBM" TransTime="04/19/2019 11:47:42" Type="Call" TransType="Trade" Strike="0" TransSubType="Buy to Open" Quantity="1" Price="2.3" Fees="0" Description="Desc adkjdf a;fj" Amount="345" GroupID="123"/>
+    <OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="XLE" TransTime="04/19/2019 11:47:42" Type="Put" TransType="Trade" Strike="10.5" TransSubType="Buy to Open" Quantity="0" Price="12.34" Fees="1.2" Description="Desc adkjdf a;fj" Amount="-345" GroupID="123"/>
+    <OptionView:Transaction ExpDate="04/19/2019 11:47:42" Symbol="QQQ" TransTime="04/19/2019 11:47:42" Type="Put" TransType="Trade" Strike="100" TransSubType="Buy to Open" Quantity="-1" Price="0" Fees="1.23" Description="Desc adkjdf a;fj" Amount="345" />
+</OptionView:Transactions>
+
