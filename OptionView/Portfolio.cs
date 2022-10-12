@@ -58,6 +58,7 @@ namespace OptionView
             if (reader["TodoDate"] != DBNull.Value) grp.ActionDate = Convert.ToDateTime(reader["TodoDate"].ToString());  // use the "formatted" version date
             if (reader["Comments"] != DBNull.Value) grp.Comments = reader["Comments"].ToString();
             if (reader["CapitalRequired"] != DBNull.Value) grp.CapitalRequired = Convert.ToDecimal(reader["CapitalRequired"]);
+            if (reader["OriginalCapRequired"] != DBNull.Value) grp.OriginalCapitalRequired = Convert.ToDecimal(reader["OriginalCapRequired"]);
             if (reader["EarningsTrade"] != DBNull.Value) grp.EarningsTrade = (Convert.ToInt32(reader["EarningsTrade"]) == 1);
             if (reader["NeutralStrategy"] != DBNull.Value) grp.NeutralStrategy = (Convert.ToInt32(reader["NeutralStrategy"]) == 1);
             if (reader["DefinedRisk"] != DBNull.Value) grp.DefinedRisk = (Convert.ToInt32(reader["DefinedRisk"]) == 1);

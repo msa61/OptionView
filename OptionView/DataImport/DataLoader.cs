@@ -365,7 +365,7 @@ namespace OptionView
                 }
                 else
                 {
-                    string sql = "INSERT INTO TransGroup(Account, Symbol, Open, Strategy, DefinedRisk, NeutralStrategy, CapitalRequired, Risk) Values(@ac,@sym,@op,@str,@dr,@ns,@cap,@rsk)";
+                    string sql = "INSERT INTO TransGroup(Account, Symbol, Open, Strategy, DefinedRisk, NeutralStrategy, CapitalRequired, OriginalCapRequired, Risk) Values(@ac,@sym,@op,@str,@dr,@ns,@cap,@cap2,@rsk)";
                     SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
                     cmd.Parameters.AddWithValue("ac", account);
                     cmd.Parameters.AddWithValue("sym", symbol);
@@ -376,7 +376,9 @@ namespace OptionView
                     cmd.Parameters.AddWithValue("ns", DefaultNeutralStrategy(strat));
                     decimal capital = DefaultCapital(account, strat, holdings);
                     cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, capital, holdings));
-                    cmd.Parameters.AddWithValue("cap", FindTWMarginRequirement(account, holdings));
+                    decimal capReq = FindTWMarginRequirement(account, holdings);
+                    cmd.Parameters.AddWithValue("cap", capReq);
+                    cmd.Parameters.AddWithValue("cap2", capReq);
                     cmd.ExecuteNonQuery();
 
                     groupID = DBUtilities.GetMax("SELECT max(id) FROM TransGroup");

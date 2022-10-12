@@ -255,8 +255,11 @@
                         </StackPanel>
 
                         <StackPanel >
-                            <Label Content="Captial Required" Margin="6,0,0,0" />
-                            <TextBox Name="txtCapital" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent"/>
+                            <Label Content="Capital Required" Margin="6,0,0,0" />
+                            <DockPanel>
+                                <TextBox Name="txtCapital" Background="White"  DockPanel.Dock="Left" Width="82" Margin="5,0,7,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="FieldEntryEvent"/>
+                                <TextBox Name="txtOrigCapital"  DockPanel.Dock="Right" Margin="5,0,7,6" Padding="2,4,4,4" IsEnabled="False" ToolTip="Original Capital Required"/>
+                            </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
 
@@ -296,12 +299,12 @@
 
                         <StackPanel >
                             <Label Content="Date Initiated" Margin="6,0,0,0" />
-                            <TextBox Name="txtStartTime" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
+                            <TextBox Name="txtStartTime" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
                             <Label Content="Last Adjustment" Margin="6,0,0,0" />
-                            <TextBox Name="txtEndTime" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
+                            <TextBox Name="txtEndTime" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                     </DockPanel>

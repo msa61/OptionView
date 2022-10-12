@@ -26,6 +26,7 @@ namespace OptionView
         public DateTime ActionDate { get; set; }
         public string Comments { get; set; }
         public decimal CapitalRequired { get; set; }
+        public decimal OriginalCapitalRequired { get; set; }
         public decimal Return { get; set; }
         public decimal AnnualReturn { get; set; }
         public bool EarningsTrade { get; set; }
@@ -88,13 +89,14 @@ namespace OptionView
             if (this.GroupID > 0)
             {
                 // update group
-                string sql = "UPDATE transgroup SET Strategy = @st, ExitStrategy = @ex, ActionDate = @ad, Comments = @cm, CapitalRequired = @ca, EarningsTrade = @ea, NeutralStrategy = @ns, DefinedRisk = @dr, Risk = @rs WHERE ID=@rw";
+                string sql = "UPDATE transgroup SET Strategy = @st, ExitStrategy = @ex, ActionDate = @ad, Comments = @cm, CapitalRequired = @ca, OriginalCapRequired = @oc, EarningsTrade = @ea, NeutralStrategy = @ns, DefinedRisk = @dr, Risk = @rs WHERE ID=@rw";
                 SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
                 cmdUpd.Parameters.AddWithValue("st", this.Strategy);
                 cmdUpd.Parameters.AddWithValue("ex", this.ExitStrategy);
                 cmdUpd.Parameters.AddWithValue("ad", this.ActionDate);
                 cmdUpd.Parameters.AddWithValue("cm", this.Comments);
                 cmdUpd.Parameters.AddWithValue("ca", this.CapitalRequired);
+                cmdUpd.Parameters.AddWithValue("oc", this.OriginalCapitalRequired);
                 cmdUpd.Parameters.AddWithValue("ea", this.EarningsTrade);
                 cmdUpd.Parameters.AddWithValue("ns", this.NeutralStrategy);
                 cmdUpd.Parameters.AddWithValue("dr", this.DefinedRisk);

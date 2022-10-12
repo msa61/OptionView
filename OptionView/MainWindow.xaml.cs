@@ -453,6 +453,7 @@ namespace OptionView
                         SetDatePicker(dateAction, grp.ActionDate, true);
                         SetTextBox(txtComments, grp.Comments, true);
                         SetTextBox(txtCapital, grp.CapitalRequired.ToString("C0"), true);
+                        SetTextBox(txtOrigCapital, grp.OriginalCapitalRequired.ToString("C0"), false);
                         SetCheckBox(chkEarnings, grp.EarningsTrade, true);
                         SetCheckBox(chkNeutral, grp.NeutralStrategy, true);
                         SetCheckBox(chkDefinedRisk, grp.DefinedRisk, true);
@@ -588,6 +589,7 @@ namespace OptionView
             SetDatePicker(dateAction, DateTime.MinValue, false);
             SetTextBox(txtComments, "", false);
             SetTextBox(txtCapital, "", false);
+            SetTextBox(txtOrigCapital, "", false);
             SetCheckBox(chkEarnings, false, false);
             SetCheckBox(chkNeutral, false, false);
             SetCheckBox(chkDefinedRisk, false, false);
