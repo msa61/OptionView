@@ -291,9 +291,8 @@ namespace OptionView
             string[] filters = Config.GetProp("Filters").Split('|');
             if (filters.Length > 4)
             {
-                Int32 fIdx = 0;
                 //account
-                Int32.TryParse(filters[0], out fIdx);
+                Int32.TryParse(filters[0], out Int32 fIdx);
                 cbAccount.SelectedIndex = fIdx;
                 //date
                 Int32.TryParse(filters[1], out fIdx);
@@ -306,8 +305,7 @@ namespace OptionView
             }
 
             string grouping = Config.GetProp("Grouping");
-            Int32 idx = 0;
-            Int32.TryParse(grouping, out idx);
+            Int32.TryParse(grouping, out Int32 idx);
             cbResultsGrouping.SelectedIndex = idx;
 
             string[] analysisView = Config.GetProp("AnalysisView").Split('|');
@@ -315,9 +313,8 @@ namespace OptionView
             {
                 chkOutliers.IsChecked = (analysisView[2] == "True");
 
-                Int32 fIdx = 0;
                 //account
-                Int32.TryParse(analysisView[0], out fIdx);
+                Int32.TryParse(analysisView[0], out Int32 fIdx);
                 cbAnalysisView.SelectedIndex = fIdx;
 
                 Int32.TryParse(analysisView[1], out fIdx);
@@ -610,8 +607,7 @@ namespace OptionView
             grp.ExitStrategy = txtExit.Text;
             grp.ActionDate = (dateAction.SelectedDate.HasValue && (dateAction.Text !="")) ? dateAction.SelectedDate.Value : DateTime.MinValue;
             grp.Comments = txtComments.Text;
-            Decimal retval = 0;
-            if (Decimal.TryParse(txtCapital.Text.Replace("$", ""), out retval)) grp.CapitalRequired = retval;
+            if (Decimal.TryParse(txtCapital.Text.Replace("$", ""), out Decimal retval)) grp.CapitalRequired = retval;
             grp.EarningsTrade = chkEarnings.IsChecked.HasValue ? chkEarnings.IsChecked.Value : false;
             grp.NeutralStrategy = chkNeutral.IsChecked.HasValue ? chkNeutral.IsChecked.Value : false;
 
@@ -770,7 +766,7 @@ namespace OptionView
 
         private void DataGridRow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            DataGridRow row = sender as DataGridRow;
+            DataGridRow row = (DataGridRow)sender;
             if ((row != null) && (row.DetailsTemplate != null))
             {
                 if (row.DetailsVisibility == Visibility.Visible)
@@ -1238,43 +1234,51 @@ namespace OptionView
             {
                 Int32 x = Convert.ToInt32((decimal)margin + ((horizontalOrigin - minX) / scaleX) + 5);  //fudge it over 5 since the tiles have zero at left edge
 
-                Line line = new Line();
-                line.X1 = x;
-                line.Y1 = margin;
-                line.X2 = x;
-                line.Y2 = height + margin + 80;
-                line.Stroke = Brushes.DimGray;
-                line.StrokeThickness = 1;
+                Line line = new Line()
+                {
+                    X1 = x,
+                    Y1 = margin,
+                    X2 = x,
+                    Y2 = height + margin + 80,
+                    Stroke = Brushes.DimGray,
+                    StrokeThickness = 1
+                };
                 AnalysisCanvas.Children.Add(line);
 
                 // origin label
-                TextBlock text1 = new TextBlock();
-                text1.Text = FormatValue(horizontalOrigin, viewList[viewIndex].XFormat);
-                text1.Foreground = Brushes.DimGray;
-                text1.FontSize = 15;
-                text1.TextAlignment = TextAlignment.Center;
+                TextBlock text1 = new TextBlock()
+                {
+                    Text = FormatValue(horizontalOrigin, viewList[viewIndex].XFormat),
+                    Foreground = Brushes.DimGray,
+                    FontSize = 15,
+                    TextAlignment = TextAlignment.Center
+                };
                 Canvas.SetLeft(text1, x - (text1.Text.Length * 4));
                 Canvas.SetTop(text1, height + margin + 85);
                 AnalysisCanvas.Children.Add(text1);
             }
 
             // horizontal axis label
-            TextBlock text = new TextBlock();
-            text.Text = viewList[viewIndex].XAxisLabel;
-            text.Foreground = Brushes.DimGray;
-            text.FontSize = 30;
-            text.TextAlignment = TextAlignment.Right;
+            TextBlock text = new TextBlock()
+            {
+                Text = viewList[viewIndex].XAxisLabel,
+                Foreground = Brushes.DimGray,
+                FontSize = 30,
+                TextAlignment = TextAlignment.Right
+            };
             Canvas.SetLeft(text, width + margin);
             Canvas.SetTop(text, height + margin + 100);
             AnalysisCanvas.Children.Add(text);
 
             // vertical axis label
-            text = new TextBlock();
-            text.Text = viewList[viewIndex].YAxisLabel;
-            text.Foreground = Brushes.DimGray;
-            text.FontSize = 30;
-            text.LayoutTransform = new RotateTransform(-90);
-            text.TextAlignment = TextAlignment.Right;
+            text = new TextBlock()
+            {
+                Text = viewList[viewIndex].YAxisLabel,
+                Foreground = Brushes.DimGray,
+                FontSize = 30,
+                LayoutTransform = new RotateTransform(-90),
+                TextAlignment = TextAlignment.Right
+            };
             Canvas.SetLeft(text, margin / 2);
             Canvas.SetTop(text, 2 * margin);
             AnalysisCanvas.Children.Add(text);

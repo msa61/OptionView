@@ -223,13 +223,15 @@ namespace OptionView
 
             foreach (JToken item in list)
             {
-                TWMarketInfo info = new TWMarketInfo();
-                info.Symbol = item["symbol"].ToString();
-                info.ImpliedVolatility = Convert.ToDouble(item["implied-volatility-index"]);
-                info.ImpliedVolatilityRank = Convert.ToDouble(item["implied-volatility-index-rank"]);
-                info.DividendYield = Convert.ToDouble(item["dividend-yield"]);
-                info.Beta = Convert.ToDouble(item["beta"]);
-                info.CorrelationToSPY = Convert.ToDouble(item["corr-spy-3month"]);
+                TWMarketInfo info = new TWMarketInfo
+                {
+                    Symbol = item["symbol"].ToString(),
+                    ImpliedVolatility = Convert.ToDouble(item["implied-volatility-index"]),
+                    ImpliedVolatilityRank = Convert.ToDouble(item["implied-volatility-index-rank"]),
+                    DividendYield = Convert.ToDouble(item["dividend-yield"]),
+                    Beta = Convert.ToDouble(item["beta"]),
+                    CorrelationToSPY = Convert.ToDouble(item["corr-spy-3month"])
+                };
 
                 returnList.Add(info.Symbol, info);
             }
@@ -279,9 +281,11 @@ namespace OptionView
 
             foreach (JToken item in list)
             {
-                TWMargin mar = new TWMargin();
-                mar.Symbol = item["underlying-symbol"].ToString();
-                mar.CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"]);
+                TWMargin mar = new TWMargin()
+                {
+                    Symbol = item["underlying-symbol"].ToString(),
+                    CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"])
+                };
                 retval.Add(mar.Symbol, mar);
             }
 
@@ -299,11 +303,13 @@ namespace OptionView
 
             JObject package = JObject.Parse(reply);
 
-            TWBalance retval = new TWBalance();
+            TWBalance retval = new TWBalance()
+            {
+                NetLiq = Convert.ToDecimal(package["data"]["net-liquidating-value"]),
+                EquityBuyingPower = Convert.ToDecimal(package["data"]["equity-buying-power"]),
+                OptionBuyingPower = Convert.ToDecimal(package["data"]["derivative-buying-power"])
+            };
 
-            retval.NetLiq = Convert.ToDecimal( package["data"]["net-liquidating-value"] );
-            retval.EquityBuyingPower = Convert.ToDecimal(package["data"]["equity-buying-power"]);
-            retval.OptionBuyingPower = Convert.ToDecimal(package["data"]["derivative-buying-power"]);
             if (retval.NetLiq == 0)
             {
                 retval.CommittedPercentage = 0;
@@ -547,7 +553,7 @@ namespace OptionView
         {
             Web.Headers[HttpRequestHeader.ContentType] = "application/json";
             Web.Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate, br";
-            Web.Headers[HttpRequestHeader.Authorization] = (token == null) ? "null" : token;
+            Web.Headers[HttpRequestHeader.Authorization] = (token ?? "null");
             Web.Headers[HttpRequestHeader.Referer] = "https://trade.tastyworks.com/tw";
             Web.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)";
             Web.Headers[HttpRequestHeader.Accept] = "application/json";

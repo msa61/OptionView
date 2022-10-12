@@ -207,8 +207,7 @@ namespace OptionView
                         //    Debug.WriteLine("Greek: {0}, Delta{1}", g.Key, g.Value.Delta);
                         //}
 
-                        List<string> pSymbols = new List<string>();
-                        pSymbols.Add("SPY");
+                        List<string> pSymbols = new List<string> { "SPY" };
                         Dictionary<string, double> prices = DataFeed.GetPrices(pSymbols);
                         if (prices.ContainsKey("SPY")) SPYPrice = prices["SPY"];
 
