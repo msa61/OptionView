@@ -16,8 +16,9 @@ namespace OptionView
 
     public class Portfolio : Dictionary<int, TransactionGroup>
     {
-        private Dictionary<string, TWPositions> twpositions = null;      // cache for current value lookup
-        private TWMarketInfos twmarketinfo = null;                       // cache of IV data
+        private Dictionary<string, TWPositions> twPositions = null;      // cache for current value lookup
+        private Dictionary<string, TWMargins> twReqCapital = null;       // cache of maintenance requirement values from tw
+        private TWMarketInfos twMarketInfo = null;                       // cache of IV data
         private Greeks optionGreeks = null;                              // cache of greek data
         private double SPYPrice = 0;
         private Accounts accounts = null;
@@ -85,7 +86,7 @@ namespace OptionView
             {
                 if (!minorUpdate)
                 {
-                    twpositions = null;  // clear cache
+                    twPositions = null;  // clear cache
                 }
                 // always start with an empty list
                 this.Clear();
@@ -165,7 +166,7 @@ namespace OptionView
             try
             {
                 // retrieve and cache current data from tastyworks for this a subsequent passes
-                if (twpositions == null)
+                if (twPositions == null)
                 {
                     App.UpdateLoadStatusMessage("Fetching current data for cache");
 
@@ -174,14 +175,15 @@ namespace OptionView
                         List<string> symbols = new List<string>();
                         List<string> optionSymbols = new List<string>();
 
-                        twpositions = new Dictionary<string, TWPositions>();
+                        twPositions = new Dictionary<string, TWPositions>();
+                        twReqCapital = new Dictionary<string, TWMargins>();
                         foreach (Account a in accounts)
                         {
                             if (a.Active)
                             {
                                 // retrieve Tastyworks positions for given account
                                 TWPositions pos = TastyWorks.Positions(a.ID);
-                                twpositions.Add(a.ID, pos);
+                                twPositions.Add(a.ID, pos);
 
                                 if (pos != null)
                                 {
@@ -197,10 +199,14 @@ namespace OptionView
                                         }
                                     }
                                 }
+
+                                // retreive cap requirements for holdings in this account
+                                TWMargins mar = TastyWorks.MarginData(a.ID);
+                                twReqCapital.Add(a.ID, mar);
                             }
                         }
 
-                        twmarketinfo = TastyWorks.MarketInfo(symbols);  // get IV's
+                        twMarketInfo = TastyWorks.MarketInfo(symbols);  // get IV's
                         optionGreeks = DataFeed.GetGreeks(optionSymbols);
 
                         //foreach (KeyValuePair<string, Greek> g in optionGreeks)
@@ -216,14 +222,14 @@ namespace OptionView
                 }
 
                 // ensure that positions got instanciated AND that the particular account isn't empty
-                if ((twpositions != null) && (twpositions.Count > 0) && (twpositions[grp.Account] != null))
+                if ((twPositions != null) && (twPositions.Count > 0) && (twPositions[grp.Account] != null))
                 {
                     foreach (KeyValuePair<string, Position> item in grp.Holdings)
                     {
                         Position pos = item.Value;
 
                         // this loop could be eliminated if the long symbol name gets persisted in database
-                        foreach (KeyValuePair<string,TWPosition> p in twpositions[grp.Account])
+                        foreach (KeyValuePair<string,TWPosition> p in twPositions[grp.Account])
                         {
                             TWPosition twpos = p.Value;
                             if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate))
@@ -258,13 +264,26 @@ namespace OptionView
                 grp.CurrentValue = currentValue;
                 grp.PreviousCloseValue = previousCloseValue;
                 grp.ChangeFromPreviousClose = currentValue - previousCloseValue;
-                if ((twmarketinfo != null) && (twmarketinfo.ContainsKey(grp.ShortSymbol)))
+                if ((twMarketInfo != null) && (twMarketInfo.ContainsKey(grp.ShortSymbol)))
                 {
-                    grp.ImpliedVolatility = twmarketinfo[grp.ShortSymbol].ImpliedVolatility;
-                    grp.ImpliedVolatilityRank = twmarketinfo[grp.ShortSymbol].ImpliedVolatilityRank;
-                    grp.DividendYield = twmarketinfo[grp.ShortSymbol].DividendYield;
+                    grp.ImpliedVolatility = twMarketInfo[grp.ShortSymbol].ImpliedVolatility;
+                    grp.ImpliedVolatilityRank = twMarketInfo[grp.ShortSymbol].ImpliedVolatilityRank;
+                    grp.DividendYield = twMarketInfo[grp.ShortSymbol].DividendYield;
 
-                    grp.GreekData.WeightedDelta = Convert.ToDouble(grp.UnderlyingPrice) * grp.GreekData.Delta * twmarketinfo[grp.ShortSymbol].Beta / SPYPrice;
+                    grp.GreekData.WeightedDelta = Convert.ToDouble(grp.UnderlyingPrice) * grp.GreekData.Delta * twMarketInfo[grp.ShortSymbol].Beta / SPYPrice;
+                }
+
+                // update current capital requirements from tw
+                if (twReqCapital.ContainsKey(grp.Account) & twReqCapital[grp.Account].ContainsKey(grp.Symbol))
+                {
+                    decimal capReq = twReqCapital[grp.Account][grp.Symbol].CapitalRequirement;
+                    if ((capReq > 0) && ((capReq != grp.CapitalRequired)) || (grp.OriginalCapitalRequired == 0))
+                    {
+                        // this cleans up legacy groups without an original
+                        if (grp.OriginalCapitalRequired == 0) grp.OriginalCapitalRequired = grp.CapitalRequired;
+                        grp.CapitalRequired = capReq;
+                        grp.Update();
+                    }
                 }
             }
             catch (Exception ex)
