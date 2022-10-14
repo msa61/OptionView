@@ -374,8 +374,8 @@ namespace OptionView
                     cmd.Parameters.AddWithValue("str", strat);
                     cmd.Parameters.AddWithValue("dr", DefaultDefinedRisk(strat));
                     cmd.Parameters.AddWithValue("ns", DefaultNeutralStrategy(strat));
-                    decimal capital = DefaultCapital(account, strat, holdings);
-                    cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, capital, holdings));
+                    decimal risk = DefaultRisk(account, strat, holdings);
+                    cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, risk, holdings));
                     decimal capReq = FindTWMarginRequirement(account, holdings);
                     cmd.Parameters.AddWithValue("cap", capReq);
                     cmd.Parameters.AddWithValue("cap2", capReq);
@@ -495,7 +495,7 @@ namespace OptionView
             return 0;
         }
 
-        private static decimal DefaultCapital(string account, string strat, Positions positions)
+        private static decimal DefaultRisk(string account, string strat, Positions positions)
         {
             decimal multiplier = 100;
 
