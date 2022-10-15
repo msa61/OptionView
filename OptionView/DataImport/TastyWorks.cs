@@ -148,6 +148,7 @@ namespace OptionView
         static private string Token = "";
         static EncodedWebClient Web = null;
         static bool alreadyFailedOnce = false;
+        static Dictionary<string, TWMargins> twCapRequirementsCache = null;
 
         public TastyWorks()
         {
@@ -268,6 +269,11 @@ namespace OptionView
         // used for determining capital requirement during initial load
         public static TWMargins MarginData(string accountNumber)
         {
+            if (twCapRequirementsCache.ContainsKey(accountNumber))
+            {
+                return twCapRequirementsCache[accountNumber];
+            }
+
             App.UpdateLoadStatusMessage("TW MarginData : " + accountNumber);
 
             SetHeaders(Token);
@@ -327,6 +333,7 @@ namespace OptionView
 
             Dictionary<string, decimal> marketValues = new Dictionary<string, decimal>();
             Dictionary<string, Int32> orderIds = new Dictionary<string, Int32>();
+            TWMargins acctCapRequirements = new TWMargins();
 
             SetHeaders(Token);
 
@@ -356,7 +363,21 @@ namespace OptionView
                         orderIds.Add(symbol, order);
                     }
                 }
+
+                // capture the capital requirements while we're here
+                TWMargin mar = new TWMargin()
+                {
+                    Symbol = item["underlying-symbol"].ToString(),
+                    CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"])
+                };
+                acctCapRequirements.Add(symbol, mar);
             }
+
+            // update cap req to cache
+            if (twCapRequirementsCache == null) twCapRequirementsCache = new Dictionary<string, TWMargins>();
+            if (twCapRequirementsCache.ContainsKey(accountNumber)) twCapRequirementsCache.Remove(accountNumber);
+            twCapRequirementsCache.Add(accountNumber, acctCapRequirements);
+
 
             App.UpdateLoadStatusMessage("TW Positions 2/2 : " + accountNumber);
 
