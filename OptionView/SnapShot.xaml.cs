@@ -27,6 +27,9 @@ namespace OptionView
         public decimal LongPut { get; set; }
         public decimal ShortCall { get; set; }
         public decimal LongCall { get; set; }
+        public string DeltaText { get; set; } = "";
+        public Brush DeltaColor { get; set; }
+        
 
         private double xPt;
         private double scale;
@@ -53,6 +56,8 @@ namespace OptionView
             this.ShortPut = 0;
             this.LongCall = 0;
             this.LongPut = 0;
+            this.DeltaText = "";
+            this.DeltaColor = null;
         }
 
         public void Update()
@@ -86,6 +91,21 @@ namespace OptionView
             };
             c.Children.Add(l);
 
+            if (DeltaText.Length > 0)
+            {
+                TextBlock tb = new TextBlock()
+                {
+                    Text = "Δ: " + DeltaText,
+                    FontSize = 14,
+                    Foreground = DeltaColor ?? Brushes.LightGray,
+                    FontWeight = FontWeights.Bold,
+                    TextAlignment = TextAlignment.Center,
+                    Width = 70
+                };
+                Canvas.SetTop(tb, 10);
+                Canvas.SetLeft(tb, (CtlWidth / 2) - 35);
+                c.Children.Add(tb);
+            }
 
             bool highlightPrice = false;
             if (((Price < ShortPut) && (ShortPut > 0)) || ((Price > ShortCall) && (ShortCall > 0))) highlightPrice = true;
@@ -131,7 +151,7 @@ namespace OptionView
                 FontSize = 9,
                 Foreground = Brushes.White,
                 FontWeight = FontWeights.Bold,
-                HorizontalAlignment = HorizontalAlignment.Center
+                TextAlignment = TextAlignment.Center
             };
             double top = (this.CtlHeight / 2) + (isShortSym ? 4 : -17) + offset;
             Canvas.SetTop(t, top);
