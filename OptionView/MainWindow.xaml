@@ -307,6 +307,10 @@
                             <TextBox Name="txtEndTime" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="False" />
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
+
+                        <StackPanel >
+                            <local:SnapShot x:Name="snapShot" Background="#FFADADAD" Margin="6,8,6,6"/>
+                        </StackPanel>
                     </DockPanel>
                 </Grid>
             </TabItem>

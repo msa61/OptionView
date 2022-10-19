@@ -471,6 +471,7 @@ namespace OptionView
                         detailsDirty = false;  //datepicker gets unavoidably dirty while initializing
 
 
+                        snapShot.Clear();
                         string details = "";
                         foreach(KeyValuePair<string, Position> item in grp.Holdings)
                         {
@@ -478,10 +479,29 @@ namespace OptionView
                             if (p.Type == "Stock")
                                 details += String.Format("{0,2} {1}", p.Quantity, p.Type) + System.Environment.NewLine;
                             else
+                            {
                                 details += String.Format("{0,2} {1} {2} {3:MMMd}", p.Quantity, p.Type.Substring(0, 1), p.Strike, p.ExpDate) + System.Environment.NewLine;
+
+                                if (p.Type == "Put")
+                                {
+                                    if (p.Quantity < 0)
+                                        snapShot.ShortPut = p.Strike;
+                                    else
+                                        snapShot.LongPut = p.Strike;
+                                }
+                                else if (p.Type == "Call")
+                                {
+                                    if (p.Quantity < 0)
+                                        snapShot.ShortCall = p.Strike;
+                                    else
+                                        snapShot.LongCall = p.Strike;
+                                }
+                            }
                         }
                         SetTextBox(txtDetails, details, true);
 
+                        snapShot.Price = grp.UnderlyingPrice;
+                        snapShot.Update();
                     }
                 }
 
@@ -597,6 +617,8 @@ namespace OptionView
             SetTextBox(txtDetails, "", false);
             SetTextBox(txtStartTime, "", false);
             SetTextBox(txtEndTime, "", false);
+
+            snapShot.Clear();
         }
 
 

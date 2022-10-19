@@ -131,6 +131,9 @@
     <Compile Include="DataImport\TastyWorks.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="SnapShot.xaml.cs">
+      <DependentUpon>SnapShot.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TileAdorner.cs" />
     <Compile Include="Tiles.cs" />
     <Compile Include="Transaction.cs" />
@@ -167,6 +170,10 @@
     <Page Include="SampleData\TransactionSampleData.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="SnapShot.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
