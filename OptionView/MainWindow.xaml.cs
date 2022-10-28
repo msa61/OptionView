@@ -500,10 +500,13 @@ namespace OptionView
                         }
                         SetTextBox(txtDetails, details, true);
 
-                        snapShot.Price = grp.UnderlyingPrice;
-                        snapShot.DeltaText = grp.GreekData.Delta.ToString("N2");
-                        if (Math.Abs(grp.GreekData.Delta) > 75) snapShot.DeltaColor = Brushes.DarkRed;
-                        snapShot.Update();
+                        if (grp.UnderlyingPrice > 0)
+                        {
+                            snapShot.Price = grp.UnderlyingPrice;
+                            snapShot.DeltaText = grp.GreekData.Delta.ToString("N2");
+                            if (Math.Abs(grp.GreekData.Delta) > 75) snapShot.DeltaColor = Brushes.DarkRed;
+                            snapShot.Update();
+                        }
                     }
                 }
 
