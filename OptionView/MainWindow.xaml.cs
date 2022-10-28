@@ -408,8 +408,39 @@ namespace OptionView
                 MoveTile tile = (MoveTile)sender;
                 ContentControl cc = (ContentControl)VisualTreeHelper.GetParent(tile.Parent);
 
+                SnapToGrid(tile);
+
                 Tiles.UpdateTilePosition(cc.Tag.ToString(), (int)Canvas.GetLeft(cc), (int)Canvas.GetTop(cc));
             }
+        }
+
+        int GRIDSIZE = 10;
+        private void SnapToGrid(MoveTile tile)
+        {
+            ContentControl cc = (ContentControl)VisualTreeHelper.GetParent(tile.Parent);
+            Debug.WriteLine("current position: {0}, {1}", (int)Canvas.GetLeft(cc), (int)Canvas.GetTop(cc));
+                
+            double xSnap = Canvas.GetLeft(cc) % GRIDSIZE;
+            double ySnap = Canvas.GetTop(cc) % GRIDSIZE;
+
+            // If it's less than half the grid size, snap left/up 
+            // (by subtracting the remainder), 
+            // otherwise move it the remaining distance of the grid size right/down
+            // (by adding the remaining distance to the next grid point).
+            if (xSnap <= GRIDSIZE / 2.0)
+                xSnap *= -1;
+            else
+                xSnap = GRIDSIZE - xSnap;
+            if (ySnap <= GRIDSIZE / 2.0)
+                ySnap *= -1;
+            else
+                ySnap = GRIDSIZE - ySnap;
+
+            xSnap += Canvas.GetLeft(cc);
+            ySnap += Canvas.GetTop(cc);
+
+            Canvas.SetLeft(cc, xSnap);
+            Canvas.SetTop(cc, ySnap);
         }
 
 
