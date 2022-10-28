@@ -418,7 +418,7 @@ namespace OptionView
         private void SnapToGrid(MoveTile tile)
         {
             ContentControl cc = (ContentControl)VisualTreeHelper.GetParent(tile.Parent);
-            Debug.WriteLine("current position: {0}, {1}", (int)Canvas.GetLeft(cc), (int)Canvas.GetTop(cc));
+            //Debug.WriteLine("current position: {0}, {1}", (int)Canvas.GetLeft(cc), (int)Canvas.GetTop(cc));
                 
             double xSnap = Canvas.GetLeft(cc) % GRIDSIZE;
             double ySnap = Canvas.GetTop(cc) % GRIDSIZE;
