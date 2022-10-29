@@ -25,7 +25,7 @@ namespace OptionView
 
         public Portfolio()
         {
-            TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
+            if (!App.OfflineMode) TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
         }
 
 
@@ -162,6 +162,8 @@ namespace OptionView
         {
             decimal currentValue = 0;
             decimal previousCloseValue = 0;
+
+            if (App.OfflineMode) return;
 
             try
             {
@@ -570,6 +572,7 @@ namespace OptionView
 
                         grp.Account = reader["Account"].ToString();
                         grp.Symbol = reader["Symbol"].ToString();
+                        grp.GroupID = Convert.ToInt32(reader["ID"]); // readerGroup
                         if (reader["Strategy"] != DBNull.Value) grp.Strategy = reader["Strategy"].ToString();
                         if (reader["ExitStrategy"] != DBNull.Value) grp.ExitStrategy = reader["ExitStrategy"].ToString();
                         if (reader["EarningsTrade"] != DBNull.Value) grp.EarningsTrade = (Convert.ToInt32(reader["EarningsTrade"]) == 1);
