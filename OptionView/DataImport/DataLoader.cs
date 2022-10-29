@@ -336,6 +336,8 @@ namespace OptionView
                     }
                     else
                     { 
+                        // Add comment and todo when assigned
+
                         string newComments = "";
                         //get current comment
                         string sqlSel = "SELECT comments FROM TransGroup WHERE ID = @id";
