@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,6 +34,8 @@ namespace OptionView
         private int combineRequestTag = 0;
         private bool detailsDirty = false;
         private bool uiDirty = false;
+        private bool todoDirty = false;
+        private bool initializingDatePicker = false;
 
 
 
@@ -234,10 +237,16 @@ namespace OptionView
         {
             App.UpdateLoadStatusMessage("Update tiles");
 
-            if (MainCanvas.Children.Count > 0) MainCanvas.Children.Clear();
-
             portfolio = new Portfolio();
             portfolio.GetCurrentHoldings(accounts);
+            DisplayTiles();
+        }
+
+
+        // enable display refresh with in-memory data
+        private void DisplayTiles()
+        {
+            if (MainCanvas.Children.Count > 0) MainCanvas.Children.Clear();
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
                 TransactionGroup grp = entry.Value;
@@ -246,11 +255,10 @@ namespace OptionView
                 string cost = grp.Cost.ToString("C0") + grp.GetPerLotCost();
 
                 Tiles.CreateTile(this, MainCanvas, Tiles.TileSize.Regular, (grp.CurrentValue + grp.Cost), grp.GroupID, grp.Symbol, grp.UnderlyingPrice.ToString("C2"), grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, (grp.CurrentValue != 0) ? (grp.CurrentValue + grp.Cost).ToString("C0") : "",
-                    (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), 
+                    (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(),
                     grp.HasInTheMoneyPositions(), (grp.ActionDate > DateTime.MinValue), !grp.OrderActive, (grp.Cost > 0) ? "Prem" : "Cost", null, grp.ChangeFromPreviousClose.ToString("+#;-#;nc"), 1.0);
             }
         }
-
 
         private void LoadDynamicComboBoxes()
         {
@@ -333,7 +341,9 @@ namespace OptionView
         {
             //correct style mismatches
             txtSymbol.Background = new SolidColorBrush(Color.FromArgb(0xFF, 0xAD, 0xAD, 0xAD));
+            txtSymbolTodo.Background = new SolidColorBrush(Color.FromArgb(0xFF, 0xAD, 0xAD, 0xAD));
             DateAction_IsEnabledChanged(dateAction, new DependencyPropertyChangedEventArgs());
+            DateAction_IsEnabledChanged(dateActionTodo, new DependencyPropertyChangedEventArgs());
         }
 
         void MainWindow_Closing(object sender, CancelEventArgs e)
@@ -367,7 +377,7 @@ namespace OptionView
                 Tiles.UpdateTilePosition(cc.Tag.ToString(), (int)Canvas.GetLeft(cc), (int)Canvas.GetTop(cc));
             }
 
-
+            if (todoGrid.SelectedItem != null) UpdateTodoDetails((TransactionGroup)todoGrid.SelectedItem);
 
             App.CloseConnection();
         }
@@ -446,18 +456,26 @@ namespace OptionView
 
         AdornerLayer adornerLayer = null;
         TileAdorner tileAdorner = null;
+
+        private void AddAdorner(Rectangle rect)
+        {
+            if (adornerLayer != null && tileAdorner != null) adornerLayer.Remove(tileAdorner);
+
+            adornerLayer = AdornerLayer.GetAdornerLayer(rect);
+            if (adornerLayer != null)
+            {
+                tileAdorner = new TileAdorner(rect);
+                adornerLayer.Add(tileAdorner);
+            }
+        }
+
         private void TileMouseDown(object sender, MouseButtonEventArgs e)
         {
             Debug.WriteLine("TileMouseDown");
             if (sender.GetType() == typeof(Rectangle))
             {
-                if (adornerLayer != null && tileAdorner != null) adornerLayer.Remove(tileAdorner);
-
                 Rectangle rect = (Rectangle)sender;
-                adornerLayer = AdornerLayer.GetAdornerLayer(rect);
-                tileAdorner = new TileAdorner(rect);
-                adornerLayer.Add(tileAdorner);
-
+                AddAdorner(rect);
 
                 MoveTile tile = (MoveTile)VisualTreeHelper.GetParent(rect);
                 if (tile != null && tile.Parent != null)
@@ -473,7 +491,6 @@ namespace OptionView
                         {
                             Debug.WriteLine("Previous group {0} was dirty", selectedTag);
                             SaveTransactionGroupDetails(selectedTag);
-                            UpdateTodosGrid();
                         }
 
                         TransactionGroup grp = portfolio[tag];
@@ -565,6 +582,8 @@ namespace OptionView
         }
         private void SetDatePicker(DatePicker dp, DateTime dt, bool enable)
         {
+            initializingDatePicker = true; ;
+
             if (dt > DateTime.MinValue)
             {
                 dp.SelectedDate = dt;
@@ -576,6 +595,7 @@ namespace OptionView
             dp.IsEnabled = enable;
             SetDatePickerForeground(dp);
 
+            initializingDatePicker = false; ;
         }
         private void SetDatePickerForeground(DatePicker dp)
         {
@@ -588,7 +608,10 @@ namespace OptionView
         private void DateAction_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             DatePicker dp = (DatePicker)sender;
-
+            DataPickerEnableHandler(dp);
+        }
+        private void DataPickerEnableHandler( DatePicker dp)
+        {
             if (dp.IsEnabled)
                 dp.Background = Brushes.White;
             else
@@ -612,6 +635,7 @@ namespace OptionView
                 }
             }
         }
+
         private void DateAction_CalendarClosed(object sender, RoutedEventArgs e)
         {
             DatePicker dp = (DatePicker)sender;
@@ -683,6 +707,8 @@ namespace OptionView
                 Tiles.UpdateTile(tag, MainCanvas, grp.Strategy, (grp.ActionDate > DateTime.MinValue));  // only fields that can be manually changed
             }
 
+            UpdateTodosGrid();
+
             detailsDirty = false;
             uiDirty = false;
         }
@@ -695,6 +721,7 @@ namespace OptionView
         }
         private void DateAction_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (initializingDatePicker) return;
             detailsDirty = true;
             uiDirty = true;
         }
@@ -1049,7 +1076,6 @@ namespace OptionView
         // code for Todo tab
         // 
         //
-
         private void UpdateTodosGrid()
         {
             try
@@ -1093,6 +1119,101 @@ namespace OptionView
             }
         }
 
+        private void TodoClearClick(object sender, RoutedEventArgs e)
+        {
+            MenuItem mi = (MenuItem)sender;
+            Debug.WriteLine("TodoClearClick - " + ((TransactionGroup)mi.DataContext).Symbol);
+
+            int groupID = ((TransactionGroup)mi.DataContext).GroupID;
+            TransactionGroup tg = portfolio[groupID];
+            tg.ActionDate = DateTime.MinValue;
+            tg.Update();
+            UpdateTodosGrid();
+            DisplayTiles();  //refresh tiles
+        }
+
+        private void TodoContextMenuValidationCheck(object sender, ContextMenuEventArgs e)
+        {
+            // return e.Handled = true to suppress menu
+            if (sender.GetType() == typeof(DataGrid))
+            {
+                DataGrid grid = (DataGrid)sender;
+                if (grid.SelectedItem == null) return;
+                TransactionGroup tg = (TransactionGroup)grid.SelectedItem;
+                Debug.WriteLine("click: " + tg.Symbol);
+            }
+        }
+
+        private void UpdateTodoDetails(TransactionGroup grp)
+        {
+            if (todoDirty)
+            {
+                bool dateChange = false;
+                DateTime previousDate = grp.ActionDate;
+                grp.ActionDate = (dateActionTodo.SelectedDate.HasValue && (dateActionTodo.Text != "")) ? dateActionTodo.SelectedDate.Value : DateTime.MinValue;
+                dateChange = (previousDate != grp.ActionDate);
+                grp.Comments = txtCommentsTodo.Text;
+                grp.ActionText = txtAction.Text;
+
+                TransactionGroup tg = portfolio[grp.GroupID];
+                tg.ActionDate = (dateActionTodo.SelectedDate.HasValue && (dateActionTodo.Text != "")) ? dateActionTodo.SelectedDate.Value : DateTime.MinValue;
+                tg.Comments = txtCommentsTodo.Text;
+                tg.ActionText = txtAction.Text;
+                tg.Update();
+
+                todoDirty = false;
+
+                // if the date got manually cleared, repaint the tiles and reload todo grid
+                if (tg.ActionDate == DateTime.MinValue)
+                {
+                    UpdateTodosGrid();
+                    DisplayTiles();  //refresh tiles
+                }
+
+
+            }
+        }
+
+        private void TodoGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.RemovedItems.Count > 0)
+            {
+                UpdateTodoDetails( ((TransactionGroup)(e.RemovedItems[0])));
+            }
+
+            if (todoGrid.SelectedItem == null)
+            {
+                ClearTodoFields();
+            }
+            else
+            {
+                TransactionGroup grp = ((TransactionGroup)(todoGrid.SelectedItem));
+                Debug.WriteLine("Selected: " + grp.GroupID.ToString());
+
+                SetTextBlock(txtSymbolTodo, grp.Symbol, true);
+                SetDatePicker(dateActionTodo, grp.ActionDate, true);
+                SetTextBox(txtCommentsTodo, grp.Comments, true);
+                SetTextBox(txtAction, grp.ActionText, true);
+            }
+        }
+
+        private void ClearTodoFields()
+        {
+            SetTextBlock(txtSymbolTodo, "", false);
+            SetDatePicker(dateActionTodo, DateTime.MinValue, false);
+            SetTextBox(txtCommentsTodo, "", false);
+            SetTextBox(txtAction, "", false);
+        }
+
+        private void TodoFieldEntryEvent(object sender, KeyEventArgs e)
+        {
+            todoDirty = true;
+        }
+        private void DateActionTodo_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (initializingDatePicker) return;
+            todoDirty = true;
+        }
 
 
         // 
@@ -1106,8 +1227,46 @@ namespace OptionView
             if (e.Source is TabControl)
             {
                 if (((TabControl)sender).SelectedIndex == 1) UpdateAnalysisView();
+
+                if (e.RemovedItems.Count != 0)
+                {
+                    if ((((TabItem)e.RemovedItems[0]).Name == "TodoTab") && (todoGrid.SelectedItem != null))
+                    {
+                        UpdateTodoDetails((TransactionGroup)todoGrid.SelectedItem);
+                    }
+                    if ((((TabItem)e.RemovedItems[0]).Name == "HoldingsTab") && (selectedTag != 0) && detailsDirty)
+                    {
+                        SaveTransactionGroupDetails(selectedTag);
+                    }
+                }
             }
         }
+
+        private void MainTab_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            // cleanup up the datepicker's disable state only works when its on the active tab
+            DataPickerEnableHandler(dateAction);
+            DataPickerEnableHandler(dateActionTodo);
+
+
+            // Fix adorner (that is lost with tab changes)
+            if (selectedTag != 0)   //skip if nothing is selected
+            {
+                foreach (ContentControl cc in MainCanvas.Children)
+                {
+                    if (Convert.ToInt32(cc.Tag) == selectedTag)
+                    {
+                        // AddAdorner(cc);
+
+                        Grid topGrid = (Grid)VisualTreeHelper.GetChild(cc, 0);
+                        Rectangle rect = UIHelper.FindChild<Rectangle>(topGrid, "DragRectangle");
+                        AddAdorner(rect);
+                    }
+                }
+            }
+
+        }
+
 
         private class AnalysisViews
         {
@@ -1438,13 +1597,6 @@ namespace OptionView
         {
             UpdateAnalysisView();
         }
-
-
-
-
-
-
-
     }
 
 

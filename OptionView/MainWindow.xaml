@@ -8,14 +8,14 @@
         Title="Option View" Height="933" Width="1251" Left="100" Top="100"
         Closing="MainWindow_Closing"
         Loaded="Window_Loaded">
-    
+
 
 
     <Window.Resources>
 
         <!-- MoveThumb Template -->
         <ControlTemplate x:Key="MoveThumbTemplate" TargetType="{x:Type local:MoveTile}" >
-            <Rectangle Fill="Transparent" MouseLeftButtonDown="TileMouseDown"/>
+            <Rectangle Fill="Transparent" MouseLeftButtonDown="TileMouseDown" Name="DragRectangle"/>
         </ControlTemplate>
 
         <!-- Context menu for tiles -->
@@ -167,9 +167,9 @@
             <RowDefinition x:Name="ContentRow" />
             <RowDefinition x:Name="FooterRow" MaxHeight="80"/>
         </Grid.RowDefinitions>
-        <TabControl Name="MainTab" Background="Black" BorderThickness="0" SelectionChanged="MainTab_SelectionChanged" Grid.Row="0">
+        <TabControl Name="MainTab" Background="Black" BorderThickness="0" SelectionChanged="MainTab_SelectionChanged" MouseLeftButtonUp="MainTab_MouseLeftButtonUp" Grid.Row="0" >
             <!-- Holdings tab -->
-            <TabItem Width="150" Height="30" Header="Holdings">
+            <TabItem Width="150" Height="30" Header="Holdings" Name="HoldingsTab">
                 <Grid Background="Black" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition x:Name="ContentCol" MinWidth="350" />
@@ -648,7 +648,7 @@
 
 
             <!-- To Do Tab-->
-            <TabItem Width="150" Height="30"  >
+            <TabItem Width="150" Height="30" Name="TodoTab" >
                 <TabItem.Header >
                     <StackPanel Orientation="Horizontal" Background="Transparent" >
                         <TextBlock Text="To Dos" Margin="22,0,0,0"/>
@@ -661,13 +661,14 @@
                 <Grid Background="Black" >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition x:Name="ToDoCol" MinWidth="400" />
-                        <ColumnDefinition x:Name="ToDoControlsCol" MaxWidth="150" Width="150*"/>
+                        <ColumnDefinition x:Name="ToDoControlsCol" MaxWidth="200" Width="200*"/>
                     </Grid.ColumnDefinitions>
 
 
                     <DataGrid Name="todoGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" Background="#FF454545" RowBackground="#FF454545"
                               Width="900" HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,4,0,4" HeadersVisibility="Column"
                               VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
+                              ContextMenuOpening="TodoContextMenuValidationCheck" SelectionChanged="TodoGrid_SelectionChanged" SelectionMode="Single" 
                               >
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Todo Date" Binding="{Binding Path=ActionDate, StringFormat={}{0:dd MMM yyyy}}" Width="100" />
@@ -677,10 +678,50 @@
                             <DataGridTextColumn Header="Exit Strategy" Binding="{Binding ExitStrategy}" Width="140" />
                             <DataGridCheckBoxColumn Header="Earnings" Binding="{Binding EarningsTrade}" Width="80" />
                             <DataGridCheckBoxColumn Header="Neutral" Binding="{Binding NeutralStrategy}" Width="80" />
-                            <DataGridTextColumn Header="Comments" Binding="{Binding Comments}"  />
+                            <DataGridTextColumn Header="Comments" Binding="{Binding Comments}" />
                         </DataGrid.Columns>
+                        <DataGrid.Resources>
+                            <ContextMenu x:Key="RowContextMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
+                                         HorizontalOffset="40">
+                                <MenuItem Header="Clear To Do" Click="TodoClearClick" />
+                            </ContextMenu>
+                        </DataGrid.Resources>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource {x:Type DataGridCell}}">
+                                <Setter Property="ContextMenu" Value="{StaticResource RowContextMenu}" />
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Foreground" Value="Yellow" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.CellStyle>
                     </DataGrid>
-                    <DockPanel  Background="#FF454545" Margin="6,4,4,5" Grid.Column="1">
+                    <DockPanel Background="#FF454545" Grid.Column="1" Margin="6,4,4,4" >
+                        <StackPanel >
+                            <Label Content="Symbol" Margin="6,0,0,0" />
+                            <TextBlock Name="txtSymbolTodo" Background="Gray" Margin="6,0,6,6" Padding="5,4,4,4" IsEnabled="False"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        
+                        <StackPanel >
+                            <Label Content="Action Date" Margin="6,0,0,0" />
+                            <DatePicker Name="dateActionTodo" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" IsEnabled="False" CalendarClosed="DateAction_CalendarClosed"
+                                        SelectedDateChanged="DateActionTodo_SelectedDateChanged" PreviewKeyDown="TodoFieldEntryEvent" IsEnabledChanged="DateAction_IsEnabledChanged"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+
+                        <StackPanel >
+                            <Label Content="Comments" Margin="6,0,0,0" />
+                            <TextBox Name="txtCommentsTodo" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap" Height="94" AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="TodoFieldEntryEvent"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+
+                        <StackPanel >
+                            <Label Content="Action" Margin="6,0,0,0" />
+                            <TextBox Name="txtAction" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap" Height="94" AcceptsReturn="True" IsEnabled="False" PreviewKeyDown="TodoFieldEntryEvent"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
 
                     </DockPanel>
                 </Grid>
@@ -696,7 +737,7 @@
 
 
             <StackPanel x:Name="OverviewPanel" Orientation="Vertical" DockPanel.Dock="Left" VerticalAlignment="Center" >
-             <!--   
+                <!--   
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Account" Width="100"    FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
                     <Label Content="Individual" Width="100"  FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
