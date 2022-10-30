@@ -45,7 +45,7 @@ namespace OptionView
 
         private void SnapShot_Loaded(object sender, RoutedEventArgs e)
         {
-            Update();
+            if (Price > 0) Update();
         }
 
         public void Clear()
