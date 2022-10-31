@@ -41,7 +41,7 @@ namespace OptionView
         public string TransactionText { get; set; }
         public string Account { get; set; }
         public string AccountName { get; set; }
-        public decimal CurrentValue { get; set; }
+        public decimal? CurrentValue { get; set; } = null;
         public decimal PreviousCloseValue { get; set; }
         public decimal ChangeFromPreviousClose { get; set; }
         public decimal UnderlyingPrice { get; set; }
@@ -367,9 +367,9 @@ namespace OptionView
 
             /// this is the accurate value... need to find target and convert to a +/- percentage
             decimal target = ParseTargetValue();
-            retval = (this.Cost + this.CurrentValue) / Math.Abs(target * firstDayAmount);
+            retval = (this.Cost + (this.CurrentValue ?? 0)) / Math.Abs(target * firstDayAmount);
 
-            Debug.WriteLine("PercentOfTarget: {0}  Current Profit: {1}   Percent: {2}", target.ToString(), (this.Cost + this.CurrentValue).ToString("C0"), retval.ToString());
+            Debug.WriteLine("PercentOfTarget: {0}  Current Profit: {1}   Percent: {2}", target.ToString(), (this.Cost + (this.CurrentValue ?? 0)).ToString("C0"), retval.ToString());
 
             return retval;
         }

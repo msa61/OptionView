@@ -20,9 +20,9 @@ namespace OptionView
     public class Tiles
     {
         public enum TileSize { Regular, Small };
-        public enum TileColor { Green, Red, Gray };
+        public enum TileColor { Green, Red, Gray, Blue };
 
-        public static void CreateTile(Window window, Canvas canvas, TileSize size, decimal profit, int ID, string symbol, string price, string account, int left, int top, string strategy, 
+        public static void CreateTile(Window window, Canvas canvas, TileSize size, decimal? profit, int ID, string symbol, string price, string account, int left, int top, string strategy, 
             string value1, string value2, string dte, bool itm, bool alarm, bool warning, string altLabel1, string altLabel2, string value2a, double opacity)
         {
             //<ContentControl Canvas.Top = "10" Canvas.Left = "10" Template = "{StaticResource DesignerItemTemplate}" >
@@ -63,10 +63,10 @@ namespace OptionView
 
             TileColor color;
 
-            if (value2 == "") color = TileColor.Gray;
+            if (profit == null) color = TileColor.Gray;
             else if (profit > 0) color = TileColor.Green;
             else if (profit < 0) color = TileColor.Red;
-            else color = TileColor.Gray;
+            else color = TileColor.Blue;
 
 
             double height = 100;
@@ -112,16 +112,20 @@ namespace OptionView
             switch (color)
             { 
                 case TileColor.Green:
-                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF538C2B"), 0.974));
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF66A639"), 0.974));
                     gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF45761F"), 0.113));
                     break;
                 case TileColor.Red:
-                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FFAE2C20"), 0.974));
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FFC33F32"), 0.974));
                     gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF91151D"), 0.113));
                     break;
                 case TileColor.Gray:
                     gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF909090"), 0.974));
                     gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF707070"), 0.113));
+                    break;
+                case TileColor.Blue:
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF5380C1"), 0.974));
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF2056A2"), 0.113));
                     break;
             }
 

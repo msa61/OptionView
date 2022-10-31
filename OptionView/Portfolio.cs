@@ -161,7 +161,7 @@ namespace OptionView
 
         private void RetrieveCurrentData(TransactionGroup grp)
         {
-            decimal currentValue = 0;
+            decimal? currentValue = null;
             decimal previousCloseValue = 0;
 
             if (App.OfflineMode) return;
@@ -238,6 +238,7 @@ namespace OptionView
                             if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate))
                             {
                                 //Debug.WriteLine(twpos.Market);
+                                if (currentValue == null) currentValue = 0;  // initialize now that we've found a match
                                 currentValue += pos.Quantity * twpos.Market;
                                 previousCloseValue += pos.Quantity * twpos.PreviousClose * twpos.Multiplier;
 
@@ -264,9 +265,12 @@ namespace OptionView
                     }
                 }
 
-                grp.CurrentValue = currentValue;
-                grp.PreviousCloseValue = previousCloseValue;
-                grp.ChangeFromPreviousClose = currentValue - previousCloseValue;
+                if (currentValue != null)
+                {
+                    grp.CurrentValue = currentValue;
+                    grp.PreviousCloseValue = previousCloseValue;
+                    grp.ChangeFromPreviousClose = (currentValue ?? 0) - previousCloseValue;
+                }
                 if ((twMarketInfo != null) && (twMarketInfo.ContainsKey(grp.ShortSymbol)))
                 {
                     grp.ImpliedVolatility = twMarketInfo[grp.ShortSymbol].ImpliedVolatility;
