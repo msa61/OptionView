@@ -1100,7 +1100,7 @@ namespace OptionView
             bool isUrgent = false;
             foreach (TransactionGroup grp in todos)
             {
-                if (grp.ActionDate <= DateTime.Today)
+                if (grp.ActionDate <= DateTime.Today.AddDays(1))
                 {
                     isUrgent = true;
                     break;
