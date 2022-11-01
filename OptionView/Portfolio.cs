@@ -445,6 +445,17 @@ namespace OptionView
 
             return retval;
         }
+        public decimal GetAccountCapRequired(string acct = "")
+        {
+            decimal retval = 0;
+            foreach (KeyValuePair<int, TransactionGroup> grpItem in this)
+            {
+                TransactionGroup grp = grpItem.Value;
+                if ((grp.Account == acct) || (acct == "")) retval += grp.CapitalRequired;
+            }
+
+            return retval;
+        }
     }
 
 

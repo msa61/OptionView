@@ -96,6 +96,7 @@ namespace OptionView
                 StackPanel sp = new StackPanel { Orientation = Orientation.Horizontal };
                 OverviewLabel(sp, "Account", 80);
                 OverviewLabel(sp, "Net Liq", 100);
+                OverviewLabel(sp, "Req Cap", 70);
                 OverviewLabel(sp, "Allocation", 80);
                 OverviewLabel(sp, "Β-Delta", 60);
                 OverviewLabel(sp, "Theta", 60);
@@ -129,12 +130,16 @@ namespace OptionView
                         DecoratedValueLabel(sp, bal.NetLiq, change);
 
                         // 3rd column
-                        OverviewLabel(sp, bal.CommittedPercentage.ToString("P1"), 80);
+                        OverviewLabel(sp, portfolio.GetAccountCapRequired(a.ID).ToString("C0"), 70);
 
                         // 4th column
-                        OverviewLabel(sp, portfolio.GetWeightedDelta(a.ID).ToString("N0"), 60);
+                        decimal acctCommittedPercentage = (bal.NetLiq == 0) ? 0 : portfolio.GetAccountCapRequired(a.ID) / bal.NetLiq;
+                        OverviewLabel(sp, acctCommittedPercentage.ToString("P1"), 80);
 
                         // 5th column
+                        OverviewLabel(sp, portfolio.GetWeightedDelta(a.ID).ToString("N0"), 60);
+
+                        // 6th column
                         OverviewLabel(sp, portfolio.GetTheta(a.ID).ToString("C0"), 60);
 
                         OverviewPanel.Children.Add(sp);
@@ -151,13 +156,16 @@ namespace OptionView
                 DecoratedValueLabel(sp, combinedNetLiq, combinedChange);
 
                 // 3rd column
-                decimal committedPercentage = (combinedNetLiq == 0) ? 0 : (combinedNetLiq - combinedBP) / combinedNetLiq;
+                OverviewLabel(sp, portfolio.GetAccountCapRequired().ToString("C0"), 70);
+
+                // 4rd column
+                decimal committedPercentage = (combinedNetLiq == 0) ? 0 : portfolio.GetAccountCapRequired() / combinedNetLiq;
                 OverviewLabel(sp, committedPercentage.ToString("P1"), 80);
 
-                // 4th column
+                // 5th column
                 OverviewLabel(sp, portfolio.GetWeightedDelta().ToString("N0"), 60);
 
-                // 5th column
+                // 6th column
                 OverviewLabel(sp, portfolio.GetTheta().ToString("C0"), 60);
 
                 OverviewPanel.Children.Add(sp);
