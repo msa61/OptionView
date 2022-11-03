@@ -260,6 +260,8 @@ namespace OptionView
                                     grp.GreekData.Delta += pos.GreekData.Delta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
                                     grp.GreekData.Theta += pos.GreekData.Theta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
                                 }
+
+                                break;
                             }
                         }
                     }
@@ -429,7 +431,8 @@ namespace OptionView
             foreach (KeyValuePair<int, TransactionGroup> grpItem in this)
             {
                 TransactionGroup grp = grpItem.Value;
-                if ((grp.Account == acct) || (acct == "")) retval += grp.GreekData.WeightedDelta;
+                // don't include earnings trades in the overall weighted delta as it skews the portfolios deltas for core holdings
+                if (((grp.Account == acct) || (acct == "")) && (grp.EarningsTrade == false)) retval += grp.GreekData.WeightedDelta;
             }
 
             return retval;
