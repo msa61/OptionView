@@ -130,7 +130,8 @@ namespace OptionView
                         DecoratedValueLabel(sp, bal.NetLiq, change);
 
                         // 3rd column
-                        OverviewLabel(sp, portfolio.GetAccountCapRequired(a.ID).ToString("C0"), 70);
+                        decimal capReq = portfolio.GetAccountCapRequired(a.ID);
+                        OverviewLabel(sp, capReq.ToString("C0"), 70);
 
                         // 4th column
                         decimal acctCommittedPercentage = (bal.NetLiq == 0) ? 0 : portfolio.GetAccountCapRequired(a.ID) / bal.NetLiq;
@@ -143,6 +144,8 @@ namespace OptionView
                         OverviewLabel(sp, portfolio.GetTheta(a.ID).ToString("C0"), 60);
 
                         OverviewPanel.Children.Add(sp);
+
+                        SaveFooterData(a.Name, bal.NetLiq, capReq);
                     }
                 }
 
@@ -189,6 +192,22 @@ namespace OptionView
             {
                 MessageBox.Show(e.Message, "UpdateFooter Error");
             }
+        }
+
+        private void SaveFooterData(string account, decimal balance, decimal capReq)
+        {
+            if (balance == 0) return;
+            try
+            {
+                BalanceHistory.OpenConnection();
+                BalanceHistory.Write(account, balance, capReq);
+                BalanceHistory.CloseConnection();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "SaveFooterData Error");
+            }
+
         }
 
         private Label OverviewLabel(StackPanel sp, string txt, int width = 0, int fontSize = 11)
@@ -262,7 +281,7 @@ namespace OptionView
                 // massage cost to incude per lot value as well
                 string cost = grp.Cost.ToString("C0") + grp.GetPerLotCost();
 
-                Tiles.CreateTile(this, MainCanvas, Tiles.TileSize.Regular, (grp.CurrentValue + grp.Cost), grp.GroupID, grp.Symbol, grp.UnderlyingPrice.ToString("C2"), grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, ((grp.CurrentValue ?? 0) != 0) ? ((decimal)grp.CurrentValue + grp.Cost).ToString("C0") : "",
+                Tiles.CreateTile(this, MainCanvas, Tiles.TileSize.Regular, ((grp.CurrentValue ?? 0) + grp.Cost), grp.GroupID, grp.Symbol, grp.UnderlyingPrice.ToString("C2"), grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, ((grp.CurrentValue ?? 0) != 0) ? ((decimal)grp.CurrentValue + grp.Cost).ToString("C0") : "",
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(),
                     grp.HasInTheMoneyPositions(), (grp.ActionDate > DateTime.MinValue), !grp.OrderActive, (grp.Cost > 0) ? "Prem" : "Cost", null, grp.ChangeFromPreviousClose.ToString("+#;-#;nc"), 1.0);
             }
@@ -1529,7 +1548,7 @@ namespace OptionView
                     //Debug.WriteLine("Value1: {0}  Value2: {1}", grp.AnalysisXValue, grp.AnalysisYValue);
                     //Debug.WriteLine("Left:   {0}  Top:    {1}", left, top);
 
-                    Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, (grp.CurrentValue + grp.Cost), grp.GroupID, grp.Symbol, "", grp.AccountName, 
+                    Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, ((grp.CurrentValue ?? 0) + grp.Cost), grp.GroupID, grp.Symbol, "", grp.AccountName, 
                         left, top, grp.Strategy, value2, value1,
                         (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), false, false, false,
                         viewList[viewIndex].YLabel, viewList[viewIndex].XLabel, (viewIndex == 0) ? grp.ChangeFromPreviousClose.ToString("+#;-#") : null, 1.0 );
@@ -1545,7 +1564,7 @@ namespace OptionView
                     txtYVal.Text = "";
                     break;
                 case 3:  // ratio
-                    txtXVal.Text = FormatValue(overallXValue / overallYValue, viewList[viewIndex].XFormat);
+                    if (overallYValue != 0) txtXVal.Text = FormatValue(overallXValue / overallYValue, viewList[viewIndex].XFormat);
                     txtYVal.Text = FormatValue(overallYValue, viewList[viewIndex].YFormat);
                     break;
                 default:

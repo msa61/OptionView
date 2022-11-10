@@ -108,6 +108,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Account.cs" />
+    <Compile Include="BalanceHistory.cs" />
     <Compile Include="BlackScholes.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="DataImport\DataFeed.cs" />
