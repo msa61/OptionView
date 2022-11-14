@@ -126,7 +126,7 @@ namespace OptionView
             if (ShortPut > 0) AddPointer(c, "P", Scale(ShortPut), true, false);
 
             if (ShortCall > 0) AddPointer(c, "C", Scale(ShortCall), true, (ShortCall == ShortPut));
-            if (LongCall > 0) AddPointer(c, "C", Scale(LongCall), false, (ShortCall == ShortPut));
+            if (LongCall > 0) AddPointer(c, "C", Scale(LongCall), false, (LongCall == LongPut));
         }
 
         private void AddPointer(Canvas c, string txt, double left, bool isShortSym, bool isOffset)
