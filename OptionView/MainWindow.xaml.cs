@@ -143,6 +143,13 @@ public MainWindow()
                         // 6th column
                         OverviewLabel(sp, portfolio.GetTheta(a.ID).ToString("C0"), 60);
 
+                        // 7th column
+                        sp.Children.Add(new LineGraph(BalanceHistory.Get(a.Name)));
+
+                        // 8th column
+                        sp.Children.Add(new WinLossGraph(BalanceHistory.GetChange(a.Name)));
+
+
                         OverviewPanel.Children.Add(sp);
 
                         SaveFooterData(a.Name, bal.NetLiq, capReq);
@@ -170,6 +177,13 @@ public MainWindow()
 
                 // 6th column
                 OverviewLabel(sp, portfolio.GetTheta().ToString("C0"), 60);
+
+                // 7th column
+                sp.Children.Add(new LineGraph(BalanceHistory.Get(accounts)));
+
+                // 8th column
+                sp.Children.Add(new WinLossGraph(BalanceHistory.GetChange(accounts)));
+
 
                 OverviewPanel.Children.Add(sp);
 
@@ -199,9 +213,7 @@ public MainWindow()
             if (balance == 0) return;
             try
             {
-                BalanceHistory.OpenConnection();
                 BalanceHistory.Write(account, balance, capReq);
-                BalanceHistory.CloseConnection();
             }
             catch (Exception e)
             {
