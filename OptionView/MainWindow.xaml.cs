@@ -133,6 +133,8 @@ public MainWindow()
                         decimal capReq = portfolio.GetAccountCapRequired(a.ID);
                         OverviewLabel(sp, capReq.ToString("C0"), 70);
 
+                        SaveFooterData(a.Name, bal.NetLiq, capReq);  // save it now so that latest data will be included in the graphs
+
                         // 4th column
                         decimal acctCommittedPercentage = (bal.NetLiq == 0) ? 0 : portfolio.GetAccountCapRequired(a.ID) / bal.NetLiq;
                         OverviewLabel(sp, acctCommittedPercentage.ToString("P1"), 80);
@@ -149,10 +151,7 @@ public MainWindow()
                         // 8th column
                         sp.Children.Add(new WinLossGraph(BalanceHistory.GetChange(a.Name)));
 
-
                         OverviewPanel.Children.Add(sp);
-
-                        SaveFooterData(a.Name, bal.NetLiq, capReq);
                     }
                 }
 
