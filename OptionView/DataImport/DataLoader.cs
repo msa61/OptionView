@@ -9,13 +9,14 @@ using FileHelpers;
 using System.Data;
 using System.Data.SQLite;
 using System.Windows;
+using System.Security.Principal;
 
 namespace OptionView
 {
     public class DataLoader
     {
         private static Dictionary<string, TWPositions> twpositions = null;
-        private static Dictionary<string, TWMargins> twMarginReq = null;
+        private static Dictionary<string, TWMargins> twMarginData = null;
 
         public static void Load(Accounts accounts)
         {
@@ -28,7 +29,7 @@ namespace OptionView
                 {
                     // cache the current positions for details required to establish default risk and capreq
                     twpositions = new Dictionary<string, TWPositions>();
-                    twMarginReq = new Dictionary<string, TWMargins>();
+                    twMarginData = new Dictionary<string, TWMargins>();
                     foreach (Account a in accounts)
                     {
                         if (a.Active)
@@ -38,7 +39,7 @@ namespace OptionView
                             twpositions.Add(a.ID, pos);
 
                             TWMargins mar = TastyWorks.MarginData(a.ID);
-                            twMarginReq.Add(a.ID, mar);
+                            twMarginData.Add(a.ID, mar);
                         }
                     }
 
@@ -97,8 +98,8 @@ namespace OptionView
 
                 //(new SQLiteCommand("DELETE FROM transactions WHERE 1=1", conn)).ExecuteNonQuery();
 
-                string sql = "INSERT INTO transactions(Time, LoadGroupID, TransType, TransSubType, TransID, Symbol, 'Buy-Sell', 'Open-Close', Quantity, ExpireDate, Strike, Type, Price, Fees, Amount, Description, Account)"
-                        + " Values(@tm,@lg,@tt,@tst,@tid,@sym,@buy,@op,@qu,@exp,@str,@ty,@pr,@fe,@am,@des,@acc)";
+                string sql = "INSERT INTO transactions(Time, LoadGroupID, TransType, TransSubType, TransID, Symbol, 'Buy-Sell', 'Open-Close', Quantity, ExpireDate, Strike, Type, Price, Fees, Amount, Description, Account, UnderlyingPrice)"
+                        + " Values(@tm,@lg,@tt,@tst,@tid,@sym,@buy,@op,@qu,@exp,@str,@ty,@pr,@fe,@am,@des,@acc,@up)";
 
                 SQLiteTransaction sqlTransaction = App.ConnStr.BeginTransaction();
 
@@ -124,6 +125,8 @@ namespace OptionView
                         cmd.Parameters.AddWithValue("am", record.Amount);
                         cmd.Parameters.AddWithValue("des", record.Description);
                         cmd.Parameters.AddWithValue("acc", record.AccountRef);
+                        decimal underlyingPrice = FindTWUnderlyingPrice(record.AccountRef, record.Symbol);
+                        cmd.Parameters.AddWithValue("up", underlyingPrice);
 
                         cmd.ExecuteNonQuery();
                     }
@@ -568,12 +571,26 @@ namespace OptionView
             Position pos = positions.ElementAt(0).Value;
 
             // this loop could be eliminated if the long symbol name gets persisted in database
-            foreach (KeyValuePair<string, TWMargin> p in twMarginReq[account])
+            foreach (KeyValuePair<string, TWMargin> p in twMarginData[account])
             {
                 TWMargin mar = p.Value;
                 if (pos.Symbol == mar.Symbol) 
                 {
                     return mar.CapitalRequirement;
+                }
+            }
+
+            return 0M;
+        }
+
+        private static decimal FindTWUnderlyingPrice(string account, string symbol)
+        {
+            foreach (KeyValuePair<string, TWMargin> p in twMarginData[account])
+            {
+                TWMargin mar = p.Value;
+                if (symbol == mar.Symbol)
+                {
+                    return mar.UnderlyingPrice;
                 }
             }
 

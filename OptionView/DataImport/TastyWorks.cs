@@ -52,6 +52,7 @@ namespace OptionView
     {
         public string Symbol { get; set; }
         public decimal CapitalRequirement { get; set; }
+        public decimal UnderlyingPrice { get; set; }
     }
     class TWMargins : Dictionary<string,TWMargin>
     {
@@ -290,6 +291,7 @@ namespace OptionView
                 TWMargin mar = new TWMargin()
                 {
                     Symbol = item["underlying-symbol"].ToString(),
+                    UnderlyingPrice = Convert.ToDecimal(item["underlying-price"]),
                     CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"])
                 };
                 retval.Add(mar.Symbol, mar);
@@ -368,6 +370,7 @@ namespace OptionView
                 TWMargin mar = new TWMargin()
                 {
                     Symbol = item["underlying-symbol"].ToString(),
+                    UnderlyingPrice = Convert.ToDecimal(item["underlying-price"]),
                     CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"])
                 };
                 acctCapRequirements.Add(symbol, mar);
