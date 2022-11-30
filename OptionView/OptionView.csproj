@@ -113,7 +113,6 @@
     <Compile Include="Config.cs" />
     <Compile Include="DataImport\DataFeed.cs" />
     <Compile Include="DataImport\DataLoader.cs" />
-    <Compile Include="DataImport\Quotes.cs" />
     <Compile Include="DataImport\SymbolDecoder.cs" />
     <Compile Include="DBUtilities.cs" />
     <Compile Include="Extensions.cs" />

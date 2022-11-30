@@ -21,6 +21,7 @@ namespace OptionView
         private TWMarketInfos twMarketInfo = null;                       // cache of IV data
         private Greeks optionGreeks = null;                              // cache of greek data
         private double SPYPrice = 0;
+        public double VIXPrice { get; set; } = 0;
         private Accounts accounts = null;
 
         public Portfolio()
@@ -217,9 +218,10 @@ namespace OptionView
                         //    Debug.WriteLine("Greek: {0}, Delta{1}", g.Key, g.Value.Delta);
                         //}
 
-                        List<string> pSymbols = new List<string> { "SPY" };
+                        List<string> pSymbols = new List<string> { "SPY", "VIX" };
                         Dictionary<string, double> prices = DataFeed.GetPrices(pSymbols);
                         if (prices.ContainsKey("SPY")) SPYPrice = prices["SPY"];
+                        if (prices.ContainsKey("VIX")) VIXPrice = prices["VIX"];
 
                     }
                 }

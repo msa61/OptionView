@@ -190,7 +190,7 @@ public MainWindow()
                 // display VIX
                 MetricsPanel.Children.Clear();
 
-                Decimal vix = Quotes.Get("^VIX");
+                Double vix = portfolio.VIXPrice;
                 string vixText = String.Format("VIX: {0} - ", vix);
                 if (vix <= 15) vixText += "25%";
                 else if (vix <= 20) vixText += "30%";
