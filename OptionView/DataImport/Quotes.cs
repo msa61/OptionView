@@ -26,6 +26,8 @@ namespace OptionView
 
             try
             {
+                App.UpdateLoadStatusMessage("Retrieving quote");
+
                 string url = "https://finance.yahoo.com/quote/" + symbol;
                 HtmlWeb web = new HtmlWeb();
                 HtmlDocument doc = web.Load(url);
