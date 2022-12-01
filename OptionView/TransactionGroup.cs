@@ -109,7 +109,7 @@ namespace OptionView
         }
 
 
-        public static int Combine(int destinationGroup, int combineGroup)
+        public static int Combine(int destinationGroup, int combineGroup, decimal newOrigCap)
         {
             Debug.WriteLine("Combine {0} into {1}", combineGroup, destinationGroup);
 
@@ -131,6 +131,13 @@ namespace OptionView
             sql = "DELETE FROM TransGroup Where ID = @id";
             cmdUpd = new SQLiteCommand(sql, App.ConnStr);
             cmdUpd.Parameters.AddWithValue("id", combineGroup);
+            retval = cmdUpd.ExecuteNonQuery();
+
+            // move any transaction from group to new group
+            sql = "UPDATE TransGroup SET OriginalCapRequired = @cr WHERE ID=@grp";
+            cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+            cmdUpd.Parameters.AddWithValue("cr", newOrigCap);
+            cmdUpd.Parameters.AddWithValue("grp", destinationGroup);
             retval = cmdUpd.ExecuteNonQuery();
 
             return 1; // combine completed

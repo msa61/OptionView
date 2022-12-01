@@ -839,7 +839,8 @@ public MainWindow()
         {
             Debug.WriteLine("Combine selected - tile id: " + combineRequestTag.ToString());
 
-            if (TransactionGroup.Combine(selectedTag, combineRequestTag) == 1)
+            decimal newOriginalCapReq = portfolio[selectedTag].OriginalCapitalRequired + portfolio[combineRequestTag].OriginalCapitalRequired;
+            if (TransactionGroup.Combine(selectedTag, combineRequestTag, newOriginalCapReq) == 1)
                 UpdateHoldingsTiles();
         }
 
