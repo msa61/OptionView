@@ -75,8 +75,8 @@ namespace OptionView
             string sql = "SELECT balance FROM history AS h ";
             sql += "INNER JOIN (SELECT DISTINCT strftime('%Y-%m-%d', date) AS day, rowid FROM ";
             sql += "(SELECT *, rowid FROM history WHERE account = @ac ORDER BY date DESC) ";
-            sql += "GROUP BY day) AS r ON h.rowid = r.rowid ";
-            sql += "LIMIT 11";
+            sql += "GROUP BY day ORDER BY day DESC LIMIT 11) AS r ON h.rowid = r.rowid ";
+            sql += "ORDER BY day";
 
             SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
             cmd.Parameters.AddWithValue("ac", account);
