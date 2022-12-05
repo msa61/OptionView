@@ -223,7 +223,7 @@ namespace OptionView
                 Positions positions = key.Value;
                 decimal total = SumAmounts(positions);
 
-                returnValue += String.Format("{0}   {1} for {2:C0} @ {3}\n", key.Key.ToString(), GetDescription(positions), total, GetUnderlying(positions));
+                returnValue += String.Format("{0}   {1} for {2:C0} {3}\n", key.Key.ToString(), GetDescription(positions), total, GetUnderlying(positions));
                 foreach (KeyValuePair<string, Position> pkey in positions)
                 {
                     Position pos = pkey.Value;
@@ -308,7 +308,7 @@ namespace OptionView
                 underlying = pos.UnderlyingPrice;
                 break;
             }
-            return (underlying > 0) ? underlying.ToString("C2") : "";
+            return (underlying > 0) ? (" @ " + underlying.ToString("C2")) : "";
         }
 
         // for the purposes of establishing profitability of position
