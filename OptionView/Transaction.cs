@@ -25,6 +25,7 @@ namespace OptionView
         public decimal Price { get; set; }
         public decimal Fees { get; set; }
         public int GroupID { get; set; }
+        public decimal UnderlyingPrice { get; set; }
 
 
         public Transaction()

@@ -10,6 +10,8 @@ using System.Data;
 using System.Data.SQLite;
 using System.Windows;
 using System.Security.Principal;
+using OptionView.DataImport;
+
 
 namespace OptionView
 {
@@ -126,6 +128,7 @@ namespace OptionView
                         cmd.Parameters.AddWithValue("des", record.Description);
                         cmd.Parameters.AddWithValue("acc", record.AccountRef);
                         decimal underlyingPrice = FindTWUnderlyingPrice(record.AccountRef, record.Symbol);
+                        if (underlyingPrice == 0) underlyingPrice = DataFeed.GetPrice(record.Symbol);  // this is necessary because underlying data won't exist after its closed
                         cmd.Parameters.AddWithValue("up", underlyingPrice);
 
                         cmd.ExecuteNonQuery();
@@ -639,7 +642,7 @@ namespace OptionView
                     if (process)
                     {
                         // add transaction to the chain
-                        string key = holdings.Add(symbol, type, expDate, strike, quantity, amount, null, row, openClose, grpID);
+                        string key = holdings.Add(symbol, type, expDate, strike, quantity, amount, null, row, openClose, grpID, 0);
                         Debug.WriteLine("    Opening transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString() + "   row: " + r.Field<Int64>("id").ToString());
 
                         // add the associated time to the hierarchy for chain

@@ -189,7 +189,7 @@ namespace OptionView
             SortedList<DateTime, Positions> data = new SortedList<DateTime, Positions>();
 
             // step thru open transactions
-            string sql = "SELECT datetime(time) AS Time, symbol, type, datetime(expiredate) AS ExpireDate, strike, quantity, amount, TransSubType FROM transactions";
+            string sql = "SELECT datetime(time) AS Time, symbol, type, datetime(expiredate) AS ExpireDate, strike, quantity, amount, TransSubType, UnderlyingPrice FROM transactions";
             sql += " WHERE (transgroupid = @gr) ORDER BY time";
             SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
             cmd.Parameters.AddWithValue("gr", this.GroupID);
@@ -211,8 +211,10 @@ namespace OptionView
                 decimal quantity = Convert.ToDecimal(reader["Quantity"]);
                 decimal amount = Convert.ToDecimal(reader["Amount"]);
                 string transType = reader["TransSubType"].ToString();
+                decimal underlyingPrice = 0;
+                if (reader["UnderlyingPrice"] != DBNull.Value) underlyingPrice = Convert.ToDecimal(reader["UnderlyingPrice"]);
 
-                data[time].Add(symbol, type, expDate, strike, quantity, amount, time, 0, transType, 0);
+                data[time].Add(symbol, type, expDate, strike, quantity, amount, time, 0, transType, 0, underlyingPrice);
             }
 
             string returnValue = "";
@@ -221,7 +223,7 @@ namespace OptionView
                 Positions positions = key.Value;
                 decimal total = SumAmounts(positions);
 
-                returnValue += String.Format("{0}   {1} for {2:C0}\n", key.Key.ToString(), GetDescription(positions), total);
+                returnValue += String.Format("{0}   {1} for {2:C0} @ {3}\n", key.Key.ToString(), GetDescription(positions), total, GetUnderlying(positions));
                 foreach (KeyValuePair<string, Position> pkey in positions)
                 {
                     Position pos = pkey.Value;
@@ -296,6 +298,18 @@ namespace OptionView
                 returnValue = "Rolled";
             return returnValue;
         }
+        private string GetUnderlying(Positions positions)
+        {
+            decimal underlying = 0;
+
+            foreach (KeyValuePair<string, Position> key in positions)
+            {
+                Position pos = key.Value;
+                underlying = pos.UnderlyingPrice;
+                break;
+            }
+            return (underlying > 0) ? underlying.ToString("C2") : "";
+        }
 
         // for the purposes of establishing profitability of position
         public Positions GetInitialPositions()
@@ -329,7 +343,7 @@ namespace OptionView
                     transTime = DateTime.SpecifyKind(transTime, DateTimeKind.Utc);
 
 
-                    allpos.Add(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, 0.0m, amount, transTime, 0, "", 0);
+                    allpos.Add(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, 0.0m, amount, transTime, 0, "", 0, 0);
                 }
 
                 // find first day of group

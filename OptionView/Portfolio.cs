@@ -129,7 +129,7 @@ namespace OptionView
                         if (reader["TransTime"] != DBNull.Value) transTime = Convert.ToDateTime(reader["TransTime"].ToString());
                         transTime = DateTime.SpecifyKind(transTime, DateTimeKind.Utc);
 
-                        grp.Holdings.Add(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, quantity, amount, transTime, 0, "", 0);
+                        grp.Holdings.Add(reader["symbol"].ToString(), reader["type"].ToString(), expDate, strike, quantity, amount, transTime, 0, "", 0, 0);
                     }
 
                     grp.EarliestExpiration = FindEarliestDate(grp.Holdings);
@@ -222,7 +222,7 @@ namespace OptionView
                         Dictionary<string, double> prices = DataFeed.GetPrices(pSymbols);
                         if (prices.ContainsKey("SPY")) SPYPrice = prices["SPY"];
                         if (prices.ContainsKey("VIX")) VIXPrice = prices["VIX"];
-
+                        
                     }
                 }
 
@@ -524,6 +524,7 @@ namespace OptionView
                         }
 
                         if (reader["Description"] != DBNull.Value) grp.TransactionText += reader["Description"].ToString() + System.Environment.NewLine;
+                        if (reader["UnderlyingPrice"] != DBNull.Value) t.UnderlyingPrice = Convert.ToDecimal(reader["UnderlyingPrice"]);
 
                         grp.Transactions.Add(t);
 
