@@ -99,6 +99,8 @@ namespace OptionView.DataImport
 
             try
             {
+                ReturnList.Clear();
+
                 subsciption = connection.CreateSubscription(EventType.Greeks, listener);
                 symbolCount = symbols.Count;
 
@@ -139,7 +141,7 @@ namespace OptionView.DataImport
             if (!ReturnPriceList.ContainsKey(sym)) ReturnPriceList.Add(sym, price);
         }
 
-        static public Dictionary<string,double> GetPrices(List<string> symbols)
+        static public Dictionary<string, double> GetPrices(List<string> symbols)
         {
             if (streaming == null) streaming = TastyWorks.StreamingInfo();
 
@@ -148,6 +150,8 @@ namespace OptionView.DataImport
 
             try
             {
+                ReturnPriceList.Clear();
+
                 subsciption = connection.CreateSubscription(EventType.Trade, listener);
                 symbolCount = symbols.Count;
 
@@ -181,6 +185,49 @@ namespace OptionView.DataImport
             return ReturnPriceList;
 
         }
+
+
+        static public decimal GetPrice(string symbol)
+        {
+            if (streaming == null) streaming = TastyWorks.StreamingInfo();
+
+            var listener = new TradeEventListener();
+            connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
+
+            try
+            {
+                ReturnPriceList.Clear();
+
+                subsciption = connection.CreateSubscription(EventType.Trade, listener);
+                symbolCount = 1;
+                subsciption.AddSymbol(symbol);
+
+                //Debug.WriteLine("waiting...");
+                int i = 100;
+                while ((symbolCount > 0) && (i > 0))
+                {
+                    Thread.Sleep(100);
+                    i--;
+                }
+                //Debug.WriteLine("done...");
+            }
+            catch (DxException dxException)
+            {
+                Debug.WriteLine($"Datafeed: Native exception occurred: {dxException.Message}");
+            }
+            catch (Exception exc)
+            {
+                Debug.WriteLine($"Datafeed: Exception occurred: {exc.Message}");
+            }
+            finally
+            {
+                subsciption?.Dispose();
+            }
+
+            return ReturnPriceList.ContainsKey(symbol) ? Convert.ToDecimal(ReturnPriceList[symbol]) : 0;
+        }
+
+
     }
 }
 
