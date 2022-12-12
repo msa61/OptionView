@@ -619,6 +619,12 @@
                             </ComboBox>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
+                        <StackPanel >
+                            <Label Content="Symbol" Margin="6,0,0,0" />
+                            <TextBox Name="txtSymbolFilter" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="True" KeyUp="txtSymbolFilter_KeyUp" CharacterCasing="Upper"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+
                         <!--
                         <StackPanel >
                             <ComboBox Name="cbtDateFilter" Margin="6" Text="None" SelectionChanged="ComboBox_TransactionsSelectionChanged" >
@@ -631,9 +637,15 @@
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         -->
+                        <StackPanel Background="Black" Margin="2,4,2,0">
+                            <DockPanel>
+                                <Label Content="Grouping" Margin="6,0,6,0" />
+                            </DockPanel>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
                         <StackPanel >
                             <DockPanel>
-                                <Label Content="Group:" Margin="6,0,6,0"  />
+                                <Label Content="By Group:" Margin="6,0,6,0"  />
                                 <CheckBox Name="chkGroupTransactions"  IsEnabled="True"  VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,12,0" Checked="TransactionsGroupClick" Click="TransactionsGroupClick" />
                             </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />

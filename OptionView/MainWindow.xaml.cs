@@ -1071,6 +1071,13 @@ public MainWindow()
             {
                 if ((accountNumber.Length > 0) && (t.Account != accountNumber))
                     ret = false;
+                else if (txtSymbolFilter.Text.Length > 0)
+                {
+                    if ((t.Symbol != null) && (t.Symbol.Length >= txtSymbolFilter.Text.Length) && (txtSymbolFilter.Text.ToUpper() == t.Symbol.Substring(0, txtSymbolFilter.Text.Length)))
+                        ret = true;
+                    else
+                        ret = false;
+                }
                 /*
                 else if ((dateTag == "LastYear") && ((t.EndTime < new DateTime(DateTime.Now.Year - 1, 1, 1)) || (t.EndTime >= new DateTime(DateTime.Now.Year, 1, 1))))
                     ret = false;
@@ -1107,6 +1114,12 @@ public MainWindow()
         //lcv.SortDescriptions.Clear();
 
         //lcv.SortDescriptions.Add(new SortDescription(grpName, ListSortDirection.Ascending));
+
+        private void txtSymbolFilter_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (transactionsGrid.ItemsSource != null)   // grid not initialized yet
+                CollectionViewSource.GetDefaultView(transactionsGrid.ItemsSource).Refresh();
+        }
 
 
 
