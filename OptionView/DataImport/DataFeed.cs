@@ -189,6 +189,8 @@ namespace OptionView.DataImport
 
         static public decimal GetPrice(string symbol)
         {
+            if (symbol == null) return 0;
+
             if (streaming == null) streaming = TastyWorks.StreamingInfo();
 
             var listener = new TradeEventListener();

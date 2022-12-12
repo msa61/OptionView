@@ -127,8 +127,12 @@ namespace OptionView
                         cmd.Parameters.AddWithValue("am", record.Amount);
                         cmd.Parameters.AddWithValue("des", record.Description);
                         cmd.Parameters.AddWithValue("acc", record.AccountRef);
-                        decimal underlyingPrice = FindTWUnderlyingPrice(record.AccountRef, record.Symbol);
-                        if (underlyingPrice == 0) underlyingPrice = DataFeed.GetPrice(record.Symbol);  // this is necessary because underlying data won't exist after its closed
+                        decimal underlyingPrice = 0;
+                        if (record.Symbol != null)  // need to skip for non-security transactions
+                        {
+                            underlyingPrice = FindTWUnderlyingPrice(record.AccountRef, record.Symbol);
+                            if (underlyingPrice == 0) underlyingPrice = DataFeed.GetPrice(record.Symbol);  // this is necessary because underlying data won't exist after its closed
+                        }
                         cmd.Parameters.AddWithValue("up", underlyingPrice);
 
                         cmd.ExecuteNonQuery();
