@@ -271,6 +271,22 @@ public MainWindow()
             return retval;
         }
 
+        private void OverviewPanel_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Cursor prev = this.Cursor;
+            this.Cursor = Cursors.Wait;
+
+            UpdateHoldingsTiles();
+            UpdateFooter();
+
+            if (MainTab.SelectedIndex == 1) UpdateAnalysisView();
+
+            this.Cursor = prev;
+        }
+
+
+
+
         private void UpdateHoldingsTiles()
         {
             App.UpdateLoadStatusMessage("Update tiles");
@@ -285,6 +301,8 @@ public MainWindow()
         private void DisplayTiles()
         {
             if (MainCanvas.Children.Count > 0) MainCanvas.Children.Clear();
+            ClearTransactionGroupDetails();
+
             foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
                 TransactionGroup grp = entry.Value;
@@ -695,6 +713,12 @@ public MainWindow()
         private void CanvasMouseDown(object sender, MouseButtonEventArgs e)
         {
             Debug.WriteLine("CanvasMouseDown: " + selectedTag + ": " + detailsDirty.ToString());
+            ClearTransactionGroupDetails();
+        }
+
+        private void ClearTransactionGroupDetails()
+        {
+            Debug.WriteLine("ClearTransactionGroupDetails: " + selectedTag + ": " + detailsDirty.ToString());
             if (adornerLayer != null && tileAdorner != null) adornerLayer.Remove(tileAdorner);
             if (selectedTag != 0 && detailsDirty) SaveTransactionGroupDetails(selectedTag);
             selectedTag = 0;

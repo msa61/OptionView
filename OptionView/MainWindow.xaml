@@ -749,7 +749,7 @@
             <Button DockPanel.Dock="Right" x:Name="Sync"  Width="59"  Height="30" Content="Sync"  Click="SyncButton" FontFamily="Trebuchet MS"/>
 
 
-            <StackPanel x:Name="OverviewPanel" Orientation="Vertical" DockPanel.Dock="Left" VerticalAlignment="Center" >
+            <StackPanel x:Name="OverviewPanel" Orientation="Vertical" DockPanel.Dock="Left" VerticalAlignment="Center" MouseUp="OverviewPanel_MouseUp">
                 <!--   
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Account" Width="100"    FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
