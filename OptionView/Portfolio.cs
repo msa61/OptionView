@@ -450,16 +450,25 @@ namespace OptionView
 
             return retval;
         }
-        public decimal GetAccountCapRequired(string acct = "")
+        public decimal GetAccountCapRequired(string acct = "", bool incStock = false)  // incStock == everything
         {
             decimal retval = 0;
             foreach (KeyValuePair<int, TransactionGroup> grpItem in this)
             {
                 TransactionGroup grp = grpItem.Value;
-                if ((grp.Account == acct) || (acct == "")) retval += grp.CapitalRequired;
+                if (((grp.Account == acct) || (acct == "")) && (incStock || !HasStock(grp.Holdings)))  retval += grp.CapitalRequired;
             }
 
             return retval;
+        }
+        private bool HasStock(Positions positions)
+        {
+            foreach (KeyValuePair<string,Position> pos in positions)
+            {
+                Position p = pos.Value;
+                if (p.Type == "Stock") return true;
+            }
+            return false;
         }
     }
 

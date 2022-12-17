@@ -108,6 +108,8 @@ public MainWindow()
                 decimal combinedChange = 0;
                 decimal combinedNetLiq = 0;
                 decimal combinedBP = 0;
+                decimal capReq;
+                decimal capReqAll;
                 foreach (Account a in accounts)
                 {
                     if (a.Active)
@@ -130,14 +132,16 @@ public MainWindow()
                         DecoratedValueLabel(sp, bal.NetLiq, change);
 
                         // 3rd column
-                        decimal capReq = portfolio.GetAccountCapRequired(a.ID);
-                        OverviewLabel(sp, capReq.ToString("C0"), 70);
+                        capReq = portfolio.GetAccountCapRequired(a.ID, false);
+                        capReqAll = portfolio.GetAccountCapRequired(a.ID, true);
+                        OverviewLabel(sp, capReq.ToString("C0"), 70, toolTip: ("With Stock: " + capReqAll.ToString("C0")));
 
                         SaveFooterData(a.Name, bal.NetLiq, capReq);  // save it now so that latest data will be included in the graphs
 
                         // 4th column
-                        decimal acctCommittedPercentage = (bal.NetLiq == 0) ? 0 : portfolio.GetAccountCapRequired(a.ID) / bal.NetLiq;
-                        OverviewLabel(sp, acctCommittedPercentage.ToString("P1"), 80);
+                        decimal acctCommittedPercentage = (bal.NetLiq == 0) ? 0 : capReq / bal.NetLiq;
+                        decimal acctCommittedPercentageAll = (bal.NetLiq == 0) ? 0 : capReqAll / bal.NetLiq;
+                        OverviewLabel(sp, acctCommittedPercentage.ToString("P1"), 80, toolTip: ("With Stock: " + acctCommittedPercentageAll.ToString("P1")));
 
                         // 5th column
                         OverviewLabel(sp, portfolio.GetWeightedDelta(a.ID).ToString("N0"), 60);
@@ -165,11 +169,14 @@ public MainWindow()
                 DecoratedValueLabel(sp, combinedNetLiq, combinedChange);
 
                 // 3rd column
-                OverviewLabel(sp, portfolio.GetAccountCapRequired().ToString("C0"), 70);
+                capReq = portfolio.GetAccountCapRequired();
+                capReqAll = portfolio.GetAccountCapRequired(incStock: true);
+                OverviewLabel(sp, capReq.ToString("C0"), 70, toolTip: ("With Stock: " + capReqAll.ToString("C0")));
 
                 // 4rd column
-                decimal committedPercentage = (combinedNetLiq == 0) ? 0 : portfolio.GetAccountCapRequired() / combinedNetLiq;
-                OverviewLabel(sp, committedPercentage.ToString("P1"), 80);
+                decimal committedPercentage = (combinedNetLiq == 0) ? 0 : capReq / combinedNetLiq;
+                decimal CommittedPercentageAll = (combinedNetLiq == 0) ? 0 : capReqAll / combinedNetLiq;
+                OverviewLabel(sp, committedPercentage.ToString("P1"), 80, toolTip: ("With Stock: " + CommittedPercentageAll.ToString("P1")));
 
                 // 5th column
                 OverviewLabel(sp, portfolio.GetWeightedDelta().ToString("N0"), 60);
@@ -221,7 +228,7 @@ public MainWindow()
 
         }
 
-        private Label OverviewLabel(StackPanel sp, string txt, int width = 0, int fontSize = 11)
+        private Label OverviewLabel(StackPanel sp, string txt, int width = 0, int fontSize = 11, string toolTip = "")
         {
             Label lb = new Label()
             {
@@ -233,6 +240,7 @@ public MainWindow()
             };
             if (width > 0) lb.Width = width;
             if (sp != null) sp.Children.Add(lb);
+            if (toolTip.Length > 0) lb.ToolTip= toolTip;
             return lb;
         }
 
