@@ -223,7 +223,12 @@ namespace OptionView
                 Positions positions = key.Value;
                 decimal total = SumAmounts(positions);
 
-                returnValue += String.Format("{0}   {1} for {2:C0} {3}\n", key.Key.ToString(), GetDescription(positions), total, GetUnderlying(positions));
+                string desc = GetDescription(positions);
+                if (desc == "Expired")
+                    returnValue += String.Format("{0}   {1} {2}\n", key.Key.ToString("d-MMM-yy H:mm:ss"), desc, GetUnderlying(positions));
+                else
+                    returnValue += String.Format("{0}   {1} for {2:C0} {3}\n", key.Key.ToString("d-MMM-yy H:mm:ss"), desc, total, GetUnderlying(positions));
+
                 foreach (KeyValuePair<string, Position> pkey in positions)
                 {
                     Position pos = pkey.Value;
@@ -241,6 +246,12 @@ namespace OptionView
                             break;
                         case "Sell to Close":
                             code = "STC";
+                            break;
+                        case "Expiration":
+                            code = "EXP";
+                            break;
+                        case "Assignment":
+                            code = "ASG";
                             break;
 
                     }
@@ -276,6 +287,8 @@ namespace OptionView
             int openCount = 0;
             int closeCount = 0;
             bool diffExpire = false;
+            bool expiration = false;
+            bool assignment = false;
             DateTime expDate = DateTime.MinValue;
 
             foreach (KeyValuePair<string, Position> key in positions)
@@ -286,12 +299,18 @@ namespace OptionView
                 if (expDate != pos.ExpDate) diffExpire = true;
                 if (pos.TransType.IndexOf("Open") >= 0) openCount++;
                 if (pos.TransType.IndexOf("Close") >= 0) closeCount++;
+                if (pos.TransType.IndexOf("Expiration") >= 0) expiration = true;
+                if (pos.TransType.IndexOf("Assignment") >= 0) assignment = true;
             }
 
-            if (closeCount == 0)
-                returnValue = "Open";
+            if (expiration)
+                returnValue = "Expired";
+            else if (assignment)
+                returnValue = "Assigned";
+            else if (closeCount == 0)
+                returnValue = "Opened";
             else if (openCount == 0)
-                returnValue = "Close";
+                returnValue = "Closed";
             else if (diffExpire)
                 returnValue = "Rolled Out";
             else if (!diffExpire)
