@@ -787,7 +787,7 @@ public MainWindow()
         {
             detailsDirty = true;
 
-            if (((Control)sender).Name == "txtStrategy") uiDirty = true;
+            if ((((Control)sender).Name == "txtStrategy") || (((Control)sender).Name == "dateAction")) uiDirty = true;
         }
         private void DateAction_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
