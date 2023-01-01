@@ -225,9 +225,18 @@ namespace OptionView
 
                 string desc = GetDescription(positions);
                 if (desc == "Expired")
+                {
                     returnValue += String.Format("{0}   {1} {2}\n", key.Key.ToString("d-MMM-yy H:mm:ss"), desc, GetUnderlying(positions));
+                }
+                else if (desc == "Dividend")
+                {
+                    returnValue += String.Format("{0}   {1} paid {2:C0}\n", key.Key.ToString("d-MMM-yy H:mm:ss"), desc, total);
+                    continue;
+                }
                 else
+                {
                     returnValue += String.Format("{0}   {1} for {2:C0} {3}\n", key.Key.ToString("d-MMM-yy H:mm:ss"), desc, total, GetUnderlying(positions));
+                }
 
                 foreach (KeyValuePair<string, Position> pkey in positions)
                 {
@@ -289,6 +298,7 @@ namespace OptionView
             bool diffExpire = false;
             bool expiration = false;
             bool assignment = false;
+            bool dividend = false;
             DateTime expDate = DateTime.MinValue;
 
             foreach (KeyValuePair<string, Position> key in positions)
@@ -301,12 +311,15 @@ namespace OptionView
                 if (pos.TransType.IndexOf("Close") >= 0) closeCount++;
                 if (pos.TransType.IndexOf("Expiration") >= 0) expiration = true;
                 if (pos.TransType.IndexOf("Assignment") >= 0) assignment = true;
+                if (pos.TransType.IndexOf("Dividend") >= 0) dividend = true;
             }
 
             if (expiration)
                 returnValue = "Expired";
             else if (assignment)
                 returnValue = "Assigned";
+            else if (dividend)
+                returnValue = "Dividend";
             else if (closeCount == 0)
                 returnValue = "Opened";
             else if (openCount == 0)
