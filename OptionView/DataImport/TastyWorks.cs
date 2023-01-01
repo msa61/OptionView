@@ -487,6 +487,13 @@ namespace OptionView
                         inst.ExpireDate = symbol.Expiration;
                         inst.Strike = symbol.Strike;
                     }
+                    if ((inst.TransactionCode == "Money Movement") && (inst.TransactionSubcode == "Dividend"))
+                    {
+                        inst.TransactionCode = "Dividend";
+                        inst.Symbol = item["underlying-symbol"].ToString();
+                        inst.InsType = "Dividend";
+                        inst.Quantity = 0;
+                    }
                     CompleteInstance(inst);
 
                     returnList.Add(inst);

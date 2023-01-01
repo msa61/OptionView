@@ -316,7 +316,7 @@ namespace OptionView
             int groupID = holdings.GroupID();
             Debug.WriteLine("GroupID: " + groupID.ToString());
 
-            // Collect remaining transactions that have been manually merged
+            // Collect remaining transactions that have been manually merged as they won't be processed in main path (skip altogether then groupID is 0 as this indicates new group)
             if (groupID > 0)
             {
                 DataRow[] remainingRows = dt.Select("TransGroupID = " + groupID.ToString());
@@ -333,19 +333,12 @@ namespace OptionView
 
             try
             {
-                if (groupID > 0)
+                if (groupID > 0)  // existing group
                 {
                     // update chain status
-                    if (!holdings.hasAssignment)
+
+                    if (holdings.hasAssignment)
                     {
-                        string sql = "UPDATE TransGroup SET Open = @op WHERE ID=@row";
-                        SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
-                        cmdUpd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
-                        cmdUpd.Parameters.AddWithValue("row", groupID);
-                        cmdUpd.ExecuteNonQuery();
-                    }
-                    else
-                    { 
                         // Add comment and todo when assigned
 
                         string newComments = "";
@@ -362,20 +355,25 @@ namespace OptionView
                             {
                                 if (newComments.Length > 0) newComments += "\n";
                                 newComments += stamp;
+
+                                sqlSel = "UPDATE TransGroup SET ActionDate = @dt, Comments = @cm WHERE ID=@row";
+                                cmd = new SQLiteCommand(sqlSel, App.ConnStr);
+                                cmd.Parameters.AddWithValue("dt", DateTime.Today);
+                                cmd.Parameters.AddWithValue("cm", newComments);
+                                cmd.Parameters.AddWithValue("row", groupID);
+                                cmd.ExecuteNonQuery();
                             }
                         }
-
-                        string sql = "UPDATE TransGroup SET Open = @op, ActionDate = @dt, Comments = @cm WHERE ID=@row";
-                        SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
-                        cmdUpd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
-                        cmdUpd.Parameters.AddWithValue("dt", DateTime.Today);
-                        cmdUpd.Parameters.AddWithValue("cm", newComments);
-                        cmdUpd.Parameters.AddWithValue("row", groupID);
-                        cmdUpd.ExecuteNonQuery();
                     }
 
+                    // update regardless of assignments
+                    string sql = "UPDATE TransGroup SET Open = @op WHERE ID=@row";
+                    SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                    cmdUpd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
+                    cmdUpd.Parameters.AddWithValue("row", groupID);
+                    cmdUpd.ExecuteNonQuery();
                 }
-                else
+                else  // new group
                 {
                     string sql = "INSERT INTO TransGroup(Account, Symbol, Open, Strategy, DefinedRisk, NeutralStrategy, CapitalRequired, OriginalCapRequired, Risk) Values(@ac,@sym,@op,@str,@dr,@ns,@cap,@cap2,@rsk)";
                     SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
@@ -627,7 +625,8 @@ namespace OptionView
                 decimal amount = 0;
                 if (r["Amount"] != DBNull.Value) amount = (decimal)r.Field<Double>("Amount");
                 Int32 row = (Int32)r.Field<Int64>("ID");
-                string openClose = r.Field<string>("Open-Close").ToString();
+                string openClose = "";
+                if (r["Open-Close"] != DBNull.Value) openClose = r.Field<string>("Open-Close").ToString();
                 int grpID = 0;
                 if (r["TransGroupID"] != DBNull.Value) grpID = (int)r.Field<Int64>("TransGroupID");
 
@@ -653,6 +652,33 @@ namespace OptionView
                         if (!times.ContainsKey(time)) times.Add(time, time);
                         somethingAdded = true;
                     }
+                }
+                else if (type == "Dividend")
+                {
+                    // find stock of same symbol in an open position
+                    string sql = "SELECT t.TransGroupID FROM transactions AS t LEFT JOIN transgroup AS tg ON transgroupid = tg.id WHERE tg.Open = 1 AND t.Account = @ac AND t.Symbol = @sym AND t.Type = 'Stock'";
+                    SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+                    cmd.Parameters.AddWithValue("ac", account);
+                    cmd.Parameters.AddWithValue("sym", symbol);
+                    var obj = cmd.ExecuteScalar();
+
+                    if (obj != DBNull.Value)    // if stock found
+                    {
+                        int groupID = Convert.ToInt32(obj);
+
+                        // update row with dividend with matching transaction group
+                        sql = "UPDATE transactions SET TransGroupID = @id WHERE ID=@row";
+                        SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                        cmdUpd.Parameters.AddWithValue("id", groupID);
+                        cmdUpd.Parameters.AddWithValue("row", r.Field<Int64>("ID"));
+                        cmdUpd.ExecuteNonQuery();
+                    }
+
+                    // remove row from table immediately (so that i will be ignored in remaining processing)
+                    r.Delete();
+                    i--;
+                    dt.AcceptChanges();
+                    rows = dt.Select("TransTime = '" + time + "'");
                 }
             }
 
