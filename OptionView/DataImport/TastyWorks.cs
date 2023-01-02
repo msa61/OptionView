@@ -416,7 +416,10 @@ namespace OptionView
                 inst.ExpDate = symbol.Expiration;
                 inst.Strike = symbol.Strike;
 
-                inst.ShortOptionSymbol = string.Format(".{0}{1:yyMMdd}{2}{3}", inst.Symbol, inst.ExpDate, inst.Type.Substring(0, 1), inst.Strike);
+                if (inst.Type == "Stock")
+                    inst.ShortOptionSymbol = inst.Symbol;
+                else
+                    inst.ShortOptionSymbol = string.Format(".{0}{1:yyMMdd}{2}{3}", inst.Symbol, inst.ExpDate, inst.Type.Substring(0, 1), inst.Strike);
 
                 returnList.Add(inst.OptionSymbol.Length > 0 ? inst.OptionSymbol : inst.Symbol, inst);
             }

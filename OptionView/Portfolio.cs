@@ -255,7 +255,11 @@ namespace OptionView
                                 // update groups order status based on any of items constituent holdings
                                 grp.OrderActive = twpos.OrderActive;
 
-                                if (optionGreeks.ContainsKey(twpos.ShortOptionSymbol))
+                                if (pos.Type == "Stock")
+                                {
+                                    grp.GreekData.Delta += Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);  // delta is 1 per share
+                                }
+                                else if (optionGreeks.ContainsKey(twpos.ShortOptionSymbol))
                                 {
                                     pos.GreekData = optionGreeks[twpos.ShortOptionSymbol];
 
