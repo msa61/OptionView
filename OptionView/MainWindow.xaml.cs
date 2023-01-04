@@ -589,7 +589,14 @@ public MainWindow()
                         {
                             Position p = item.Value;
                             if (p.Type == "Stock")
+                            {
                                 details += String.Format("{0,2} {1}", p.Quantity, p.Type) + System.Environment.NewLine;
+
+                                if (p.Quantity < 0)
+                                    snapShot.ShortStock = - grp.Cost / p.Quantity;
+                                else
+                                    snapShot.LongStock = - grp.Cost / p.Quantity;
+                            }
                             else
                             {
                                 details += String.Format("{0,2} {1} {2} {3:MMMd}", p.Quantity, p.Type.Substring(0, 1), p.Strike, p.ExpDate) + System.Environment.NewLine;

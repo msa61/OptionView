@@ -27,6 +27,8 @@ namespace OptionView
         public decimal LongPut { get; set; }
         public decimal ShortCall { get; set; }
         public decimal LongCall { get; set; }
+        public decimal LongStock { get; set; }
+        public decimal ShortStock { get; set; }
         public string DeltaText { get; set; } = "";
         public Brush DeltaColor { get; set; }
         
@@ -54,8 +56,10 @@ namespace OptionView
             this.Price = 0;
             this.ShortCall = 0;
             this.ShortPut = 0;
+            this.ShortStock = 0;
             this.LongCall = 0;
             this.LongPut = 0;
+            this.LongStock = 0;
             this.DeltaText = "";
             this.DeltaColor = null;
         }
@@ -115,22 +119,28 @@ namespace OptionView
                 Width = 8,
                 Height = 8,
                 Stroke = highlightPrice ? Brushes.Red : Brushes.Blue,
-                StrokeThickness = 2
+                StrokeThickness = 2,
+                ToolTip = Price.ToString("C2")
             };
             Canvas.SetTop(circ, (CtlHeight / 2) - 4);
             Canvas.SetLeft(circ, Convert.ToInt32(Scale(Price)));  // current price
             c.Children.Add(circ);
 
 
-            if (LongPut > 0) AddPointer(c, "P", Scale(LongPut), false, false);
-            if (ShortPut > 0) AddPointer(c, "P", Scale(ShortPut), true, false);
+            if (LongPut > 0) AddPointer(c, "P", LongPut, false, false);
+            if (ShortPut > 0) AddPointer(c, "P", ShortPut, true, false);
 
-            if (ShortCall > 0) AddPointer(c, "C", Scale(ShortCall), true, (ShortCall == ShortPut));
-            if (LongCall > 0) AddPointer(c, "C", Scale(LongCall), false, (LongCall == LongPut));
+            if (LongCall > 0) AddPointer(c, "C", LongCall, false, (LongCall == LongPut));
+            if (ShortCall > 0) AddPointer(c, "C", ShortCall, true, (ShortCall == ShortPut));
+
+            if (LongStock > 0) AddPointer(c, "S", LongStock, false, (LongStock == LongPut) || (LongStock == LongCall));
+            if (ShortStock > 0) AddPointer(c, "S", ShortStock, true, (ShortStock == ShortPut) || (ShortStock == ShortCall));
         }
 
-        private void AddPointer(Canvas c, string txt, double left, bool isShortSym, bool isOffset)
+        private void AddPointer(Canvas c, string txt, decimal val, bool isShortSym, bool isOffset)
         {
+            double left = Scale(val);
+
             double offset = 0;
             if (isOffset)
             {
@@ -151,7 +161,8 @@ namespace OptionView
                 FontSize = 9,
                 Foreground = Brushes.White,
                 FontWeight = FontWeights.Bold,
-                TextAlignment = TextAlignment.Center
+                TextAlignment = TextAlignment.Center,
+                ToolTip = val.ToString("C2")
             };
             double top = (this.CtlHeight / 2) + (isShortSym ? 4 : -17) + offset;
             Canvas.SetTop(t, top);
@@ -161,7 +172,7 @@ namespace OptionView
 
         private bool InitializeScale()
         {
-            List<decimal> vals = new List<decimal>() { Price, ShortPut, LongPut, ShortCall, LongCall };
+            List<decimal> vals = new List<decimal>() { Price, ShortPut, LongPut, ShortCall, LongCall, ShortStock, LongStock };
             vals.RemoveAll(i => i == 0);
             if (vals.Count < 2)
             {
