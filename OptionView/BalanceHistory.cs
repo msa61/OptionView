@@ -75,8 +75,8 @@ namespace OptionView
             string sql = "SELECT balance FROM history AS h ";
             sql += "INNER JOIN (SELECT DISTINCT strftime('%Y-%m-%d', date) AS day, rowid FROM ";
             sql += "(SELECT *, rowid, CAST(strftime('%w', date) AS Integer) as DoW FROM history ";
-            sql += "WHERE account = @ac AND  DoW > 0 AND DoW < 6 ORDER BY date DESC) ";
-            sql += "GROUP BY day ORDER BY day DESC LIMIT 11) AS r ON h.rowid = r.rowid ";
+            sql += "WHERE account = @ac AND  DoW > 0 AND DoW < 6 AND date < date('now') ORDER BY date DESC) ";
+            sql += "GROUP BY day HAVING max(rowid) ORDER BY day DESC LIMIT 11) AS r ON h.rowid = r.rowid ";
             sql += "ORDER BY day";
 
             SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
