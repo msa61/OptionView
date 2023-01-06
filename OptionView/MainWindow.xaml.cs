@@ -150,7 +150,10 @@ public MainWindow()
                         OverviewLabel(sp, portfolio.GetTheta(a.ID).ToString("C0"), 60);
 
                         // 7th column
-                        sp.Children.Add(new LineGraph(BalanceHistory.Get(a.Name)));
+                        LineGraph lg = new LineGraph(BalanceHistory.Get(a.Name));
+                        List<decimal> minMax = BalanceHistory.YTDMinMax(a.Name);
+                        lg.ToolTip = String.Format("YTD Min: {0:C2}\nYTD Max: {1:C2}", minMax[0], minMax[1]);
+                        sp.Children.Add(lg);
 
                         // 8th column
                         sp.Children.Add(new WinLossGraph(BalanceHistory.GetChange(a.Name)));

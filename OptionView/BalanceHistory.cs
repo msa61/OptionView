@@ -47,7 +47,7 @@ namespace OptionView
 
             if (tm.AddHours(4) < DateTime.Now)
             {
-                string sql = "INSERT INTO History(Date, Account, Balance, CapitalRequired) Values(@dt,@ac,@ba,@cr)";
+                string sql = "INSERT INTO History(Date, Account, Balance, CapitalRequired) Values (@dt,@ac,@ba,@cr)";
                 SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
                 cmd.Parameters.AddWithValue("dt", DateTime.Now);
                 cmd.Parameters.AddWithValue("ac", account);
@@ -144,9 +144,28 @@ namespace OptionView
             return retval;
         }
 
+        public static List<decimal> YTDMinMax(string account)
+        {
+            List<decimal> retval = new List<decimal>();
+
+            OpenConnection();
+
+            string sql = "SELECT Min(balance) as MinBalance, Max(balance) as MaxBalance FROM history ";
+            sql += "WHERE account = @ac AND strftime('%Y',date) = strftime('%Y', date('now'))";
+
+            SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
+            cmd.Parameters.AddWithValue("ac", account);
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                if (reader["MinBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(0));
+                if (reader["MaxBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(1));
+            }
+            CloseConnection();
+
+            return retval;
+        }
 
     }
-
-
 
 }
