@@ -213,6 +213,8 @@ namespace OptionView
                         twMarketInfo = TastyWorks.MarketInfo(symbols);  // get IV's
                         optionGreeks = DataFeed.GetGreeks(optionSymbols);
 
+                        Dictionary<string, double> tmp = DataFeed.GetPrices(optionSymbols);
+                        
                         //foreach (KeyValuePair<string, Greek> g in optionGreeks)
                         //{
                         //    Debug.WriteLine("Greek: {0}, Delta{1}", g.Key, g.Value.Delta);
