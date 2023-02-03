@@ -27,6 +27,17 @@ namespace OptionView.DataImport
 
     public class Greeks : Dictionary<string,Greek>
     {
+        public Greeks ()
+        {
+
+        }
+        public Greeks (Dictionary<string,Greek> list)
+        {
+            foreach (KeyValuePair<string,Greek> pair in list)
+            {
+                this.Add(pair.Key, pair.Value);
+            }
+        }
     }
 
 
@@ -131,7 +142,7 @@ namespace OptionView.DataImport
                 subsciption?.Dispose();
             }
 
-            return ReturnList;
+            return new Greeks(ReturnList);
 
         }
 
@@ -182,7 +193,7 @@ namespace OptionView.DataImport
                 subsciption?.Dispose();
             }
 
-            return ReturnPriceList;
+            return new Dictionary<string, double>(ReturnPriceList);
 
         }
 
