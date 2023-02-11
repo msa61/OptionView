@@ -55,6 +55,19 @@ namespace OptionView
                 cmd.Parameters.AddWithValue("cr", capRequired);
                 cmd.ExecuteNonQuery();
             }
+
+            CloseConnection();
+        }
+
+        public static void TimeStamp ()
+        {
+            OpenConnection();
+
+            string sql = "INSERT INTO UpdateHistory(TimeStamp) Values (@dt)";
+            SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
+            cmd.Parameters.AddWithValue("dt", DateTime.Now);
+            cmd.ExecuteNonQuery();
+
             CloseConnection();
         }
 

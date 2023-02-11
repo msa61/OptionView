@@ -19,11 +19,13 @@ namespace OptionView
         public static SQLiteConnection ConnStr = null;
         private static LoadingWindow loadWindow = null;
         public static bool OfflineMode = false;
+        public static bool DataRefreshMode = false;
 
 
         private void OnStartup(object sender, StartupEventArgs e)
         {
             if ((e.Args.Count() > 0) && (e.Args[0].ToLower() == "offline")) OfflineMode = true;
+            if ((e.Args.Count() > 0) && (e.Args[0].ToLower() == "refresh")) DataRefreshMode = true;
 
             loadWindow = new LoadingWindow();
             loadWindow.Show();

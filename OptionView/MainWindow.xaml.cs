@@ -54,6 +54,8 @@ public MainWindow()
 
             LoadDynamicComboBoxes();
             RestorePreviousSession();
+
+            if (App.DataRefreshMode) System.Windows.Application.Current.Shutdown();
         }
 
         private void InitializeApp()
@@ -210,6 +212,8 @@ public MainWindow()
                 vixText += " allocation";
 
                 OverviewLabel(MetricsPanel, vixText, 0, 16);
+
+                BalanceHistory.TimeStamp();
             }
             catch (Exception e)
             {
