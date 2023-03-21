@@ -308,6 +308,7 @@ public MainWindow()
 
             portfolio = new Portfolio();
             portfolio.GetCurrentHoldings(accounts);
+            BalanceHistory.WriteGroups(portfolio);
             DisplayTiles();
         }
 
@@ -472,6 +473,9 @@ public MainWindow()
                         suf += (price < 0) ? " (Debit)" : " (Credit)";
                         ttText += suf;
                     }
+
+List<decimal> vals = BalanceHistory.GetGroup(grp);
+
 
                     ToolTip tt = new ToolTip() { HasDropShadow = true };
                     tt.Content = ttText;

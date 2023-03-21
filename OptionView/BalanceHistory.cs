@@ -47,7 +47,7 @@ namespace OptionView
 
             if (tm.AddHours(4) < DateTime.Now)
             {
-                string sql = "INSERT INTO History(Date, Account, Balance, CapitalRequired) Values (@dt,@ac,@ba,@cr)";
+                string sql = "INSERT INTO AccountHistory(Date, Account, Balance, CapitalRequired) Values (@dt,@ac,@ba,@cr)";
                 SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
                 cmd.Parameters.AddWithValue("dt", DateTime.Now);
                 cmd.Parameters.AddWithValue("ac", account);
@@ -73,7 +73,7 @@ namespace OptionView
 
         public static DateTime GetLastEntry(string account)
         {
-            SQLiteCommand cmd = new SQLiteCommand("SELECT Max(Date) FROM history Where Account = @ac", ConnStr);
+            SQLiteCommand cmd = new SQLiteCommand("SELECT Max(Date) FROM AccountHistory Where Account = @ac", ConnStr);
             cmd.Parameters.AddWithValue("ac", account);
             var obj = cmd.ExecuteScalar();
             return (obj == DBNull.Value) ? DateTime.MinValue : Convert.ToDateTime(obj);
@@ -85,10 +85,10 @@ namespace OptionView
 
             OpenConnection();
 
-            string sql = "SELECT balance FROM history AS h ";
+            string sql = "SELECT balance FROM AccountHistory AS h ";
             sql += "INNER JOIN (SELECT DISTINCT strftime('%Y-%m-%d', date) AS day, rowid FROM ";
-            sql += "(SELECT *, rowid, CAST(strftime('%w', date) AS Integer) as DoW FROM history ";
-            sql += "WHERE account = @ac AND  DoW > 0 AND DoW < 6 AND date < date('now') ORDER BY date DESC) ";
+            sql += "(SELECT *, rowid, CAST(strftime('%w', date) AS Integer) as DoW FROM AccountHistory ";
+            sql += "WHERE account = @ac AND  DoW > 0 AND DoW < 6 AND date < datetime('now') ORDER BY date DESC) ";
             sql += "GROUP BY day HAVING max(rowid) ORDER BY day DESC LIMIT 11) AS r ON h.rowid = r.rowid ";
             sql += "ORDER BY day";
 
@@ -163,7 +163,7 @@ namespace OptionView
 
             OpenConnection();
 
-            string sql = "SELECT Min(balance) as MinBalance, Max(balance) as MaxBalance FROM history ";
+            string sql = "SELECT Min(balance) as MinBalance, Max(balance) as MaxBalance FROM AccountHistory ";
             sql += "WHERE account = @ac AND strftime('%Y',date) = strftime('%Y', date('now'))";
 
             SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
@@ -173,6 +173,72 @@ namespace OptionView
             {
                 if (reader["MinBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(0));
                 if (reader["MaxBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(1));
+            }
+            CloseConnection();
+
+            return retval;
+        }
+
+
+
+        public static void WriteGroups(Portfolio portfolio)
+        {
+            OpenConnection();
+            DateTime tm = GetLastGroupEntry();
+
+            if (tm.AddHours(2) < DateTime.Now)
+            {
+                foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
+                {
+                    TransactionGroup grp = entry.Value;
+
+                    // skip this if there isn't a current value
+                    if (grp.CurrentValue != null)
+                    {
+                        decimal value = (grp.CurrentValue ?? 0) + grp.Cost;
+
+                        string sql = "INSERT INTO GroupHistory(Date, GroupID, Value) Values (@dt,@id,@va)";
+                        SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
+                        cmd.Parameters.AddWithValue("dt", DateTime.Now);
+                        cmd.Parameters.AddWithValue("id", grp.GroupID);
+                        cmd.Parameters.AddWithValue("va", value);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+
+            CloseConnection();
+        }
+
+        public static DateTime GetLastGroupEntry()
+        {
+            SQLiteCommand cmd = new SQLiteCommand("SELECT Max(Date) FROM GroupHistory", ConnStr);
+            var obj = cmd.ExecuteScalar();
+            return (obj == DBNull.Value) ? DateTime.MinValue : Convert.ToDateTime(obj);
+        }
+
+        public static List<decimal> GetGroup(int grpID)
+        {
+            List<decimal> retval = new List<decimal>();
+
+            OpenConnection();
+
+            string sql = "SELECT value FROM GroupHistory AS h ";
+            sql += "INNER JOIN (SELECT DISTINCT strftime('%Y-%m-%d', date) AS day, rowid FROM ";
+            sql += "(SELECT *, rowid, CAST(strftime('%w', date) AS Integer) as DoW FROM GroupHistory ";
+            sql += "WHERE GroupID = @grp AND  DoW > 0 AND DoW < 6 AND date < datetime('now') ORDER BY date DESC) ";
+            sql += "GROUP BY day HAVING max(rowid) ORDER BY day DESC) AS r ON h.rowid = r.rowid ";
+            sql += "ORDER BY day";
+
+            SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
+            cmd.Parameters.AddWithValue("grp", grpID);
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                decimal val = 0;
+                if (reader["Value"] != DBNull.Value) val = reader.GetDecimal(0);
+
+                if (val != 0) retval.Add(val);
             }
             CloseConnection();
 

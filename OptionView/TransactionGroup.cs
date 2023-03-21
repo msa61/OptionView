@@ -41,7 +41,7 @@ namespace OptionView
         public string TransactionText { get; set; }
         public string Account { get; set; }
         public string AccountName { get; set; }
-        public decimal? CurrentValue { get; set; } = null;
+        public decimal? CurrentValue { get; set; } = null;  // null when no longer in portfolio
         public decimal PreviousCloseValue { get; set; }
         public decimal ChangeFromPreviousClose { get; set; }
         public decimal UnderlyingPrice { get; set; }
