@@ -14,7 +14,6 @@ namespace OptionView
         public List<int> Rows { get; set; }
         public decimal Market { get; set; }
         public decimal Multiplier { get; set; }
-        public decimal UnderlyingPrice { get; set; }
         public string ShortOptionSymbol { get; set; }
 
         public Position ()
