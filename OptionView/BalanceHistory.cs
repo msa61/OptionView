@@ -13,6 +13,14 @@ using System.Security.Principal;
 
 namespace OptionView
 {
+    public class GroupHistoryValues
+    {
+        public DateTime Time { get; set; }
+        public decimal Value { get; set; }
+        public decimal Underlying { get; set; }
+    }
+
+
     internal class BalanceHistory
     {
         private static SQLiteConnection ConnStr = null;
@@ -197,11 +205,12 @@ namespace OptionView
                     {
                         decimal value = (grp.CurrentValue ?? 0) + grp.Cost;
 
-                        string sql = "INSERT INTO GroupHistory(Date, GroupID, Value) Values (@dt,@id,@va)";
+                        string sql = "INSERT INTO GroupHistory(Date, GroupID, Value, Underlying) Values (@dt,@id,@va,@ul)";
                         SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
                         cmd.Parameters.AddWithValue("dt", DateTime.Now);
                         cmd.Parameters.AddWithValue("id", grp.GroupID);
                         cmd.Parameters.AddWithValue("va", value);
+                        cmd.Parameters.AddWithValue("ul", grp.UnderlyingPrice);
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -217,13 +226,13 @@ namespace OptionView
             return (obj == DBNull.Value) ? DateTime.MinValue : Convert.ToDateTime(obj);
         }
 
-        public static List<decimal> GetGroup(int grpID)
+        public static List<GroupHistoryValues> GetGroup(int grpID)
         {
-            List<decimal> retval = new List<decimal>();
+            List<GroupHistoryValues> retval = new List<GroupHistoryValues>();
 
             OpenConnection();
 
-            string sql = "SELECT value FROM GroupHistory AS h ";
+            string sql = "SELECT date, value, underlying FROM GroupHistory AS h ";
             sql += "INNER JOIN (SELECT DISTINCT strftime('%Y-%m-%d', date) AS day, rowid FROM ";
             sql += "(SELECT *, rowid, CAST(strftime('%w', date) AS Integer) as DoW FROM GroupHistory ";
             sql += "WHERE GroupID = @grp AND  DoW > 0 AND DoW < 6 AND date < datetime('now') ORDER BY date DESC) ";
@@ -235,10 +244,12 @@ namespace OptionView
             SQLiteDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                decimal val = 0;
-                if (reader["Value"] != DBNull.Value) val = reader.GetDecimal(0);
+                GroupHistoryValues val = new GroupHistoryValues();
+                val.Time  = reader.GetDateTime(0);
+                if (reader["Value"] != DBNull.Value) val.Value = reader.GetDecimal(1);
+                if (reader["Underlying"] != DBNull.Value) val.Underlying = reader.GetDecimal(2);
 
-                if (val != 0) retval.Add(val);
+                if (val.Value != 0) retval.Add(val);
             }
             CloseConnection();
 
