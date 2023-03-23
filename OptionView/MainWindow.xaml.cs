@@ -474,11 +474,37 @@ public MainWindow()
                         ttText += suf;
                     }
 
-List<decimal> vals = BalanceHistory.GetGroup(grp);
+                    StackPanel sp = new StackPanel()
+                    {
+                        Orientation = Orientation.Vertical,
+                        Background = Brushes.Transparent
+                    };
+
+                    TextBlock txtBlk = new TextBlock()
+                    {
+                        Text = ttText,
+                        Margin = new Thickness(5,5,5,5)
+                    };
+                    sp.Children.Add(txtBlk);
+
+                    Line l = new Line()
+                    {
+                        X1 = 5,
+                        Y1 = 5,
+                        X2 = 315,
+                        Y2 = 5,
+                        Stroke = Brushes.DarkGray,
+                        StrokeThickness = 1
+                    };
+                    sp.Children.Add(l);
+
+                    List<GroupHistoryValues> vals = BalanceHistory.GetGroup(grp);
+                    sp.Children.Add(new GroupGraph(vals));
 
 
                     ToolTip tt = new ToolTip() { HasDropShadow = true };
-                    tt.Content = ttText;
+                    tt.Content = sp;
+
                     grid.ToolTip = tt;
                 }
             }

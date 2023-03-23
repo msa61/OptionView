@@ -116,6 +116,9 @@
     <Compile Include="DataImport\SymbolDecoder.cs" />
     <Compile Include="DBUtilities.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="GroupGraph.xaml.cs">
+      <DependentUpon>GroupGraph.xaml</DependentUpon>
+    </Compile>
     <Compile Include="LineGraph.xaml.cs">
       <DependentUpon>LineGraph.xaml</DependentUpon>
     </Compile>
@@ -145,6 +148,10 @@
     <Compile Include="WinLossGraph.xaml.cs">
       <DependentUpon>WinLossGraph.xaml</DependentUpon>
     </Compile>
+    <Page Include="GroupGraph.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="LineGraph.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

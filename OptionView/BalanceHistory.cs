@@ -10,6 +10,7 @@ using System.IO;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Windows.Controls;
 using System.Security.Principal;
+using System.Windows.Controls.Primitives;
 
 namespace OptionView
 {
@@ -232,12 +233,16 @@ namespace OptionView
 
             OpenConnection();
 
-            string sql = "SELECT date, value, underlying FROM GroupHistory AS h ";
-            sql += "INNER JOIN (SELECT DISTINCT strftime('%Y-%m-%d', date) AS day, rowid FROM ";
-            sql += "(SELECT *, rowid, CAST(strftime('%w', date) AS Integer) as DoW FROM GroupHistory ";
-            sql += "WHERE GroupID = @grp AND  DoW > 0 AND DoW < 6 AND date < datetime('now') ORDER BY date DESC) ";
-            sql += "GROUP BY day HAVING max(rowid) ORDER BY day DESC) AS r ON h.rowid = r.rowid ";
-            sql += "ORDER BY day";
+            // last record of the day (and only week days)
+            //string sql = "SELECT date, value, underlying FROM GroupHistory AS h ";
+            //sql += "INNER JOIN (SELECT DISTINCT strftime('%Y-%m-%d', date) AS day, rowid FROM ";
+            //sql += "(SELECT *, rowid, CAST(strftime('%w', date) AS Integer) as DoW FROM GroupHistory ";
+            //sql += "WHERE GroupID = @grp AND  DoW > 0 AND DoW < 6 AND date < datetime('now') ORDER BY date DESC) ";
+            //sql += "GROUP BY day HAVING max(rowid) ORDER BY day DESC) AS r ON h.rowid = r.rowid ";
+            //sql += "ORDER BY day";
+
+            // all records
+            string sql = "SELECT date, value, underlying FROM GroupHistory WHERE GroupID = @grp ORDER BY date";
 
             SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
             cmd.Parameters.AddWithValue("grp", grpID);
@@ -249,7 +254,7 @@ namespace OptionView
                 if (reader["Value"] != DBNull.Value) val.Value = reader.GetDecimal(1);
                 if (reader["Underlying"] != DBNull.Value) val.Underlying = reader.GetDecimal(2);
 
-                if (val.Value != 0) retval.Add(val);
+                retval.Add(val);
             }
             CloseConnection();
 
