@@ -40,6 +40,7 @@ namespace OptionView
                             TWPositions pos = TastyWorks.Positions(a.ID);
                             twpositions.Add(a.ID, pos);
 
+                            // retrieve the current capital requirement and underlying price
                             TWMargins mar = TastyWorks.MarginData(a.ID);
                             twMarginData.Add(a.ID, mar);
                         }
@@ -66,7 +67,7 @@ namespace OptionView
                         }
                     }
 
-                    UpdateNewTransactions();  // matches unassociated asignments and exercises
+                    UpdateNewTransactions();  // matches unassociated assignments and exercises
 
                 }
                 else
