@@ -586,13 +586,9 @@ namespace OptionView
         private static void SetHeaders (string token)
         {
             Web.Headers[HttpRequestHeader.ContentType] = "application/json";
-            Web.Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate, br";
             Web.Headers[HttpRequestHeader.Authorization] = (token ?? "null");
-            Web.Headers[HttpRequestHeader.Referer] = "https://trade.tastyworks.com/tw";
             Web.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)";
             Web.Headers[HttpRequestHeader.Accept] = "application/json";
-
-            if (Web.Headers["Origin"] == null) Web.Headers.Add("Origin", "https://trade.tastyworks.com");
         }
 
 
