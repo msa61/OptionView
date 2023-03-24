@@ -312,7 +312,6 @@ namespace OptionView
                 List<decimal> strikes = new List<decimal>();
                 if (v.Calls != null) strikes = strikes.Concat(v.Calls).ToList();
                 if (v.Puts != null) strikes = strikes.Concat(v.Puts).ToList();
-                strikes.RemoveAll(item => item == null);
 
                 prices = prices.Concat(strikes).ToList();
             }
