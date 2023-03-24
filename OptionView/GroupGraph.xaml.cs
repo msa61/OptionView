@@ -42,13 +42,12 @@ namespace OptionView
         {
             Left,
             Right,
-            Bottom
+            Bottom,
+            Percent
         }
 
 
-
-
-        public GroupGraph(List<GroupHistoryValues> values)
+        public GroupGraph(List<GroupHistoryValue> values)
         {
             InitializeComponent();
             if (InitializeScale(values) == false) return;
@@ -56,6 +55,7 @@ namespace OptionView
             CreateCanvas();
             DrawAxis();
 
+            DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.IV).ToList(), ScaleType.Percent, Brushes.DarkGray);
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Underlying).ToList(), ScaleType.Right, Brushes.DarkGreen);
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Value).ToList(), ScaleType.Left, Brushes.Blue);
         }
@@ -70,7 +70,7 @@ namespace OptionView
                 if (i > 0)
                 {
                     double nextX = ScaleTime(x[i]);
-                    double nextY = (scaleType == ScaleType.Right) ? ScaleRight(y[i]) : ScaleLeft(y[i]);
+                    double nextY = ApplyScale(y[i], scaleType);
                     Line l = new Line()
                     {
                         X1 = lastX,
@@ -80,10 +80,10 @@ namespace OptionView
                         Stroke = color,
                         StrokeThickness = 1
                     };
-                    if (scaleType == ScaleType.Right) l.StrokeDashArray = new DoubleCollection() { 2 };
+                    if (scaleType != ScaleType.Left) l.StrokeDashArray = new DoubleCollection() { 2 };
                     c.Children.Add(l);
 
-                    DrawPip(nextX, (scaleType == ScaleType.Right) ? ScaleRight(y[i]) : ScaleLeft(y[i]), color);
+                    DrawPip(nextX, nextY, color);
 
                     lastX = nextX;
                     lastY = nextY;
@@ -92,7 +92,7 @@ namespace OptionView
                 {
                     // set first point
                     lastX = ScaleTime(x[0]);
-                    lastY = (scaleType == ScaleType.Right) ? ScaleRight(y[0]) : ScaleLeft(y[0]);
+                    lastY = ApplyScale(y[0], scaleType);
 
                     DrawPip(lastX, lastY, color);
                 }
@@ -100,6 +100,25 @@ namespace OptionView
 
 
         }
+
+        private double ApplyScale(decimal v, ScaleType st)
+        {
+            double retval = 0;
+            switch (st)
+            {
+                case ScaleType.Left:
+                    retval = ScaleLeft(v);
+                    break;
+                case ScaleType.Right:
+                    retval = ScaleRight(v);
+                    break;
+                case ScaleType.Percent:
+                    retval = ScalePercent(v);
+                    break;
+            }
+            return retval;
+        }
+
 
         private void DrawPip(double x, double y, Brush color)
         {
@@ -114,6 +133,7 @@ namespace OptionView
             Canvas.SetTop(e, y - 2);
             c.Children.Add(e);
         }
+
 
 
         private void DrawAxis()
@@ -223,7 +243,7 @@ namespace OptionView
         }
 
 
-        private bool InitializeScale(List<GroupHistoryValues> values)
+        private bool InitializeScale(List<GroupHistoryValue> values)
         {
             if (values.Count < 2)
             {
@@ -269,6 +289,11 @@ namespace OptionView
         {
             double val = Convert.ToDouble(y - minRight);
             return (CtlHeight - (val * scaleRight));
+        }
+        private double ScalePercent(decimal y)
+        {
+            double val = Convert.ToDouble(y / 100);
+            return (CtlHeight - (val * CtlHeight));
         }
         private double ScaleTime(DateTime dt)
         {
