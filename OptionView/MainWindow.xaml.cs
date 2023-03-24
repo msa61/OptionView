@@ -498,7 +498,7 @@ public MainWindow()
                     };
                     sp.Children.Add(l);
 
-                    List<GroupHistoryValues> vals = BalanceHistory.GetGroup(grp);
+                    List<GroupHistoryValue> vals = BalanceHistory.GetGroup(portfolio[grp]);
                     sp.Children.Add(new GroupGraph(vals));
 
 
