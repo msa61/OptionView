@@ -203,7 +203,7 @@ public MainWindow()
                 MetricsPanel.Children.Clear();
 
                 Double vix = portfolio.VIXPrice;
-                string vixText = String.Format("VIX: {0} ({1:P})- ", vix, portfolio.VIXChange/vix);
+                string vixText = String.Format("VIX: {0} ({1:P}) - ", vix, portfolio.VIXChange/vix);
                 if (vix <= 15) vixText += "25%";
                 else if (vix <= 20) vixText += "30%";
                 else if (vix <= 30) vixText += "35%";
