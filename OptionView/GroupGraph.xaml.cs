@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -58,7 +59,56 @@ namespace OptionView
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.IV).ToList(), ScaleType.Percent, Brushes.DarkGray);
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Underlying).ToList(), ScaleType.Right, Brushes.DarkGreen);
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Value).ToList(), ScaleType.Left, Brushes.Blue);
+
+            DrawBands(values.Select(x => x.Time).ToList(), values.Select(x => x.Calls).ToList(), Brushes.Red);
+            DrawBands(values.Select(x => x.Time).ToList(), values.Select(x => x.Puts).ToList(), Brushes.Red);
         }
+
+
+        private void DrawBands(List<DateTime> x, List<List<decimal>> strikes, Brush color)
+        {
+            bool singleLine = true;
+            PointCollection points = new PointCollection();
+            for (int i = 0; i < x.Count; i++)
+            {
+                if (strikes[i] != null) points.Add(new Point(ScaleTime(x[i]), ApplyScale(strikes[i][0], ScaleType.Right)));
+            }
+            if ((strikes[0] != null) && (strikes[0].Count > 1))
+            {
+                singleLine = false;
+                for (int i = x.Count - 1; i >= 0; i--)
+                {
+                    points.Add(new Point(ScaleTime(x[i]), ApplyScale(strikes[i][1], ScaleType.Right)));
+                }
+            }
+
+            Brush lColor = color.Clone();
+            lColor.Opacity = 0.15;
+            if (points.Count > 1)
+            {
+                if (singleLine)
+                {
+                    Polyline polyline = new Polyline()
+                    {
+                        Points = points,
+                        Stroke = lColor,
+                        StrokeThickness = 8
+                    };
+                    c.Children.Add(polyline);
+                }
+                else
+                {
+                    Polygon polygon = new Polygon()
+                    {
+                        Points = points,
+                        Fill = lColor
+                    };
+                    c.Children.Add(polygon);
+                }
+            }
+
+        }
+
 
         private void DrawGraphLine(List<DateTime> x, List<decimal> y, ScaleType scaleType, Brush color)
         {
@@ -78,12 +128,16 @@ namespace OptionView
                         X2 = nextX,
                         Y2 = nextY,
                         Stroke = color,
-                        StrokeThickness = 1
+                        StrokeThickness = 2
                     };
-                    if (scaleType != ScaleType.Left) l.StrokeDashArray = new DoubleCollection() { 2 };
+                    if (scaleType != ScaleType.Left)
+                    {
+                        l.StrokeDashArray = new DoubleCollection() { 2 };
+                        l.StrokeThickness = 1;
+                    }
                     c.Children.Add(l);
 
-                    DrawPip(nextX, nextY, color);
+                    if (scaleType == ScaleType.Left) DrawPip(nextX, nextY, color);
 
                     lastX = nextX;
                     lastY = nextY;
@@ -94,7 +148,7 @@ namespace OptionView
                     lastX = ScaleTime(x[0]);
                     lastY = ApplyScale(y[0], scaleType);
 
-                    DrawPip(lastX, lastY, color);
+                    if (scaleType == ScaleType.Left) DrawPip(lastX, lastY, color);
                 }
             }
 
@@ -252,10 +306,21 @@ namespace OptionView
                 return false;
             }
 
+            List<decimal> prices = values.Select(x => x.Underlying).ToList();
+            foreach (GroupHistoryValue v in values)
+            {
+                List<decimal> strikes = new List<decimal>();
+                if (v.Calls != null) strikes = strikes.Concat(v.Calls).ToList();
+                if (v.Puts != null) strikes = strikes.Concat(v.Puts).ToList();
+                strikes.RemoveAll(item => item == null);
+
+                prices = prices.Concat(strikes).ToList();
+            }
+
             minLeft = values.Min(x => x.Value);
             maxLeft = values.Max(x => x.Value);
-            minRight = values.Min(x => x.Underlying);
-            maxRight = values.Max(x => x.Underlying);
+            minRight = prices.Min();  // values.Min(x => x.Underlying);
+            maxRight = prices.Max();  // values.Max(x => x.Underlying);
             minTime = values.Min(x => x.Time); 
             maxTime = values.Max(x => x.Time);
 
