@@ -195,26 +195,20 @@ public MainWindow()
                 // 8th column
                 sp.Children.Add(new WinLossGraph(BalanceHistory.GetChange(accounts)));
 
-
                 OverviewPanel.Children.Add(sp);
 
-
-                // display VIX
-                MetricsPanel.Children.Clear();
-
-                Double vix = portfolio.VIXPrice;
-                string vixText = String.Format("VIX: {0} ({1:P}) - ", vix, portfolio.VIXChange/vix);
-                if (vix <= 15) vixText += "25%";
-                else if (vix <= 20) vixText += "30%";
-                else if (vix <= 30) vixText += "35%";
-                else if (vix <= 40) vixText += "40%";
-                else vixText += "50%";
+                // now work on the right side of the footer
+                DecoratedFooterLabel(SPYFooterText, portfolio.SPY.Price, portfolio.SPY.Change, true);
+ 
+                decimal vix = portfolio.VIX.Price;
+                string vixText; 
+                if (vix <= 15) vixText = "25%";
+                else if (vix <= 20) vixText = "30%";
+                else if (vix <= 30) vixText = "35%";
+                else if (vix <= 40) vixText = "40%";
+                else vixText = "50%";
                 vixText += " allocation";
-
-                OverviewLabel(MetricsPanel, vixText, 0, 16);
-
-                string spy = String.Format("SPY: {0} ({1:+0.##;-#.##} - {2:P})", portfolio.SPYPrice, portfolio.SPYChange, portfolio.SPYChange / portfolio.SPYPrice);
-                OverviewLabel(MetricsPanel, spy, 0, 16);
+                DecoratedFooterLabel(VIXFooterText, portfolio.VIX.Price, portfolio.VIX.Change, false, vixText);
 
                 BalanceHistory.TimeStamp();
             }
@@ -246,7 +240,8 @@ public MainWindow()
                 FontSize = fontSize,
                 FontFamily = new FontFamily("Trebuchet MS"),
                 Foreground = Brushes.White,
-                Padding = new Thickness(2)
+                Padding = new Thickness(2),
+                VerticalAlignment= VerticalAlignment.Center
             };
             if (width > 0) lb.Width = width;
             if (sp != null) sp.Children.Add(lb);
@@ -254,21 +249,44 @@ public MainWindow()
             return lb;
         }
 
-        private void DecoratedValueLabel(StackPanel sp, decimal val, decimal change)
+        private void DecoratedValueLabel(StackPanel sp, decimal val, decimal change, int fontSize = 11)
         {
             string up = HttpUtility.HtmlDecode("&#x2BC5;");
             string down = HttpUtility.HtmlDecode("&#x2BC6;");
 
             StackPanel subpanel = new StackPanel() { Width = 100, Orientation = Orientation.Horizontal, Margin = new Thickness(0) };
 
-            OverviewLabel(subpanel, val.ToString("C0"));
+            OverviewLabel(subpanel, val.ToString("C0"), 0, fontSize);
             Label lb = OverviewLabel(subpanel, (change > 0) ? up : down);
             lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.LightCoral;
-            lb = OverviewLabel(subpanel, change.ToString("#,###"));
+            lb = OverviewLabel(subpanel, change.ToString("#,###"), 0, fontSize);
             lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.LightCoral;
 
             sp.Children.Add(subpanel);
         }
+        private void DecoratedFooterLabel(StackPanel sp, decimal val, decimal change, bool currency, string suffix = "",  int fontSize = 16)
+        {
+            // need to clear, or cell accumulates
+            sp.Children.Clear();
+
+            string up = HttpUtility.HtmlDecode("&#x2BC5;");
+            string down = HttpUtility.HtmlDecode("&#x2BC6;");
+
+            StackPanel subpanel = new StackPanel() { Orientation = Orientation.Horizontal, Margin = new Thickness(0) };
+
+            OverviewLabel(subpanel, val.ToString(currency ? "C2" : "N"), 64, fontSize);
+            Label lb = OverviewLabel(subpanel, (change > 0) ? up : down, 16, fontSize - 4);
+            lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.LightCoral;
+            lb = OverviewLabel(subpanel, Math.Abs(change).ToString(currency ? "C2" : "N"), 0, fontSize - 4);
+            lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.LightCoral;
+            decimal percent = change / val;
+            lb = OverviewLabel(subpanel, "(" + Math.Abs(percent).ToString("P1") + ")", 0, fontSize - 4);
+            lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.LightCoral;
+            if (suffix.Length > 0) OverviewLabel(subpanel, " ➜ " + suffix, 0, fontSize);
+
+            sp.Children.Add(subpanel);
+        }
+
 
         private decimal GetAccountChangeSincePrevious(string accountNumber)
         {

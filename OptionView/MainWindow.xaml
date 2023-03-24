@@ -717,7 +717,7 @@
                             <TextBlock Name="txtSymbolTodo" Background="Gray" Margin="6,0,6,6" Padding="5,4,4,4" IsEnabled="False"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
-                        
+
                         <StackPanel >
                             <Label Content="Action Date" Margin="6,0,0,0" />
                             <DatePicker Name="dateActionTodo" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" IsEnabled="False" CalendarClosed="DateAction_CalendarClosed"
@@ -751,7 +751,7 @@
 
 
             <StackPanel x:Name="OverviewPanel" Orientation="Vertical" DockPanel.Dock="Left" VerticalAlignment="Center" MouseUp="OverviewPanel_MouseUp">
-                <!--   
+                <!-- 
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Account" Width="100"    FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
                     <Label Content="Individual" Width="100"  FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
@@ -776,7 +776,7 @@
                     <Label Content="8.8%" Width="100"  FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
                     <Label Content="10.4%" Width="100"  FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
                 </StackPanel>
--->
+                -->
             </StackPanel>
 
             <StackPanel x:Name="MetricsPanel" Orientation="Vertical" DockPanel.Dock="Left" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="100">
@@ -784,7 +784,21 @@
                 <Label Width="50"/>
                 <Label x:Name="GREEKS" Content="fafa, adfdafa" FontSize="16" FontFamily="Trebuchet MS" Padding="2" />
                 -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="300"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
 
+                    <Label Content="SPY" FontSize="16" FontFamily="Trebuchet MS" Padding="2" Grid.Row="0" Grid.Column="0"/>
+                    <Label Content="VIX" FontSize="16" FontFamily="Trebuchet MS" Padding="2" Grid.Row="1" Grid.Column="0"/>
+                    <StackPanel x:Name="SPYFooterText" Orientation="Horizontal" Grid.Row="0" Grid.Column="1"/>
+                    <StackPanel x:Name="VIXFooterText" Orientation="Horizontal" Grid.Row="1" Grid.Column="1"/>
+                </Grid>
             </StackPanel>
 
         </DockPanel>
