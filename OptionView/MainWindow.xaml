@@ -779,7 +779,7 @@
 -->
             </StackPanel>
 
-            <StackPanel x:Name="MetricsPanel" Orientation="Horizontal" DockPanel.Dock="Left" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="100">
+            <StackPanel x:Name="MetricsPanel" Orientation="Vertical" DockPanel.Dock="Left" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="100">
                 <!--<Label x:Name="VIX" Content="VIX: 20 - 30% Allocation" FontSize="16" FontFamily="Trebuchet MS" Padding="2"/>
                 <Label Width="50"/>
                 <Label x:Name="GREEKS" Content="fafa, adfdafa" FontSize="16" FontFamily="Trebuchet MS" Padding="2" />

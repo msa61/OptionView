@@ -65,6 +65,11 @@ namespace OptionView.DataImport
         }
     }
 
+    public class Quote
+    {
+        public double Price { set; get; }
+        public double Change { set; get; }
+    }
 
     public class TradeEventListener : IDxTradeListener
     {
@@ -74,7 +79,11 @@ namespace OptionView.DataImport
             {
                 Debug.WriteLine($"Listening to {buf.Symbol}  Price: {item.Price}");
 
-                DataFeed.AddTrade(buf.Symbol, item.Price);
+                Quote qt = new Quote();
+                qt.Price = item.Price;
+                qt.Change = item.Change;
+
+                DataFeed.AddTrade(buf.Symbol, qt);
                 DataFeed.symbolCount -= 1;
             }
         }
@@ -90,7 +99,7 @@ namespace OptionView.DataImport
         static private IDxSubscription subsciption = null;
         static private NativeConnection connection = null;
         static private Greeks ReturnList = new Greeks();
-        static private Dictionary<string, double> ReturnPriceList = new Dictionary<string, double>();
+        static private Dictionary<string, Quote> ReturnPriceList = new Dictionary<string, Quote>();
         static StreamingParams streaming = null;
 
 
@@ -147,12 +156,12 @@ namespace OptionView.DataImport
         }
 
 
-        static public void AddTrade(string sym, double price)
+        static public void AddTrade(string sym, Quote qt)
         {
-            if (!ReturnPriceList.ContainsKey(sym)) ReturnPriceList.Add(sym, price);
+            if (!ReturnPriceList.ContainsKey(sym)) ReturnPriceList.Add(sym, qt);
         }
 
-        static public Dictionary<string, double> GetPrices(List<string> symbols)
+        static public Dictionary<string, Quote> GetPrices(List<string> symbols)
         {
             if (streaming == null) streaming = TastyWorks.StreamingInfo();
 
@@ -193,7 +202,7 @@ namespace OptionView.DataImport
                 subsciption?.Dispose();
             }
 
-            return new Dictionary<string, double>(ReturnPriceList);
+            return new Dictionary<string, Quote>(ReturnPriceList);
 
         }
 

@@ -20,8 +20,10 @@ namespace OptionView
         private Dictionary<string, TWMargins> twReqCapital = null;       // cache of maintenance requirement values from tw
         private TWMarketInfos twMarketInfo = null;                       // cache of IV data
         private Greeks optionGreeks = null;                              // cache of greek data
-        private double SPYPrice = 0;
+        public double SPYPrice { get; set; } = 0;
         public double VIXPrice { get; set; } = 0;
+        public double SPYChange { get; set; } = 0;
+        public double VIXChange { get; set; } = 0;
         private Accounts accounts = null;
 
         public Portfolio()
@@ -213,7 +215,7 @@ namespace OptionView
                         twMarketInfo = TastyWorks.MarketInfo(symbols);  // get IV's
                         optionGreeks = DataFeed.GetGreeks(optionSymbols);
 
-                        Dictionary<string, double> tmp = DataFeed.GetPrices(optionSymbols);
+                        Dictionary<string, Quote> tmp = DataFeed.GetPrices(optionSymbols);
                         
                         //foreach (KeyValuePair<string, Greek> g in optionGreeks)
                         //{
@@ -221,10 +223,18 @@ namespace OptionView
                         //}
 
                         List<string> pSymbols = new List<string> { "SPY", "VIX" };
-                        Dictionary<string, double> prices = DataFeed.GetPrices(pSymbols);
-                        if (prices.ContainsKey("SPY")) SPYPrice = prices["SPY"];
-                        if (prices.ContainsKey("VIX")) VIXPrice = prices["VIX"];
-                        
+                        Dictionary<string, Quote> prices = DataFeed.GetPrices(pSymbols);
+                        if (prices.ContainsKey("SPY"))
+                        {
+                            SPYPrice = prices["SPY"].Price;
+                            SPYChange = prices["SPY"].Change;
+                        }
+                        if (prices.ContainsKey("VIX"))
+                        {
+                            VIXPrice = prices["VIX"].Price;
+                            VIXChange = prices["VIX"].Change;
+                        }
+
                     }
                 }
 
