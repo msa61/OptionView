@@ -67,8 +67,8 @@ namespace OptionView.DataImport
 
     public class Quote
     {
-        public double Price { set; get; }
-        public double Change { set; get; }
+        public decimal Price { set; get; }
+        public decimal Change { set; get; }
     }
 
     public class TradeEventListener : IDxTradeListener
@@ -80,8 +80,8 @@ namespace OptionView.DataImport
                 Debug.WriteLine($"Listening to {buf.Symbol}  Price: {item.Price}");
 
                 Quote qt = new Quote();
-                qt.Price = item.Price;
-                qt.Change = item.Change;
+                qt.Price = Convert.ToDecimal(item.Price);
+                qt.Change = Convert.ToDecimal(item.Change);
 
                 DataFeed.AddTrade(buf.Symbol, qt);
                 DataFeed.symbolCount -= 1;

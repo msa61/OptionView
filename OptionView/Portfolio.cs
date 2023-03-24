@@ -20,10 +20,8 @@ namespace OptionView
         private Dictionary<string, TWMargins> twReqCapital = null;       // cache of maintenance requirement values from tw
         private TWMarketInfos twMarketInfo = null;                       // cache of IV data
         private Greeks optionGreeks = null;                              // cache of greek data
-        public double SPYPrice { get; set; } = 0;
-        public double VIXPrice { get; set; } = 0;
-        public double SPYChange { get; set; } = 0;
-        public double VIXChange { get; set; } = 0;
+        public Quote SPY { get; set; }
+        public Quote VIX { get; set; }
         private Accounts accounts = null;
 
         public Portfolio()
@@ -224,17 +222,8 @@ namespace OptionView
 
                         List<string> pSymbols = new List<string> { "SPY", "VIX" };
                         Dictionary<string, Quote> prices = DataFeed.GetPrices(pSymbols);
-                        if (prices.ContainsKey("SPY"))
-                        {
-                            SPYPrice = prices["SPY"].Price;
-                            SPYChange = prices["SPY"].Change;
-                        }
-                        if (prices.ContainsKey("VIX"))
-                        {
-                            VIXPrice = prices["VIX"].Price;
-                            VIXChange = prices["VIX"].Change;
-                        }
-
+                        if (prices.ContainsKey("SPY")) SPY = prices["SPY"];
+                        if (prices.ContainsKey("VIX")) VIX = prices["VIX"];
                     }
                 }
 
@@ -297,7 +286,7 @@ namespace OptionView
                     grp.ImpliedVolatilityRank = twMarketInfo[grp.ShortSymbol].ImpliedVolatilityRank;
                     grp.DividendYield = twMarketInfo[grp.ShortSymbol].DividendYield;
 
-                    grp.GreekData.WeightedDelta = Convert.ToDouble(grp.UnderlyingPrice) * grp.GreekData.Delta * twMarketInfo[grp.ShortSymbol].Beta / SPYPrice;
+                    grp.GreekData.WeightedDelta = Convert.ToDouble(grp.UnderlyingPrice) * grp.GreekData.Delta * twMarketInfo[grp.ShortSymbol].Beta / Convert.ToDouble(SPY.Price);
                 }
 
                 // update current capital requirements from tw
