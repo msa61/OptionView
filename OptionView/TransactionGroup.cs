@@ -467,7 +467,17 @@ namespace OptionView
         }
 
 
+        public List<decimal> GetStrikes(string typ)
+        {
+            List<decimal> retval = new List<decimal>();
 
+            foreach (KeyValuePair<string, Position> item in this.Holdings)
+            {
+                Position p = item.Value;
+                if (p.Type == typ) retval.Add(p.Strike);
+            }
+            return retval.Count > 0 ? retval : null;
+        }
 
 
     }
