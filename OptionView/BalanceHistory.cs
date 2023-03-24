@@ -14,11 +14,15 @@ using System.Windows.Controls.Primitives;
 
 namespace OptionView
 {
-    public class GroupHistoryValues
+    public class GroupHistoryValue
     {
         public DateTime Time { get; set; }
         public decimal Value { get; set; }
         public decimal Underlying { get; set; }
+        public decimal IV { get; set; }
+        public decimal IVR { get; set; }
+        public List<decimal> Puts { get; set; }
+        public List<decimal> Calls { get; set; }
     }
 
 
@@ -206,12 +210,14 @@ namespace OptionView
                     {
                         decimal value = (grp.CurrentValue ?? 0) + grp.Cost;
 
-                        string sql = "INSERT INTO GroupHistory(Date, GroupID, Value, Underlying) Values (@dt,@id,@va,@ul)";
+                        string sql = "INSERT INTO GroupHistory(Date, GroupID, Value, Underlying, IV, IVR) Values (@dt,@id,@va,@ul,@iv,@ir)";
                         SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
                         cmd.Parameters.AddWithValue("dt", DateTime.Now);
                         cmd.Parameters.AddWithValue("id", grp.GroupID);
                         cmd.Parameters.AddWithValue("va", value);
                         cmd.Parameters.AddWithValue("ul", grp.UnderlyingPrice);
+                        cmd.Parameters.AddWithValue("iv", Math.Round(grp.ImpliedVolatility * 100, 1));
+                        cmd.Parameters.AddWithValue("ir", Math.Round(grp.ImpliedVolatilityRank * 100, 1));
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -227,9 +233,9 @@ namespace OptionView
             return (obj == DBNull.Value) ? DateTime.MinValue : Convert.ToDateTime(obj);
         }
 
-        public static List<GroupHistoryValues> GetGroup(int grpID)
+        public static List<GroupHistoryValue> GetGroup(TransactionGroup grp)
         {
-            List<GroupHistoryValues> retval = new List<GroupHistoryValues>();
+            List<GroupHistoryValue> retval = new List<GroupHistoryValue>();
 
             OpenConnection();
 
@@ -242,17 +248,22 @@ namespace OptionView
             //sql += "ORDER BY day";
 
             // all records
-            string sql = "SELECT date, value, underlying FROM GroupHistory WHERE GroupID = @grp ORDER BY date";
+            string sql = "SELECT date, value, underlying, IV, IVR FROM GroupHistory WHERE GroupID = @grp ORDER BY date";
 
             SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
-            cmd.Parameters.AddWithValue("grp", grpID);
+            cmd.Parameters.AddWithValue("grp", grp.GroupID);
             SQLiteDataReader reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                GroupHistoryValues val = new GroupHistoryValues();
+                GroupHistoryValue val = new GroupHistoryValue();
                 val.Time  = reader.GetDateTime(0);
                 if (reader["Value"] != DBNull.Value) val.Value = reader.GetDecimal(1);
                 if (reader["Underlying"] != DBNull.Value) val.Underlying = reader.GetDecimal(2);
+                if (reader["IV"] != DBNull.Value) val.IV = reader.GetDecimal(3);
+                if (reader["IVR"] != DBNull.Value) val.IVR = reader.GetDecimal(4);
+
+                val.Calls = grp.GetStrikes("Call");
+                val.Puts = grp.GetStrikes("Put");
 
                 retval.Add(val);
             }
