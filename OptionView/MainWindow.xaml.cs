@@ -431,8 +431,11 @@ public MainWindow()
 
             // handle group window location
             string[] grpWindow = Config.GetProp("GroupWindow").Split('|');
-            App.GroupWindow.Left = Convert.ToDouble(grpWindow[0]);
-            App.GroupWindow.Top = Convert.ToDouble(grpWindow[1]);
+            if (grpWindow.Length > 1)
+            {
+                App.GroupWindow.Left = Convert.ToDouble(grpWindow[0]);
+                App.GroupWindow.Top = Convert.ToDouble(grpWindow[1]);
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
