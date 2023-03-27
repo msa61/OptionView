@@ -1147,6 +1147,23 @@ public MainWindow()
             }
         }
 
+
+
+        private void resultsGrid_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            DataGridRow row = ItemsControl.ContainerFromElement((DataGrid)sender, e.OriginalSource as DependencyObject) as DataGridRow;
+            if (row == null) return;
+
+            if (row.Item.GetType() == typeof(TransactionGroup))
+            {
+                TransactionGroup tg = (TransactionGroup)row.Item;
+                List<GroupHistoryValue> vals = BalanceHistory.GetGroup(tg);
+                App.GroupWindow.Update(new GroupGraph(vals));
+
+            }
+        }
+
+
         // 
         //
         // code for transaction tab

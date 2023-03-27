@@ -382,7 +382,7 @@
                     <DataGrid Name="resultsGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" Background="#FF454545" RowBackground="#FF454545"
                               HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,4,0,4" HeadersVisibility="Column"
                               VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
-                              Width="1000" RowDetailsVisibilityChanged="Grid_RowDetailsVisibilityChanged">
+                              Width="1000" RowDetailsVisibilityChanged="Grid_RowDetailsVisibilityChanged" MouseUp="resultsGrid_MouseUp">
                         <DataGrid.Resources>
                             <local:GroupTotalConverter x:Key="GroupTotal"/>
                             <local:GroupNameConverter x:Key="GroupName"/>
