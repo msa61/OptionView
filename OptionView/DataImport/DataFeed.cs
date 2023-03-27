@@ -246,7 +246,7 @@ namespace OptionView.DataImport
                 subsciption?.Dispose();
             }
 
-            return ReturnPriceList.ContainsKey(symbol) ? Convert.ToDecimal(ReturnPriceList[symbol]) : 0;
+            return ReturnPriceList.ContainsKey(symbol) ? Convert.ToDecimal(ReturnPriceList[symbol].Price) : 0;
         }
 
 
