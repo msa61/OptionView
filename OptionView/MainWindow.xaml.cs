@@ -428,6 +428,11 @@ public MainWindow()
             {
                 MainTab.SelectedIndex = Convert.ToInt32(tab);
             }
+
+            // handle group window location
+            string[] grpWindow = Config.GetProp("GroupWindow").Split('|');
+            App.GroupWindow.Left = Convert.ToDouble(grpWindow[0]);
+            App.GroupWindow.Top = Convert.ToDouble(grpWindow[1]);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -472,6 +477,11 @@ public MainWindow()
 
             if (todoGrid.SelectedItem != null) UpdateTodoDetails((TransactionGroup)todoGrid.SelectedItem);
 
+            double left = (App.GroupWindow.Window != null) ? App.GroupWindow.Window.Left : App.GroupWindow.Left;
+            double top = (App.GroupWindow.Window != null) ? App.GroupWindow.Window.Top : App.GroupWindow.Top;
+            Config.SetProp("GroupWindow", left.ToString() + "|" + top.ToString());
+            App.GroupWindow.Close();
+            
             App.CloseConnection();
         }
 
@@ -531,6 +541,17 @@ public MainWindow()
             }
         }
 
+        private void ToolTipPinButtonClick(object sender, RoutedEventArgs e) 
+        {
+            if ((App.GroupWindow.Window != null) && (App.GroupWindow.Window.IsVisible))
+            {
+                App.GroupWindow.Window.Hide();
+            }
+            else
+            {
+                App.GroupWindow.Open();
+            }
+        }
 
         private void TileDragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
         {
@@ -684,6 +705,9 @@ public MainWindow()
                             if (Math.Abs(grp.GreekData.Delta) > 75) snapShot.DeltaColor = Brushes.DarkRed;
                             snapShot.Update();
                         }
+
+                        List<GroupHistoryValue> vals = BalanceHistory.GetGroup(portfolio[grp.GroupID]);
+                        App.GroupWindow.Update(new GroupGraph(vals));
                     }
                 }
 
@@ -814,6 +838,7 @@ public MainWindow()
             SetTextBox(txtEndTime, "", false);
 
             snapShot.Clear();
+            App.GroupWindow.Clear();
         }
 
 

@@ -16,10 +16,11 @@ namespace OptionView
     /// </summary>
     public partial class App : Application
     {
-        public static SQLiteConnection ConnStr = null;
+        public static SQLiteConnection ConnStr { get; set; } = null;
         private static LoadingWindow loadWindow = null;
-        public static bool OfflineMode = false;
-        public static bool DataRefreshMode = false;
+        public static GroupWindowHandler GroupWindow = new GroupWindowHandler();
+        public static bool OfflineMode { get; set; } = false;
+        public static bool DataRefreshMode { get; set; } = false;
 
 
         private void OnStartup(object sender, StartupEventArgs e)

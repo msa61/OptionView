@@ -119,6 +119,10 @@
     <Compile Include="GroupGraph.xaml.cs">
       <DependentUpon>GroupGraph.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GroupDetailWindow.xaml.cs">
+      <DependentUpon>GroupDetailWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GroupWindowHandler.cs" />
     <Compile Include="LineGraph.xaml.cs">
       <DependentUpon>LineGraph.xaml</DependentUpon>
     </Compile>
@@ -149,6 +153,10 @@
       <DependentUpon>WinLossGraph.xaml</DependentUpon>
     </Compile>
     <Page Include="GroupGraph.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GroupDetailWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -233,6 +241,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\app2.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Pin.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
