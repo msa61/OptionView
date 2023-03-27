@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:OptionView"
         mc:Ignorable="d"
         Closing="Window_Closing"
-        Title="GroupWindow" Height="200" Width="400" ResizeMode="CanResize">
+        Title="GroupWindow" Height="250" Width="400" ResizeMode="CanResize">
     <StackPanel x:Name="GroupGraphHolder">
 
     </StackPanel>

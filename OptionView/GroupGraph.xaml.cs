@@ -26,7 +26,11 @@ namespace OptionView
     public partial class GroupGraph : UserControl
     {
         public double CtlWidth { get; set; } = 300;
-        public double CtlHeight { get; set; } = 100;
+        public double CtlHeight { get; set; } = 160;
+        private double margin = 30;
+        private double chartWidth;
+        private double legendHeight = 60;
+        private double chartHeight;
         private double scaleLeft;
         private double scaleRight;
         private double scaleTime;
@@ -37,33 +41,84 @@ namespace OptionView
         private DateTime minTime;
         private DateTime maxTime;
         private Canvas c;
-        private double margin = 30;
 
         public enum ScaleType
         {
             Left,
             Right,
             Bottom,
-            Percent
+            Percent,
+            None
         }
 
 
         public GroupGraph(List<GroupHistoryValue> values)
         {
             InitializeComponent();
+
+            chartWidth = CtlWidth - (2 * margin);
+            chartHeight = CtlHeight - legendHeight;
+
             if (InitializeScale(values) == false) return;
 
             CreateCanvas();
             DrawAxis();
 
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.IV).ToList(), ScaleType.Percent, Brushes.DarkGray);
-            DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Underlying).ToList(), ScaleType.Right, Brushes.DarkGreen);
+            DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Underlying).ToList(), ScaleType.Right, Brushes.Green);
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Value).ToList(), ScaleType.Left, Brushes.Blue);
 
             DrawBands(values.Select(x => x.Time).ToList(), values.Select(x => x.Calls).ToList(), Brushes.Red);
             DrawBands(values.Select(x => x.Time).ToList(), values.Select(x => x.Puts).ToList(), Brushes.Red);
+
+            DrawLegend();
         }
 
+        private void DrawLegend()
+        {
+            Line l = new Line()
+            {
+                X1 = margin + 20,
+                Y1 = chartHeight + 25,
+                X2 = margin + 40,
+                Y2 = chartHeight + 25,
+                Stroke = Brushes.Blue,
+                StrokeThickness = 1
+            };
+            c.Children.Add(l);
+
+            AddLabel("Group Value", margin + 45, chartHeight + 25, ScaleType.None);
+
+            // price
+            l = new Line()
+            {
+                X1 = margin + 20,
+                Y1 = chartHeight + 39,
+                X2 = margin + 40,
+                Y2 = chartHeight + 39,
+                Stroke = Brushes.Green,
+                StrokeDashArray = new DoubleCollection() { 2 },
+                StrokeThickness = 1
+            };
+            c.Children.Add(l);
+
+            AddLabel("Underlying Price", margin + 45, chartHeight + 39, ScaleType.None);
+
+            // iv
+            l = new Line()
+            {
+                X1 = margin + 20,
+                Y1 = chartHeight + 53,
+                X2 = margin + 40,
+                Y2 = chartHeight + 53,
+                Stroke = Brushes.DarkGray,
+                StrokeDashArray = new DoubleCollection() { 2 },
+                StrokeThickness = 1
+            };
+            c.Children.Add(l);
+
+            AddLabel("Underlying IV", margin + 45, chartHeight + 53, ScaleType.None);
+        }
 
         private void DrawBands(List<DateTime> x, List<List<decimal>> strikes, Brush color)
         {
@@ -197,7 +252,7 @@ namespace OptionView
                 X1 = margin,
                 Y1 = 0,
                 X2 = margin,
-                Y2 = CtlHeight,
+                Y2 = chartHeight,
                 Stroke = Brushes.DarkGray,
                 StrokeThickness = 1
             };
@@ -205,23 +260,23 @@ namespace OptionView
 
             l = new Line()
             {
-                X1 = CtlWidth - margin,
+                X1 = chartWidth + margin,
                 Y1 = 0,
-                X2 = CtlWidth - margin,
-                Y2 = CtlHeight,
+                X2 = chartWidth + margin,
+                Y2 = chartHeight,
                 Stroke = Brushes.DarkGray,
                 StrokeThickness = 1
             };
             c.Children.Add(l);
 
-            double yVal = CtlHeight;
+            double yVal = chartHeight;
             if ((minLeft < 0) && (maxLeft > 0)) yVal = ScaleLeft(0);
             else if (maxLeft < 0) yVal = 0;
             l = new Line()
             {
                 X1 = margin,
                 Y1 = yVal,
-                X2 = CtlWidth - margin,
+                X2 = chartWidth + margin,
                 Y2 = yVal,
                 Stroke = Brushes.DarkGray,
                 StrokeThickness = 1
@@ -229,12 +284,12 @@ namespace OptionView
             c.Children.Add(l);
 
             AddLabel(maxLeft, margin, 0, ScaleType.Left);
-            AddLabel(minLeft, margin, CtlHeight, ScaleType.Left);
-            AddLabel(maxRight, CtlWidth - margin, 0, ScaleType.Right);
-            AddLabel(minRight, CtlWidth - margin, CtlHeight, ScaleType.Right);
+            AddLabel(minLeft, margin, chartHeight, ScaleType.Left);
+            AddLabel(maxRight, chartWidth + margin, 0, ScaleType.Right);
+            AddLabel(minRight, chartWidth + margin, chartHeight, ScaleType.Right);
 
-            AddLabel(minTime.ToString("M/d"), margin, CtlHeight, ScaleType.Bottom);
-            AddLabel(maxTime.ToString("M/d"), CtlWidth - margin, CtlHeight, ScaleType.Bottom);
+            AddLabel(minTime.ToString("M/d"), margin, chartHeight, ScaleType.Bottom);
+            AddLabel(maxTime.ToString("M/d"), chartWidth + margin, chartHeight, ScaleType.Bottom);
 
         }
 
@@ -269,12 +324,17 @@ namespace OptionView
                 Text = txt,
                 FontSize = 11,
                 Foreground = Brushes.DarkGray,
-                TextAlignment = (scaleType == ScaleType.Right) ? TextAlignment.Left : (scaleType == ScaleType.Left) ? TextAlignment.Right : TextAlignment.Center
+                TextAlignment = ((scaleType == ScaleType.Right) || (scaleType == ScaleType.None)) ? TextAlignment.Left : (scaleType == ScaleType.Left) ? TextAlignment.Right : TextAlignment.Center
             };
             if (scaleType == ScaleType.Bottom)
             {
                 Canvas.SetTop(tb, top +2);
                 Canvas.SetLeft(tb, left - (ft.Width/2));
+            }
+            else if (scaleType == ScaleType.None)
+            {
+                Canvas.SetTop(tb, top - ft.Height/2 - 1);
+                Canvas.SetLeft(tb, left);
             }
             else
             {
@@ -289,8 +349,8 @@ namespace OptionView
         {
             c = new Canvas()
             {
-                Height = CtlHeight,
-                Width = CtlWidth,
+                Height = chartHeight,
+                Width = chartWidth + (2 * margin),
                 Margin = new Thickness(10, 20, 10, 20)
             };
             ((Grid)(this.Content)).Children.Add(c);
@@ -326,19 +386,19 @@ namespace OptionView
             if (minLeft == maxLeft) 
                 scaleLeft = 1;
             else
-                scaleLeft = CtlHeight / Convert.ToDouble(maxLeft - minLeft);
+                scaleLeft = chartHeight / Convert.ToDouble(maxLeft - minLeft);
 
             if (minRight == maxRight)
                 scaleRight = 1;
             else
-                scaleRight = CtlHeight / Convert.ToDouble(maxRight - minRight);
+                scaleRight = chartHeight / Convert.ToDouble(maxRight - minRight);
 
             if (minTime == maxTime)
                 scaleTime = 1;
             else
             {
                 TimeSpan ts = maxTime - minTime;
-                scaleTime = (CtlWidth - (2 * margin)) / ts.TotalMinutes;
+                scaleTime = chartWidth / ts.TotalMinutes;
             }
 
             return true;
@@ -347,22 +407,35 @@ namespace OptionView
         private double ScaleLeft(decimal y)
         {
             double val = Convert.ToDouble(y - minLeft);
-            return (CtlHeight - (val * scaleLeft));
+            return (chartHeight - (val * scaleLeft));
         }
         private double ScaleRight(decimal y)
         {
             double val = Convert.ToDouble(y - minRight);
-            return (CtlHeight - (val * scaleRight));
+            return (chartHeight - (val * scaleRight));
         }
         private double ScalePercent(decimal y)
         {
             double val = Convert.ToDouble(y / 100);
-            return (CtlHeight - (val * CtlHeight));
+            return (chartHeight - (val * chartHeight));
         }
         private double ScaleTime(DateTime dt)
         {
             TimeSpan ts = dt - minTime;
             return (ts.TotalMinutes * scaleTime) + margin;
+        }
+
+        public static int Weekdays(DateTime dtmStart, DateTime dtmEnd)
+        {
+            // This function includes the start and end date in the count if they fall on a weekday
+            int dowStart = ((int)dtmStart.DayOfWeek == 0 ? 7 : (int)dtmStart.DayOfWeek);
+            int dowEnd = ((int)dtmEnd.DayOfWeek == 0 ? 7 : (int)dtmEnd.DayOfWeek);
+            TimeSpan tSpan = dtmEnd - dtmStart;
+            if (dowStart <= dowEnd)
+            {
+                return (((tSpan.Days / 7) * 5) + Math.Max((Math.Min((dowEnd + 1), 6) - dowStart), 0));
+            }
+            return (((tSpan.Days / 7) * 5) + Math.Min((dowEnd + 6) - Math.Min(dowStart, 6), 5));
         }
 
     }
