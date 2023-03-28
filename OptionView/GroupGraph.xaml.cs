@@ -283,17 +283,17 @@ namespace OptionView
             };
             c.Children.Add(l);
 
-            AddLabel(maxLeft, margin, 0, ScaleType.Left);
-            AddLabel(minLeft, margin, chartHeight, ScaleType.Left);
-            AddLabel(maxRight, chartWidth + margin, 0, ScaleType.Right);
-            AddLabel(minRight, chartWidth + margin, chartHeight, ScaleType.Right);
+            AddLabel(maxRight, margin, 0, ScaleType.Left, Brushes.Green);
+            AddLabel(minRight, margin, chartHeight, ScaleType.Left, Brushes.Green);
+            AddLabel(maxLeft, chartWidth + margin, 0, ScaleType.Right, Brushes.Blue);
+            AddLabel(minLeft, chartWidth + margin, chartHeight, ScaleType.Right, Brushes.Blue);
 
-            AddLabel(minTime.ToString("M/d"), margin, chartHeight, ScaleType.Bottom);
-            AddLabel(maxTime.ToString("M/d"), chartWidth + margin, chartHeight, ScaleType.Bottom);
+            AddLabel(minTime.ToString("M/d"), margin, chartHeight + 3, ScaleType.Bottom);
+            AddLabel(maxTime.ToString("M/d"), chartWidth + margin, chartHeight + 3, ScaleType.Bottom);
 
         }
 
-        private void AddLabel(decimal val, double left, double top, ScaleType scaleType)
+        private void AddLabel(decimal val, double left, double top, ScaleType scaleType, Brush color = null)
         {
             string txt;
             if (scaleType == ScaleType.Right)
@@ -308,10 +308,10 @@ namespace OptionView
                 txt = val.ToString("C0");
             }
 
-            AddLabel(txt, left, top, scaleType);
+            AddLabel(txt, left, top, scaleType, color);
         }
 
-        private void AddLabel(string txt, double left, double top, ScaleType scaleType)
+        private void AddLabel(string txt, double left, double top, ScaleType scaleType, Brush color = null)
         {
             FormattedText ft = new FormattedText(
                 txt,
@@ -326,6 +326,7 @@ namespace OptionView
                 Foreground = Brushes.DarkGray,
                 TextAlignment = ((scaleType == ScaleType.Right) || (scaleType == ScaleType.None)) ? TextAlignment.Left : (scaleType == ScaleType.Left) ? TextAlignment.Right : TextAlignment.Center
             };
+            if (color != null) tb.Foreground = color;
             if (scaleType == ScaleType.Bottom)
             {
                 Canvas.SetTop(tb, top +2);
