@@ -59,7 +59,7 @@ namespace OptionView.DataImport
                 grk.Rho = item.Rho;
                 grk.Vega = item.Vega;
 
-                DataFeed.AddGreek(buf.Symbol, grk);
+                if (!DataFeed.ReturnList.ContainsKey(buf.Symbol)) DataFeed.ReturnList.Add(buf.Symbol, grk);
                 DataFeed.symbolCount -= 1;
             }
         }
@@ -83,14 +83,40 @@ namespace OptionView.DataImport
                 qt.Price = Convert.ToDecimal(item.Price);
                 qt.Change = Convert.ToDecimal(item.Change);
 
-                DataFeed.AddTrade(buf.Symbol, qt);
+                if (!DataFeed.ReturnPriceList.ContainsKey(buf.Symbol)) DataFeed.ReturnPriceList.Add(buf.Symbol, qt);
+
                 DataFeed.symbolCount -= 1;
             }
         }
     }
 
+    public class ProfileEventListener : IDxProfileListener
+    {
+        public void OnProfile<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxProfile
+        {
+            foreach (TE item in buf)
+            {
+                Debug.WriteLine($"Listening to {buf.Symbol}"); //  Price: {item.Price}");
 
+                if (!DataFeed.ReturnProfileList.ContainsKey(item.EventSymbol)) DataFeed.ReturnProfileList.Add(item.EventSymbol, item.Description);
+                DataFeed.symbolCount -= 1;
+            }
+        }
+    }
 
+    public class UnderlyingEventListener : IDxUnderlyingListener
+    {
+        public void OnUnderlying<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxUnderlying
+        {
+            foreach (TE item in buf)
+            {
+                Debug.WriteLine($"Listening to {buf.Symbol}"); //  Price: {item.Price}");
+
+                if (!DataFeed.ReturnOptionVolumeList.ContainsKey(item.EventSymbol)) DataFeed.ReturnOptionVolumeList.Add(item.EventSymbol, item.OptionVolume);
+                DataFeed.symbolCount -= 1;
+            }
+        }
+    }
 
 
     static class DataFeed
@@ -98,15 +124,12 @@ namespace OptionView.DataImport
         static public int symbolCount = 0;
         static private IDxSubscription subsciption = null;
         static private NativeConnection connection = null;
-        static private Greeks ReturnList = new Greeks();
-        static private Dictionary<string, Quote> ReturnPriceList = new Dictionary<string, Quote>();
+        static internal Greeks ReturnList = new Greeks();
+        static internal Dictionary<string, Quote> ReturnPriceList = new Dictionary<string, Quote>();
+        static internal Dictionary<string, string> ReturnProfileList = new Dictionary<string, string>();
+        static internal Dictionary<string, double> ReturnOptionVolumeList = new Dictionary<string, double>();
         static StreamingParams streaming = null;
 
-
-        static public void AddGreek(string sym, Greek greek)
-        {
-            if (!ReturnList.ContainsKey(sym)) ReturnList.Add(sym, greek);
-        }
 
         static public Greeks GetGreeks(List<string> symbols)
         {
@@ -155,11 +178,6 @@ namespace OptionView.DataImport
 
         }
 
-
-        static public void AddTrade(string sym, Quote qt)
-        {
-            if (!ReturnPriceList.ContainsKey(sym)) ReturnPriceList.Add(sym, qt);
-        }
 
         static public Dictionary<string, Quote> GetPrices(List<string> symbols)
         {
@@ -249,6 +267,96 @@ namespace OptionView.DataImport
             return ReturnPriceList.ContainsKey(symbol) ? Convert.ToDecimal(ReturnPriceList[symbol].Price) : 0;
         }
 
+
+        static public Dictionary<string, string> GetProfiles(List<string> symbols)
+        {
+            if (streaming == null) streaming = TastyWorks.StreamingInfo();
+
+            var listener = new ProfileEventListener();
+            connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
+
+            try
+            {
+                ReturnProfileList.Clear();
+
+                subsciption = connection.CreateSubscription(EventType.Profile, listener);
+                symbolCount = symbols.Count;
+
+                foreach (string sym in symbols)
+                {
+                    subsciption.AddSymbol(sym);
+                }
+
+                //Debug.WriteLine("waiting...");
+                int i = 100;
+                while ((symbolCount > 0) && (i > 0))
+                {
+                    Thread.Sleep(100);
+                    i--;
+                }
+                //Debug.WriteLine("done...");
+            }
+            catch (DxException dxException)
+            {
+                Debug.WriteLine($"Datafeed: Native exception occurred: {dxException.Message}");
+            }
+            catch (Exception exc)
+            {
+                Debug.WriteLine($"Datafeed: Exception occurred: {exc.Message}");
+            }
+            finally
+            {
+                subsciption?.Dispose();
+            }
+
+            return new Dictionary<string, string>(ReturnProfileList);
+
+        }
+
+        static public Dictionary<string, double> GetVolumes(List<string> symbols)
+        {
+            if (streaming == null) streaming = TastyWorks.StreamingInfo();
+
+            var listener = new UnderlyingEventListener();
+            connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
+
+            try
+            {
+                ReturnProfileList.Clear();
+
+                subsciption = connection.CreateSubscription(EventType.Underlying, listener);
+                symbolCount = symbols.Count;
+
+                foreach (string sym in symbols)
+                {
+                    subsciption.AddSymbol(sym);
+                }
+
+                //Debug.WriteLine("waiting...");
+                int i = 100;
+                while ((symbolCount > 0) && (i > 0))
+                {
+                    Thread.Sleep(100);
+                    i--;
+                }
+                //Debug.WriteLine("done...");
+            }
+            catch (DxException dxException)
+            {
+                Debug.WriteLine($"Datafeed: Native exception occurred: {dxException.Message}");
+            }
+            catch (Exception exc)
+            {
+                Debug.WriteLine($"Datafeed: Exception occurred: {exc.Message}");
+            }
+            finally
+            {
+                subsciption?.Dispose();
+            }
+
+            return new Dictionary<string, double>(ReturnOptionVolumeList);
+
+        }
 
     }
 }
