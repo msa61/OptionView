@@ -546,7 +546,7 @@ namespace OptionView
                         if ((grp.CapitalRequired > 0) && (grp.Strategy.SafeSubstring(0, 8).ToUpper() != "CALENDAR"))
                         {
                             // don't bother if CapReq not defined
-                            grp.Return = grp.Cost / grp.CapitalRequired;
+                            grp.Return = (grp.Cost - grp.Fees) / grp.CapitalRequired;
 
                             // annualize it
                             TimeSpan span = grp.EndTime - grp.StartTime;
