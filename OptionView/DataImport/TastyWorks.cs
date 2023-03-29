@@ -440,7 +440,7 @@ namespace OptionView
                 string status = item["status"].ToString();
                 Int32 id = Convert.ToInt32(item["id"].ToString());
 
-                if (status == "Live") retlist.Add(symbol, id);
+                if (status != "Filled") retlist.Add(symbol, id);
             }
 
             return retlist;
