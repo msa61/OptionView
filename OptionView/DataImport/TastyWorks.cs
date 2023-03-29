@@ -334,7 +334,7 @@ namespace OptionView
             App.UpdateLoadStatusMessage("TW Positions 1/2 : " + accountNumber);
 
             Dictionary<string, decimal> marketValues = new Dictionary<string, decimal>();
-            Dictionary<string, Int32> orderIds = new Dictionary<string, Int32>();
+            Dictionary<string, Int32> orderIds;
             TWMargins acctCapRequirements = new TWMargins();
 
             SetHeaders(Token);
@@ -354,22 +354,11 @@ namespace OptionView
                     if (!marketValues.ContainsKey(price.Name)) marketValues.Add(price.Name, Convert.ToDecimal(price.Value));
                 }
 
-                // capture any orders associated with the underlying
-                string symbol = item["underlying-symbol"].ToString();
-                JToken orders = item["order-ids"];
-                for (int i = 0; i < orders.Count(); i++)
-                {
-                    if (!orderIds.ContainsKey(symbol))
-                    {
-                        Int32 order = Convert.ToInt32(orders[i]);
-                        orderIds.Add(symbol, order);
-                    }
-                }
-
                 // capture the capital requirements while we're here
+                string symbol = item["underlying-symbol"].ToString();
                 TWMargin mar = new TWMargin()
                 {
-                    Symbol = item["underlying-symbol"].ToString(),
+                    Symbol = symbol,
                     UnderlyingPrice = Convert.ToDecimal(item["underlying-price"]),
                     CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"])
                 };
@@ -381,6 +370,8 @@ namespace OptionView
             if (twCapRequirementsCache.ContainsKey(accountNumber)) twCapRequirementsCache.Remove(accountNumber);
             twCapRequirementsCache.Add(accountNumber, acctCapRequirements);
 
+            // get active orders
+            orderIds = ActiveOrders(accountNumber);
 
             App.UpdateLoadStatusMessage("TW Positions 2/2 : " + accountNumber);
 
@@ -426,6 +417,33 @@ namespace OptionView
 
 
             return (returnList.Count > 0) ? returnList : null;
+        }
+
+
+        public static Dictionary<string,Int32> ActiveOrders(string accountNumber)
+        {
+            App.UpdateLoadStatusMessage("TW ActiveOrders : " + accountNumber);
+
+            Dictionary<string,Int32> retlist = new Dictionary<string,Int32>();
+            if (Token.Length == 0) return retlist;
+
+            SetHeaders(Token);
+            string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/orders/live");
+
+            JObject package = JObject.Parse(reply);
+
+            List<JToken> list = package["data"]["items"].Children().ToList();
+
+            foreach (JToken item in list)
+            {
+                string symbol = item["underlying-symbol"].ToString();
+                string status = item["status"].ToString();
+                Int32 id = Convert.ToInt32(item["id"].ToString());
+
+                if (status == "Live") retlist.Add(symbol, id);
+            }
+
+            return retlist;
         }
 
 
