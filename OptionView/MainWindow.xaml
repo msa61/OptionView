@@ -81,6 +81,14 @@
             <Setter Property="FrameworkElement.HorizontalAlignment" Value="Right"/>
         </Style>
 
+        <Style TargetType="DataGridColumnHeader" x:Key="CenterHeader" >
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style BasedOn="{StaticResource DefaultCell}" TargetType="DataGridCell" x:Key="CenterJustifiedCell" >
+            <Setter Property="FrameworkElement.HorizontalAlignment" Value="Center"/>
+        </Style>
+
         <!--
         <Style TargetType="Expander">
             <Setter Property="BorderBrush" Value="Yellow"></Setter>
@@ -380,7 +388,7 @@
 
 
                     <DataGrid Name="resultsGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" Background="#FF454545" RowBackground="#FF454545"
-                              HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,4,0,4" HeadersVisibility="Column"
+                              HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,14,0,4" HeadersVisibility="Column"
                               VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
                               Width="1000" RowDetailsVisibilityChanged="Grid_RowDetailsVisibilityChanged" MouseUp="resultsGrid_MouseUp">
                         <DataGrid.Resources>
@@ -420,13 +428,13 @@
                             <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" Width="70" />
                             <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="70" />
                             <DataGridTextColumn Header="Strategy" Binding="{Binding Strategy}" Width="140" />
-                            <DataGridTextColumn Header="Profit" Binding="{Binding Path=Cost, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
-                            <DataGridTextColumn Header="Fees" Binding="{Binding Path=Fees, StringFormat=C2}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
-                            <DataGridTextColumn Header="Return" Binding="{Binding Path=Return, Converter={StaticResource PercentBlank}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
-                            <DataGridTextColumn Header="Annual Ret" Binding="{Binding Path=AnnualReturn, Converter={StaticResource PercentBlank}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
+                            <DataGridTextColumn Header="Profit" Binding="{Binding Path=Cost, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
+                            <DataGridTextColumn Header="Fees" Binding="{Binding Path=Fees, StringFormat=C2}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
+                            <DataGridTextColumn Header="Return" Binding="{Binding Path=Return, Converter={StaticResource PercentBlank}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
+                            <DataGridTextColumn Header="Annual Ret" Binding="{Binding Path=AnnualReturn, Converter={StaticResource PercentBlank}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
                             <DataGridTextColumn Header="Cap Reqd" Binding="{Binding Path=CapitalRequired, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
-                            <DataGridCheckBoxColumn Header="Earnings" Binding="{Binding EarningsTrade}" Width="80" />
-                            <DataGridCheckBoxColumn Header="Neutral" Binding="{Binding NeutralStrategy}" Width="80" />
+                            <DataGridCheckBoxColumn Header="Earnings" Binding="{Binding EarningsTrade}" Width="80" HeaderStyle="{StaticResource CenterHeader}"/>
+                            <DataGridCheckBoxColumn Header="Neutral" Binding="{Binding NeutralStrategy}" Width="80" HeaderStyle="{StaticResource CenterHeader}"/>
                             <DataGridTextColumn Header="Comments" Binding="{Binding Comments}" Width="140*" />
                         </DataGrid.Columns>
                         <DataGrid.RowDetailsTemplate>
@@ -438,9 +446,9 @@
                                         <DataGridTextColumn Header="Transaction" Binding="{Binding TransType}"  />
                                         <DataGridTextColumn Header="Type" Binding="{Binding Type}"  />
                                         <DataGridTextColumn Header="Expire Date" Binding="{Binding Path=ExpDateText}" />
-                                        <DataGridTextColumn Header="Strike" Binding="{Binding Path=Strike, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
-                                        <DataGridTextColumn Header="Quantity" Binding="{Binding Path=Quantity}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
-                                        <DataGridTextColumn Header="Amount" Binding="{Binding Path=Amount, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
+                                        <DataGridTextColumn Header="Strike" Binding="{Binding Path=Strike, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
+                                        <DataGridTextColumn Header="Quantity" Binding="{Binding Path=Quantity}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
+                                        <DataGridTextColumn Header="Amount" Binding="{Binding Path=Amount, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
                                         <DataGridTextColumn Header="Underlying" Binding="{Binding Path=UnderlyingPrice, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -553,7 +561,7 @@
 
 
                     <DataGrid Name="transactionsGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" Background="#FF454545" RowBackground="#FF454545"
-                              HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,4,0,4" HeadersVisibility="Column"
+                              HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,14,0,4" HeadersVisibility="Column"
                               VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
                               Width="1200" RowDetailsVisibilityChanged="Grid_RowDetailsVisibilityChanged">
                         <DataGrid.Resources>
@@ -685,7 +693,7 @@
 
 
                     <DataGrid Name="todoGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" Background="#FF454545" RowBackground="#FF454545"
-                              Width="900" HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,4,0,4" HeadersVisibility="Column"
+                              Width="900" HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,14,0,4" HeadersVisibility="Column"
                               VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
                               ContextMenuOpening="TodoContextMenuValidationCheck" SelectionChanged="TodoGrid_SelectionChanged" SelectionMode="Single" 
                               >
@@ -746,6 +754,102 @@
                 </Grid>
 
             </TabItem>
+
+
+            <!-- Screener Tab-->
+            <TabItem Width="150" Height="30" Header="Screener" Name="ScreenerTab" >
+                <Grid Background="Black" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition x:Name="ScreenerCol" MinWidth="400" />
+                        <ColumnDefinition x:Name="ScreenerControlsCol" MaxWidth="200" Width="200*"/>
+                    </Grid.ColumnDefinitions>
+
+
+                    <DataGrid Name="screenerGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" Background="#FF454545" RowBackground="#FF454545"
+                              Width="1040" HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,14,0,4" HeadersVisibility="Column"
+                              VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
+                              >
+                        <DataGrid.Resources>
+                            <local:ExpDateToBlank x:Key="ExpDateBlank"/>
+                            <local:ValueToBrushConverter x:Key="BrushConverter"/>
+                        </DataGrid.Resources>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="80" />
+                            <DataGridTextColumn Header="IV" Binding="{Binding ImpliedVolatility, StringFormat={}{0:P1}}" Width="80" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}" />
+                            <DataGridTextColumn Header="IVR" Binding="{Binding ImpliedVolatilityRank, StringFormat={}{0:P1}}" Width="80" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
+                            <DataGridTextColumn Header="Price" Binding="{Binding UnderlyingPrice, StringFormat={}{0:C2}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
+                            <DataGridTextColumn Header="Change" Binding="{Binding UnderlyingPriceChange, StringFormat={}{0:0.00}}" Width="100" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Setter Property="Foreground" Value="{Binding Path=UnderlyingPriceChange, Converter={StaticResource BrushConverter}}"/>
+                                        <Setter Property="FontFamily" Value="Calibri"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Change %" Binding="{Binding UnderlyingPriceChangePercent, StringFormat={}{0:P1}}" Width="80" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Setter Property="Foreground" Value="{Binding Path=UnderlyingPriceChangePercent, Converter={StaticResource BrushConverter}}"/>
+                                        <Setter Property="FontFamily" Value="Calibri" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Volume" Binding="{Binding OptionVolume, StringFormat={}{0:0.0;;' '}}" Width="80"  CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
+                            <DataGridTextColumn Header="Earnings" Binding="{Binding EarningsDate, Converter={StaticResource ExpDateBlank}, StringFormat={}{0:MMM d}}" Width="100" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="{x:Type TextBlock}">
+                                        <Setter Property="FontFamily" Value="Calibri Light" />
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="DTEarnings" Binding="{Binding DaysUntilEarnings, StringFormat={}{0:#;;' '}}" Width="80" CellStyle="{StaticResource CenterJustifiedCell}"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Name}" Width="260" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <DockPanel Background="#FF454545" Grid.Column="1" Margin="6,4,4,4" >
+                        <StackPanel Background="Black" Margin="2,4,2,0">
+                            <DockPanel>
+                                <Label Content="Filters" Margin="6,0,6,0" />
+                            </DockPanel>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <Label Content="Minimum Price" Margin="6,0,0,0" />
+                            <TextBox Name="txtMinPrice" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerlFilter_KeyUp"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <Label Content="Minimum Volume" Margin="6,0,0,0" />
+                            <TextBox Name="txtMinVolume" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerlFilter_KeyUp"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <Label Content="Minimum IV" Margin="6,0,0,0" />
+                            <TextBox Name="txtMinIV" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerlFilter_KeyUp"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <Label Content="Minimum IVR" Margin="6,0,0,0" />
+                            <TextBox Name="txtMinIVR" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerlFilter_KeyUp"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <Label Content="Minimum Days" Margin="6,0,0,0" />
+                            <TextBox Name="txtMinDTE" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerlFilter_KeyUp"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <!--
+                        <StackPanel >
+                            <Label Content="Symbol" Margin="6,0,0,0" />
+                            <TextBox Name="txtxxSymbolFilter" Background="White" Margin="6,0,6,6" Padding="2,4,4,4" TextWrapping="Wrap"  AcceptsReturn="True" IsEnabled="True" KeyUp="txtSymbolFilter_KeyUp" CharacterCasing="Upper"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+-->
+                    </DockPanel>
+                </Grid>
+
+            </TabItem>
+
         </TabControl>
 
         <DockPanel Background="#FF454545" Margin="6,0,6,5" Grid.Row="1" VerticalAlignment="Center" Height="74" >

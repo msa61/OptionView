@@ -141,6 +141,7 @@
     <Compile Include="DataImport\TastyWorks.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="EquityProfile.cs" />
     <Compile Include="SnapShot.xaml.cs">
       <DependentUpon>SnapShot.xaml</DependentUpon>
     </Compile>

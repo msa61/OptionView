@@ -32,6 +32,7 @@ namespace OptionView
         public double DividendYield { get; set; }
         public double Beta { get; set; }
         public double CorrelationToSPY { get; set; }
+        public DateTime Earnings { get; set; }
     }
     class TWMarketInfos : Dictionary<string, TWMarketInfo>
     {
@@ -234,6 +235,9 @@ namespace OptionView
                     Beta = Convert.ToDouble(item["beta"]),
                     CorrelationToSPY = Convert.ToDouble(item["corr-spy-3month"])
                 };
+
+                JToken earnings = item["earnings"];
+                if ((earnings != null) && (earnings["expected-report-date"] != null)) info.Earnings = Convert.ToDateTime(earnings["expected-report-date"]).Trim(TimeSpan.TicksPerDay);
 
                 returnList.Add(info.Symbol, info);
             }
@@ -627,6 +631,50 @@ namespace OptionView
             strmParams.Token = data["token"].ToString();
 
             return strmParams;
+        }
+
+        public static List<string> WatchListSymbols()
+        {
+            App.UpdateStatusMessage("TW WatchListSymbols");
+            if (Token.Length == 0) return null;
+
+            List<string> retlist = new List<string>();
+
+            SetHeaders(Token);
+            string reply = Web.DownloadString("https://api.tastyworks.com/public-watchlists");
+
+            JObject package = JObject.Parse(reply);
+
+            List<JToken> list = package["data"]["items"].Children().ToList();
+
+            foreach (JToken item in list)
+            {
+                // capture the value of all of the options plus the underlaying
+                //JToken prices = item["marks"];
+                Debug.WriteLine("watchlist: " + item["name"]);
+                string name = item["name"].ToString();
+                if ((name == "High Options Volume") ||
+                    (name == "Dividend Aristocrats") ||
+                    (name == "Liquid ETFs") ||
+                    (name == "tasty Hourly Top Equities") ||
+                    (name == "S&P 500") ||
+                    (name == "NASDAQ 100") 
+                    )
+                {
+                    JToken entries = item["watchlist-entries"];
+                    if (entries != null)
+                    {
+                        foreach (JToken entry in entries)
+                        {
+                            string symbol = entry["symbol"].ToString();
+                            Debug.WriteLine("   symbol: " + symbol);
+                            if (!retlist.Contains(symbol)) retlist.Add(symbol);
+                        }
+                    }
+                }
+            }
+
+            return retlist;
         }
 
     }

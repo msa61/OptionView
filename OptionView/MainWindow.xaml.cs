@@ -422,6 +422,16 @@ public MainWindow()
                 cbAnalysisAccount.SelectedIndex = fIdx;
             }
 
+            string[] screenerView = Config.GetProp("Screener").Split('|');
+            if (screenerView.Length == 5)
+            {
+                txtMinPrice.Text = screenerView[0];
+                txtMinVolume.Text = screenerView[1];
+                txtMinIV.Text = screenerView[2];
+                txtMinIVR.Text = screenerView[3];
+                txtMinDTE.Text = screenerView[4];
+            }
+
             // do last to avoid extraineous events
             string tab = Config.GetProp("Tab");
             if (tab.Length > 0)
@@ -471,6 +481,10 @@ public MainWindow()
             // save analysis view state
             Config.SetProp("AnalysisView", cbAnalysisView.SelectedIndex.ToString() + "|" + cbAnalysisAccount.SelectedIndex.ToString() + "|" + chkOutliers.IsChecked.ToString());
 
+            // save screener filters
+            Config.SetProp("Screener", txtMinPrice.Text + "|" + txtMinVolume.Text + "|" + txtMinIV.Text + "|" + txtMinIVR.Text + "|" + txtMinDTE.Text);
+
+
             if ((selectedTag != 0) && detailsDirty) SaveTransactionGroupDetails(selectedTag);
 
             foreach (ContentControl cc in MainCanvas.Children)
@@ -480,6 +494,8 @@ public MainWindow()
 
             if (todoGrid.SelectedItem != null) UpdateTodoDetails((TransactionGroup)todoGrid.SelectedItem);
 
+
+            // save group window location
             double left = (App.GroupWindow.Window != null) ? App.GroupWindow.Window.Left : App.GroupWindow.Left;
             double top = (App.GroupWindow.Window != null) ? App.GroupWindow.Window.Top : App.GroupWindow.Top;
             Config.SetProp("GroupWindow", left.ToString() + "|" + top.ToString());
@@ -1269,6 +1285,69 @@ public MainWindow()
 
         // 
         //
+        // code for screener tab
+        // 
+        //
+
+        private void UpdateScreenerGrid()
+        {
+            try
+            {
+                App.UpdateStatusMessage("Updating screening grid");
+
+                if (screenerGrid.ItemsSource == null)
+                {
+                    EquityProfiles eqProfiles = new EquityProfiles();
+    
+                    ListCollectionView lcv = (ListCollectionView)CollectionViewSource.GetDefaultView(eqProfiles);
+                    lcv.Filter = ScreenerFilter;
+
+                    screenerGrid.ItemsSource = lcv;
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "UpdateTransactionsGrid Error");
+            }
+        }
+
+        private void txtScreenerlFilter_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (screenerGrid.ItemsSource != null)   // grid not initialized yet
+                CollectionViewSource.GetDefaultView(screenerGrid.ItemsSource).Refresh();
+        }
+
+        private bool ScreenerFilter(object item)
+        {
+            bool ret = false;
+
+            decimal minPrice = Convert.ToDecimal(SafeValueFromTextBox(txtMinPrice));
+            double minVolume = SafeValueFromTextBox(txtMinVolume);
+            double minIV = SafeValueFromTextBox(txtMinIV) / 100;
+            double minIVR = SafeValueFromTextBox(txtMinIVR) / 100;
+            double minDTE = SafeValueFromTextBox(txtMinDTE);
+
+            EquityProfile eq = (EquityProfile)item;
+
+            if (eq != null)
+            // If filter is turned on, filter completed items.
+            {
+                if ((eq.UnderlyingPrice > minPrice) && (eq.OptionVolume > minVolume) && (eq.ImpliedVolatility > minIV) && (eq.ImpliedVolatilityRank > minIVR) && (eq.DaysUntilEarnings > minDTE))
+                    ret = true;
+            }
+            return ret;
+
+        }
+
+        private double SafeValueFromTextBox(TextBox tb)
+        {
+            double val = -100000;
+            if (tb.Text.Length > 0) Double.TryParse(tb.Text, out val);
+            return val;
+        }
+
+        // 
+        //
         // code for Todo tab
         // 
         //
@@ -1422,7 +1501,15 @@ public MainWindow()
         {
             if (e.Source is TabControl)
             {
-                if (((TabControl)sender).SelectedIndex == 1) UpdateAnalysisView();
+                switch (((TabControl)sender).SelectedIndex)
+                {
+                    case 1:
+                        UpdateAnalysisView();
+                        break;
+                    case 5:
+                        UpdateScreenerGrid();
+                        break;
+                }
 
                 if (e.RemovedItems.Count != 0)
                 {
@@ -1923,7 +2010,27 @@ public MainWindow()
             return 0;
         }
     }
+    public class ValueToBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value.GetType() == typeof(decimal))
+            {
+                decimal v = (decimal)value;
 
+                if (v > 0.0005M)
+                    return Brushes.PaleGreen;
+                else if (v < -0.0005M)
+                    return Brushes.LightCoral;
+            }
+            return Brushes.White;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
 
 }
 
