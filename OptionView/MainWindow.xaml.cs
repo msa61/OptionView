@@ -1301,7 +1301,7 @@ public MainWindow()
 
                 if (screenerGrid.ItemsSource == null)
                 {
-                    EquityProfiles eqProfiles = new EquityProfiles();
+                    EquityProfiles eqProfiles = new EquityProfiles(portfolio);
     
                     ListCollectionView lcv = (ListCollectionView)CollectionViewSource.GetDefaultView(eqProfiles);
                     lcv.Filter = ScreenerFilter;

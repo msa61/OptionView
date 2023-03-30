@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -22,13 +23,14 @@ namespace OptionView
         public double OptionVolume { get; set; }
         public DateTime EarningsDate { get; set; }
         public double DaysUntilEarnings { get; set; }
+        public Visibility CurrentlyHeld { get; set; } = Visibility.Hidden;
     }
 
 
 
     public class EquityProfiles : List<EquityProfile>
     {
-        public EquityProfiles()
+        public EquityProfiles(Portfolio portfolio)
         {
             App.InitializeStatusWindow(7);
             List<string> symbols = TastyWorks.WatchListSymbols();
@@ -65,6 +67,14 @@ namespace OptionView
                     }
                     if (equity.EarningsDate < DateTime.Now) equity.EarningsDate = DateTime.MinValue;  // clear useless data
                     if (equity.EarningsDate > DateTime.Now) equity.DaysUntilEarnings = Math.Truncate((equity.EarningsDate - DateTime.Now).TotalDays);
+
+                    foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
+                    {
+                        TransactionGroup grp = entry.Value;
+                        if (grp.Symbol == equity.Symbol)
+                            equity.CurrentlyHeld = Visibility.Visible;    
+                    }
+
                     this.Add(equity);
                 }
             }

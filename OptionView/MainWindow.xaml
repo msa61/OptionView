@@ -776,9 +776,26 @@
                             <local:ValueToBrushConverter x:Key="BrushConverter"/>
                         </DataGrid.Resources>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="80" />
-                            <DataGridTextColumn Header="IV" Binding="{Binding ImpliedVolatility, StringFormat={}{0:P1}}" Width="80" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}" />
+                            <DataGridTextColumn Header="Symbol" Width="80">
+                                <DataGridTextColumn.CellStyle>
+                                    <Style TargetType="{x:Type DataGridCell}">
+                                        <Setter Property="Padding" Value="4"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Symbol}" Padding="8,4,4,4" />
+                                                        
+                                                        <Image Source="Icons/dot.ico" Visibility="{Binding CurrentlyHeld}" />
+                                                    </StackPanel>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGridTextColumn.CellStyle>
+                            </DataGridTextColumn> 
                             <DataGridTextColumn Header="IVR" Binding="{Binding ImpliedVolatilityRank, StringFormat={}{0:P1}}" Width="80" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
+                            <DataGridTextColumn Header="IV" Binding="{Binding ImpliedVolatility, StringFormat={}{0:P1}}" Width="80" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}" />
                             <DataGridTextColumn Header="Price" Binding="{Binding UnderlyingPrice, StringFormat={}{0:C2}}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
                             <DataGridTextColumn Header="Change" Binding="{Binding UnderlyingPriceChange, StringFormat={}{0:0.00}}" Width="100" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}">
                                 <DataGridTextColumn.ElementStyle>
