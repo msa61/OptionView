@@ -595,6 +595,8 @@
                         <DataGrid.RowStyle>
                             <Style TargetType="DataGridRow">
                                 <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontFamily" Value="Calibri Light" />
+                                <Setter Property="FontSize" Value="14" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding TransSubType}" Value="Assignment">
                                         <Setter Property="Foreground" Value="Yellow" />
@@ -766,7 +768,7 @@
 
 
                     <DataGrid Name="screenerGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" Background="#FF454545" RowBackground="#FF454545"
-                              Width="1040" HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,14,0,4" HeadersVisibility="Column"
+                              Width="1140" HorizontalAlignment="Left" CanUserAddRows="False" Grid.Column="0" Margin="4,14,0,4" HeadersVisibility="Column"
                               VerticalGridLinesBrush="#FF454545" HorizontalGridLinesBrush="Gray" ItemsSource="{Binding}" BorderBrush="{x:Null}" IsReadOnly="True" 
                               >
                         <DataGrid.Resources>
@@ -794,8 +796,8 @@
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="Volume" Binding="{Binding OptionVolume, StringFormat={}{0:0.0;;' '}}" Width="80"  CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
-                            <DataGridTextColumn Header="Earnings" Binding="{Binding EarningsDate, Converter={StaticResource ExpDateBlank}, StringFormat={}{0:MMM d}}" Width="100" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}">
+                            <DataGridTextColumn Header="Volume" Binding="{Binding OptionVolume, StringFormat={}{0:#\,##0.0;;'-'}}" Width="80"  CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
+                            <DataGridTextColumn Header="Earnings" Binding="{Binding EarningsDate, Converter={StaticResource ExpDateBlank}}" Width="100" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="{x:Type TextBlock}">
                                         <Setter Property="FontFamily" Value="Calibri Light" />
@@ -803,7 +805,7 @@
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
                             <DataGridTextColumn Header="DTEarnings" Binding="{Binding DaysUntilEarnings, StringFormat={}{0:#;;' '}}" Width="80" CellStyle="{StaticResource CenterJustifiedCell}"/>
-                            <DataGridTextColumn Header="Description" Binding="{Binding Name}" Width="260" />
+                            <DataGridTextColumn Header="Description" Binding="{Binding Name}" Width="360" />
                         </DataGrid.Columns>
                     </DataGrid>
                     <DockPanel Background="#FF454545" Grid.Column="1" Margin="6,4,4,4" >

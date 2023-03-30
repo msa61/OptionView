@@ -483,7 +483,11 @@ public MainWindow()
 
             // save screener filters
             Config.SetProp("Screener", txtMinPrice.Text + "|" + txtMinVolume.Text + "|" + txtMinIV.Text + "|" + txtMinIVR.Text + "|" + txtMinDTE.Text);
-
+            if (screenerGrid.ItemsSource != null)
+            {
+                SortDescription sd = ((ListCollectionView)screenerGrid.ItemsSource).SortDescriptions[0];
+                Config.SetProp("ScreenerSort", sd.PropertyName + "|" + ((sd.Direction == ListSortDirection.Ascending) ? "1" : "0"));
+            }
 
             if ((selectedTag != 0) && detailsDirty) SaveTransactionGroupDetails(selectedTag);
 
@@ -1303,6 +1307,14 @@ public MainWindow()
                     lcv.Filter = ScreenerFilter;
 
                     screenerGrid.ItemsSource = lcv;
+
+                    // restore last sort used
+                    string[] screenerSort = Config.GetProp("ScreenerSort").Split('|');
+                    if (screenerSort.Length > 1)
+                    {
+                        lcv.SortDescriptions.Add(new SortDescription(screenerSort[0], (screenerSort[1] == "1") ? ListSortDirection.Ascending : ListSortDirection.Descending));
+                    }
+
                 }
             }
             catch (Exception e)
@@ -1999,7 +2011,7 @@ public MainWindow()
                 }
                 else
                 {
-                    return string.Format("{0:dd MMM}", t);
+                    return string.Format("{0:d MMM}", t);
                 }
             }
             return value;

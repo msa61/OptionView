@@ -47,6 +47,7 @@ namespace OptionView
             loadWindow = new LoadingWindow();
             loadWindow.pbStatus.Maximum = count;
             loadWindow.Show();
+            loadWindow.Activate();
         }
         public static void CloseStatusWindow()
         {
