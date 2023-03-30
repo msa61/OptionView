@@ -1297,8 +1297,6 @@ public MainWindow()
         {
             try
             {
-                App.UpdateStatusMessage("Updating screening grid");
-
                 if (screenerGrid.ItemsSource == null)
                 {
                     EquityProfiles eqProfiles = new EquityProfiles(portfolio);
