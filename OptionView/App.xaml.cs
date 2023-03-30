@@ -51,7 +51,7 @@ namespace OptionView
         }
         public static void CloseStatusWindow()
         {
-            loadWindow.Close();
+            if (loadWindow != null) loadWindow.Close();
             loadWindow = null;
         }
 
