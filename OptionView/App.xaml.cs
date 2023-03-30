@@ -28,17 +28,34 @@ namespace OptionView
             if ((e.Args.Count() > 0) && (e.Args[0].ToLower() == "offline")) OfflineMode = true;
             if ((e.Args.Count() > 0) && (e.Args[0].ToLower() == "refresh")) DataRefreshMode = true;
 
-            loadWindow = new LoadingWindow();
-            loadWindow.Show();
+            InitializeStatusWindow(17);
 
             MainWindow wnd = new MainWindow();
-            loadWindow.Close();
+            CloseStatusWindow();
             wnd.Show();
         }
 
-        public static void UpdateLoadStatusMessage(string txt)
+        public static void UpdateStatusMessage(string txt)
         {
             if (loadWindow.IsActive) loadWindow.Message = txt;
+        }
+
+        public static void InitializeStatusWindow(int count)
+        {
+            if ((loadWindow != null) && (loadWindow.IsActive)) loadWindow.Close();
+
+            loadWindow = new LoadingWindow();
+            loadWindow.pbStatus.Maximum = count;
+            loadWindow.Show();
+        }
+        public static void CloseStatusWindow()
+        {
+            loadWindow.Close();
+        }
+
+        public static void UpdateStatusWindowCount(int count)
+        {
+            loadWindow.pbStatus.Maximum = count;
         }
 
         public static void OpenConnection()

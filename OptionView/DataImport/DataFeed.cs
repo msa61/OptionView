@@ -133,7 +133,7 @@ namespace OptionView.DataImport
 
         static public Greeks GetGreeks(List<string> symbols)
         {
-            App.UpdateLoadStatusMessage("Greeks from Datafeed");
+            App.UpdateStatusMessage("Greeks from Datafeed");
 
             if (streaming == null) streaming = TastyWorks.StreamingInfo();
 

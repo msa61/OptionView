@@ -91,7 +91,7 @@ public MainWindow()
             */
             try
             {
-                App.UpdateLoadStatusMessage("Updating footer");
+                App.UpdateStatusMessage("Updating footer");
 
                 OverviewPanel.Children.Clear();
 
@@ -325,7 +325,7 @@ public MainWindow()
 
         private void UpdateHoldingsTiles()
         {
-            App.UpdateLoadStatusMessage("Update tiles");
+            App.UpdateStatusMessage("Update tiles");
 
             portfolio = new Portfolio();
             portfolio.GetCurrentHoldings(accounts);
@@ -374,7 +374,7 @@ public MainWindow()
 
         private void RestorePreviousSession()
         {
-            App.UpdateLoadStatusMessage("Restoring previous session");
+            App.UpdateStatusMessage("Restoring previous session");
 
             string scrnProps = Config.GetProp("Screen");
             string[] props = scrnProps.Split('|');
@@ -1039,7 +1039,7 @@ public MainWindow()
         {
             try
             { 
-                App.UpdateLoadStatusMessage("Updating results");
+                App.UpdateStatusMessage("Updating results");
 
                 PortfolioResults results = new PortfolioResults();
                 results.GetResults();
@@ -1177,7 +1177,7 @@ public MainWindow()
         {
             try
             {
-                App.UpdateLoadStatusMessage("Updating transactions");
+                App.UpdateStatusMessage("Updating transactions grid");
 
                 Transactions results = new Transactions();
                 results.GetRecent();
@@ -1245,10 +1245,12 @@ public MainWindow()
 
             if (lcv != null)
             {
+                // removes grouping of rows
                 lcv.GroupDescriptions.Clear();
 
                 if (cb.IsChecked == true)
                 {
+                    // adds grouping of rows
                     lcv.GroupDescriptions.Add(new PropertyGroupDescription("GroupID"));
                 }
             }
@@ -1274,7 +1276,7 @@ public MainWindow()
         {
             try
             {
-                App.UpdateLoadStatusMessage("Updating todos");
+                App.UpdateStatusMessage("Updating todos");
 
                 PortfolioTodos todos = new PortfolioTodos();
                 todos.GetTodos();

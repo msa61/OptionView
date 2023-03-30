@@ -165,7 +165,7 @@ namespace OptionView
         {
             try
             {
-                App.UpdateLoadStatusMessage("InitiateSession");
+                App.UpdateStatusMessage("InitiateSession");
 
                 if (alreadyFailedOnce) return false;
                 if (Token.Length > 0) return true;  // no need to login again
@@ -205,7 +205,7 @@ namespace OptionView
 
         public static TWMarketInfos MarketInfo(List<string> symbols)
         {
-            App.UpdateLoadStatusMessage("TW MarketInfo");
+            App.UpdateStatusMessage("TW MarketInfo");
 
             string symbolString = "";
             foreach (string sym in symbols)
@@ -245,7 +245,7 @@ namespace OptionView
 
         public static TWAccounts Accounts()
         {
-            App.UpdateLoadStatusMessage("TW Accounts");
+            App.UpdateStatusMessage("TW Accounts");
 
             SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/customers/me/accounts");
@@ -275,7 +275,7 @@ namespace OptionView
                 return twCapRequirementsCache[accountNumber];
             }
 
-            App.UpdateLoadStatusMessage("TW MarginData : " + accountNumber);
+            App.UpdateStatusMessage("TW MarginData : " + accountNumber);
 
             SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
@@ -303,7 +303,7 @@ namespace OptionView
 
         public static TWBalance Balances(string accountNumber)
         {
-            App.UpdateLoadStatusMessage("TW Balances : " + accountNumber);
+            App.UpdateStatusMessage("TW Balances : " + accountNumber);
             if (Token.Length == 0) return new TWBalance();
 
             SetHeaders(Token);
@@ -331,7 +331,7 @@ namespace OptionView
 
         public static TWPositions Positions(string accountNumber)
         {
-            App.UpdateLoadStatusMessage("TW Positions 1/2 : " + accountNumber);
+            App.UpdateStatusMessage("TW Positions 1/2 : " + accountNumber);
 
             Dictionary<string, decimal> marketValues = new Dictionary<string, decimal>();
             Dictionary<string, Int32> orderIds;
@@ -373,7 +373,7 @@ namespace OptionView
             // get active orders
             orderIds = ActiveOrders(accountNumber);
 
-            App.UpdateLoadStatusMessage("TW Positions 2/2 : " + accountNumber);
+            App.UpdateStatusMessage("TW Positions 2/2 : " + accountNumber);
 
             SetHeaders(Token); // reset, lost after previous call
 
@@ -422,7 +422,7 @@ namespace OptionView
 
         public static Dictionary<string,Int32> ActiveOrders(string accountNumber)
         {
-            App.UpdateLoadStatusMessage("TW ActiveOrders : " + accountNumber);
+            App.UpdateStatusMessage("TW ActiveOrders : " + accountNumber);
 
             Dictionary<string,Int32> retlist = new Dictionary<string,Int32>();
             if (Token.Length == 0) return retlist;
@@ -460,7 +460,7 @@ namespace OptionView
 
         public static TWTransactions Transactions(string accountNumber, DateTime? start, DateTime? end)
         {
-            App.UpdateLoadStatusMessage("TW Transations");
+            App.UpdateStatusMessage("TW Transations");
 
             SetHeaders(Token);
 
@@ -613,7 +613,7 @@ namespace OptionView
 
         public static StreamingParams StreamingInfo()
         {
-            App.UpdateLoadStatusMessage("TW StreamingInfo");
+            App.UpdateStatusMessage("TW StreamingInfo");
 
             SetHeaders(Token);
             string reply = Web.DownloadString("https://api.tastyworks.com/quote-streamer-tokens");

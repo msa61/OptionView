@@ -80,7 +80,7 @@ namespace OptionView
 
         public void GetCurrentHoldings(Accounts acc, Boolean minorUpdate = false)
         {
-            App.UpdateLoadStatusMessage("Get current holdings");
+            App.UpdateStatusMessage("Get current holdings");
 
             accounts = acc;
 
@@ -96,12 +96,18 @@ namespace OptionView
                 // establish connection
                 App.OpenConnection();
 
+                // get total number of groups in order to update the progressbar
+                SQLiteCommand cmd = new SQLiteCommand("SELECT count(id) FROM transgroup WHERE Open = 1", App.ConnStr);
+                int grps = Convert.ToInt32(cmd.ExecuteScalar());
+                App.UpdateStatusWindowCount( 12 + (acc.Count(x => x.Active == true) * 4) + grps);
+
+                // get all data about open groups
                 string sql = "SELECT *, date(ActionDate) AS TodoDate FROM transgroup AS tg LEFT JOIN";
                 sql += " (SELECT transgroupid, SUM(amount) AS Cost, SUM(Fees) AS Fees, datetime(MIN(time)) AS startTime, datetime(MAX(time)) AS endTime from transactions GROUP BY transgroupid) AS t ON tg.id = t.transgroupid";
                 sql += " LEFT JOIN accounts AS a ON tg.Account = a.ID";
                 sql += " WHERE tg.Open = 1";
 
-                SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+                cmd = new SQLiteCommand(sql, App.ConnStr);
                 SQLiteDataReader readerGroup = cmd.ExecuteReader();
                 while (readerGroup.Read())
                 {
@@ -133,7 +139,7 @@ namespace OptionView
                     }
 
                     grp.EarliestExpiration = FindEarliestDate(grp.Holdings);
-                    App.UpdateLoadStatusMessage("Retrieve current data - " + grp.Symbol);
+                    App.UpdateStatusMessage("Retrieve current data - " + grp.Symbol);
                     RetrieveCurrentData(grp);
 
                     this.Add(grp.GroupID, grp);
@@ -172,7 +178,7 @@ namespace OptionView
                 // retrieve and cache current data from tastyworks for this a subsequent passes
                 if (twPositions == null)
                 {
-                    App.UpdateLoadStatusMessage("Fetching current data for cache");
+                    App.UpdateStatusMessage("Fetching current data for cache");
 
                     if (TastyWorks.ActiveSession())
                     {
