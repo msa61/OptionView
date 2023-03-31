@@ -38,9 +38,7 @@ namespace OptionView
         private bool initializingDatePicker = false;
 
 
-
-
-public MainWindow()
+        public MainWindow()
         {
             InitializeComponent();
             InitializeApp();
@@ -1511,6 +1509,11 @@ public MainWindow()
         {
             if (e.Source is TabControl)
             {
+                Debug.WriteLine("Tab " + ((TabControl)sender).SelectedIndex.ToString());
+
+                TabItem previousTab = null;
+                if (e.RemovedItems.Count != 0) previousTab = (TabItem)e.RemovedItems[0];
+
                 switch (((TabControl)sender).SelectedIndex)
                 {
                     case 1:
@@ -1521,13 +1524,13 @@ public MainWindow()
                         break;
                 }
 
-                if (e.RemovedItems.Count != 0)
+                if (previousTab != null)
                 {
-                    if ((((TabItem)e.RemovedItems[0]).Name == "TodoTab") && (todoGrid.SelectedItem != null))
+                    if ((previousTab.Name == "TodoTab") && (todoGrid.SelectedItem != null))
                     {
                         UpdateTodoDetails((TransactionGroup)todoGrid.SelectedItem);
                     }
-                    if ((((TabItem)e.RemovedItems[0]).Name == "HoldingsTab") && (selectedTag != 0) && detailsDirty)
+                    if ((previousTab.Name == "HoldingsTab") && (selectedTag != 0) && detailsDirty)
                     {
                         SaveTransactionGroupDetails(selectedTag);
                     }

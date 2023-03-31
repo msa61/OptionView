@@ -266,7 +266,7 @@ namespace OptionView
                                 {
                                     grp.GreekData.Delta += Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);  // delta is 1 per share
                                 }
-                                else if (optionGreeks.ContainsKey(twpos.ShortOptionSymbol))
+                                else if ((optionGreeks != null) && (optionGreeks.ContainsKey(twpos.ShortOptionSymbol)))
                                 {
                                     pos.GreekData = optionGreeks[twpos.ShortOptionSymbol];
 
@@ -310,6 +310,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.Message, "RetrieveCurrentData");
                 Debug.WriteLine("RetrieveCurrentData: " + ex.Message);
             }
 

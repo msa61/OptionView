@@ -206,248 +206,296 @@ namespace OptionView
 
         public static TWMarketInfos MarketInfo(List<string> symbols)
         {
-            App.UpdateStatusMessage("TW MarketInfo");
-
-            string symbolString = "";
-            foreach (string sym in symbols)
+            try
             {
-                symbolString += sym + ",";
-            }
-            symbolString = symbolString.TrimEnd(',');
+                App.UpdateStatusMessage("TW MarketInfo");
 
-            SetHeaders(Token);
-            string reply = Web.DownloadString("https://api.tastyworks.com/market-metrics?symbols=" + symbolString);
-
-            JObject package = JObject.Parse(reply);
-
-            TWMarketInfos returnList = new TWMarketInfos();
-
-            List<JToken> list = package["data"]["items"].Children().ToList();
-
-            foreach (JToken item in list)
-            {
-                TWMarketInfo info = new TWMarketInfo
+                string symbolString = "";
+                foreach (string sym in symbols)
                 {
-                    Symbol = item["symbol"].ToString(),
-                    ImpliedVolatility = Convert.ToDouble(item["implied-volatility-index"]),
-                    ImpliedVolatilityRank = Convert.ToDouble(item["implied-volatility-index-rank"]),
-                    DividendYield = Convert.ToDouble(item["dividend-yield"]),
-                    Beta = Convert.ToDouble(item["beta"]),
-                    CorrelationToSPY = Convert.ToDouble(item["corr-spy-3month"])
-                };
+                    symbolString += sym + ",";
+                }
+                symbolString = symbolString.TrimEnd(',');
 
-                JToken earnings = item["earnings"];
-                if ((earnings != null) && (earnings["expected-report-date"] != null)) info.Earnings = Convert.ToDateTime(earnings["expected-report-date"]).Trim(TimeSpan.TicksPerDay);
+                SetHeaders(Token);
+                string reply = Web.DownloadString("https://api.tastyworks.com/market-metrics?symbols=" + symbolString);
 
-                returnList.Add(info.Symbol, info);
+                JObject package = JObject.Parse(reply);
+
+                TWMarketInfos returnList = new TWMarketInfos();
+
+                List<JToken> list = package["data"]["items"].Children().ToList();
+
+                foreach (JToken item in list)
+                {
+                    TWMarketInfo info = new TWMarketInfo
+                    {
+                        Symbol = item["symbol"].ToString(),
+                        ImpliedVolatility = Convert.ToDouble(item["implied-volatility-index"]),
+                        ImpliedVolatilityRank = Convert.ToDouble(item["implied-volatility-index-rank"]),
+                        DividendYield = Convert.ToDouble(item["dividend-yield"]),
+                        Beta = Convert.ToDouble(item["beta"]),
+                        CorrelationToSPY = Convert.ToDouble(item["corr-spy-3month"])
+                    };
+
+                    JToken earnings = item["earnings"];
+                    if ((earnings != null) && (earnings["expected-report-date"] != null)) info.Earnings = Convert.ToDateTime(earnings["expected-report-date"]).Trim(TimeSpan.TicksPerDay);
+
+                    returnList.Add(info.Symbol, info);
+                }
+
+                return (returnList.Count > 0) ? returnList : null;
             }
-
-            return (returnList.Count > 0) ? returnList : null;
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "TW MarketInfo");
+                throw new Exception("Error in Tastyworks.MarketInfo", ex);
+            }
         }
 
 
 
         public static TWAccounts Accounts()
         {
-            App.UpdateStatusMessage("TW Accounts");
+            try 
+            { 
+                App.UpdateStatusMessage("TW Accounts");
 
-            SetHeaders(Token);
-            string reply = Web.DownloadString("https://api.tastyworks.com/customers/me/accounts");
+                SetHeaders(Token);
+                string reply = Web.DownloadString("https://api.tastyworks.com/customers/me/accounts");
 
-            JObject package = JObject.Parse(reply);
+                JObject package = JObject.Parse(reply);
 
-            TWAccounts returnList = new TWAccounts();
+                TWAccounts returnList = new TWAccounts();
 
-            List<JToken> list = package["data"]["items"].Children().ToList();
+                List<JToken> list = package["data"]["items"].Children().ToList();
 
-            foreach (JToken item in list)
-            {
-                TWAccount inst = new TWAccount();
-                inst.Number = item["account"]["account-number"].ToString();
-                inst.Name = item["account"]["nickname"].ToString();
-                returnList.Add(inst.Number, inst);
+                foreach (JToken item in list)
+                {
+                    TWAccount inst = new TWAccount();
+                    inst.Number = item["account"]["account-number"].ToString();
+                    inst.Name = item["account"]["nickname"].ToString();
+                    returnList.Add(inst.Number, inst);
+                }
+
+                return (returnList.Count > 0) ? returnList : null;
             }
-
-            return (returnList.Count > 0) ? returnList : null;
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "TW Accounts");
+                throw new Exception("Error in Tastyworks.Accounts", ex);
+            }
         }
 
         // used for determining capital requirement during initial load
         public static TWMargins MarginData(string accountNumber)
         {
-            if (twCapRequirementsCache.ContainsKey(accountNumber))
-            {
-                return twCapRequirementsCache[accountNumber];
-            }
-
-            App.UpdateStatusMessage("TW MarginData : " + accountNumber);
-
-            SetHeaders(Token);
-            string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
-
-            JObject package = JObject.Parse(reply);
-
-            List<JToken> list = package["data"]["underlyings"].Children().ToList();
-
-            TWMargins retval = new TWMargins();
-
-            foreach (JToken item in list)
-            {
-                TWMargin mar = new TWMargin()
+            try
+            { 
+                if (twCapRequirementsCache.ContainsKey(accountNumber))
                 {
-                    Symbol = item["underlying-symbol"].ToString(),
-                    UnderlyingPrice = Convert.ToDecimal(item["underlying-price"]),
-                    CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"])
-                };
-                retval.Add(mar.Symbol, mar);
-            }
+                    return twCapRequirementsCache[accountNumber];
+                }
 
-            return retval;
+                App.UpdateStatusMessage("TW MarginData : " + accountNumber);
+
+                SetHeaders(Token);
+                string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
+
+                JObject package = JObject.Parse(reply);
+
+                List<JToken> list = package["data"]["underlyings"].Children().ToList();
+
+                TWMargins retval = new TWMargins();
+
+                foreach (JToken item in list)
+                {
+                    TWMargin mar = new TWMargin()
+                    {
+                        Symbol = item["underlying-symbol"].ToString(),
+                        UnderlyingPrice = Convert.ToDecimal(item["underlying-price"]),
+                        CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"])
+                    };
+                    retval.Add(mar.Symbol, mar);
+                }
+
+                return retval;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "TW MarginData");
+                throw new Exception("Error in Tastyworks.MarginData", ex);
+            }
         }
 
 
         public static TWBalance Balances(string accountNumber)
         {
-            App.UpdateStatusMessage("TW Balances : " + accountNumber);
-            if (Token.Length == 0) return new TWBalance();
+            try
+            { 
+                App.UpdateStatusMessage("TW Balances : " + accountNumber);
+                if (Token.Length == 0) return new TWBalance();
 
-            SetHeaders(Token);
-            string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/balances");
+                SetHeaders(Token);
+                string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/balances");
 
-            JObject package = JObject.Parse(reply);
+                JObject package = JObject.Parse(reply);
 
-            TWBalance retval = new TWBalance()
-            {
-                NetLiq = Convert.ToDecimal(package["data"]["net-liquidating-value"]),
-                EquityBuyingPower = Convert.ToDecimal(package["data"]["equity-buying-power"]),
-                OptionBuyingPower = Convert.ToDecimal(package["data"]["derivative-buying-power"])
-            };
+                TWBalance retval = new TWBalance()
+                {
+                    NetLiq = Convert.ToDecimal(package["data"]["net-liquidating-value"]),
+                    EquityBuyingPower = Convert.ToDecimal(package["data"]["equity-buying-power"]),
+                    OptionBuyingPower = Convert.ToDecimal(package["data"]["derivative-buying-power"])
+                };
 
-            if (retval.NetLiq == 0)
-            {
-                retval.CommittedPercentage = 0;
+                if (retval.NetLiq == 0)
+                {
+                    retval.CommittedPercentage = 0;
+                }
+                else
+                {
+                    retval.CommittedPercentage = 1 - (retval.OptionBuyingPower / retval.NetLiq);
+                }
+                return retval;
             }
-            else
+            catch (Exception ex)
             {
-                retval.CommittedPercentage = 1 - (retval.OptionBuyingPower / retval.NetLiq);
+                MessageBox.Show(ex.Message, "TW Balances");
+                throw new Exception("Error in Tastyworks.Balances", ex);
             }
-            return retval;
         }
 
         public static TWPositions Positions(string accountNumber)
         {
-            App.UpdateStatusMessage("TW Positions 1/2 : " + accountNumber);
+            try
+            { 
+                App.UpdateStatusMessage("TW Positions 1/2 : " + accountNumber);
 
-            Dictionary<string, decimal> marketValues = new Dictionary<string, decimal>();
-            Dictionary<string, Int32> orderIds;
-            TWMargins acctCapRequirements = new TWMargins();
+                Dictionary<string, decimal> marketValues = new Dictionary<string, decimal>();
+                Dictionary<string, Int32> orderIds;
+                TWMargins acctCapRequirements = new TWMargins();
 
-            SetHeaders(Token);
+                SetHeaders(Token);
 
-            // retrieve current values
-            string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
-            JObject package = JObject.Parse(reply);
+                // retrieve current values
+                string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
+                JObject package = JObject.Parse(reply);
 
-            List<JToken> list = package["data"]["underlyings"].Children().ToList();
+                List<JToken> list = package["data"]["underlyings"].Children().ToList();
 
-            foreach (JToken item in list)
-            {
-                // capture the value of all of the options plus the underlaying
-                JToken prices = item["marks"];
-                foreach (JProperty price in prices)
+                foreach (JToken item in list)
                 {
-                    if (!marketValues.ContainsKey(price.Name)) marketValues.Add(price.Name, Convert.ToDecimal(price.Value));
+                    // capture the value of all of the options plus the underlaying
+                    JToken prices = item["marks"];
+                    foreach (JProperty price in prices)
+                    {
+                        if (!marketValues.ContainsKey(price.Name)) marketValues.Add(price.Name, Convert.ToDecimal(price.Value));
+                    }
+
+                    // capture the capital requirements while we're here
+                    string symbol = item["underlying-symbol"].ToString();
+                    TWMargin mar = new TWMargin()
+                    {
+                        Symbol = symbol,
+                        UnderlyingPrice = Convert.ToDecimal(item["underlying-price"]),
+                        CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"])
+                    };
+                    acctCapRequirements.Add(symbol, mar);
                 }
 
-                // capture the capital requirements while we're here
-                string symbol = item["underlying-symbol"].ToString();
-                TWMargin mar = new TWMargin()
+                // update cap req to cache
+                if (twCapRequirementsCache == null) twCapRequirementsCache = new Dictionary<string, TWMargins>();
+                if (twCapRequirementsCache.ContainsKey(accountNumber)) twCapRequirementsCache.Remove(accountNumber);
+                twCapRequirementsCache.Add(accountNumber, acctCapRequirements);
+
+                // get active orders
+                orderIds = ActiveOrders(accountNumber);
+
+                App.UpdateStatusMessage("TW Positions 2/2 : " + accountNumber);
+
+                SetHeaders(Token); // reset, lost after previous call
+
+                // retrieve specific positions
+                reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/positions");
+                package = JObject.Parse(reply);
+
+                TWPositions returnList = new TWPositions();
+
+                list = package["data"]["items"].Children().ToList();
+
+                foreach (JToken item in list)
                 {
-                    Symbol = symbol,
-                    UnderlyingPrice = Convert.ToDecimal(item["underlying-price"]),
-                    CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"])
-                };
-                acctCapRequirements.Add(symbol, mar);
+                    TWPosition inst = new TWPosition();
+                    inst.Symbol = item["underlying-symbol"].ToString();
+                    inst.OptionSymbol = item["symbol"].ToString();
+                    inst.Quantity = Convert.ToDecimal(item["quantity"]);
+                    if (item["quantity-direction"].ToString() == "Short") inst.Quantity *= -1;
+                    DateTime exp = Convert.ToDateTime(item["expires-at"]).Trim(TimeSpan.TicksPerDay);
+                    inst.PreviousClose = Convert.ToDecimal(item["close-price"]);
+                    if (inst.PreviousClose == 0)  inst.PreviousClose = Convert.ToDecimal(item["average-open-price"]);
+
+                    inst.Multiplier = Convert.ToDecimal(item["multiplier"]); ;
+                    if (marketValues.ContainsKey(inst.OptionSymbol)) inst.Market = marketValues[inst.OptionSymbol] * inst.Multiplier;
+                    if (marketValues.ContainsKey(inst.Symbol)) inst.UnderlyingPrice = marketValues[inst.Symbol];
+
+                    inst.OrderActive = orderIds.ContainsKey(inst.Symbol);
+
+                    SymbolDecoder symbol = new SymbolDecoder(inst.OptionSymbol, item["instrument-type"].ToString());
+                    inst.Type = symbol.Type;
+                    inst.ExpDate = symbol.Expiration;
+                    inst.Strike = symbol.Strike;
+
+                    if (inst.Type == "Stock")
+                        inst.ShortOptionSymbol = inst.Symbol;
+                    else
+                        inst.ShortOptionSymbol = string.Format(".{0}{1:yyMMdd}{2}{3}", inst.Symbol, inst.ExpDate, inst.Type.Substring(0, 1), inst.Strike);
+
+                    returnList.Add(inst.OptionSymbol.Length > 0 ? inst.OptionSymbol : inst.Symbol, inst);
+                }
+
+
+                return (returnList.Count > 0) ? returnList : null;
             }
-
-            // update cap req to cache
-            if (twCapRequirementsCache == null) twCapRequirementsCache = new Dictionary<string, TWMargins>();
-            if (twCapRequirementsCache.ContainsKey(accountNumber)) twCapRequirementsCache.Remove(accountNumber);
-            twCapRequirementsCache.Add(accountNumber, acctCapRequirements);
-
-            // get active orders
-            orderIds = ActiveOrders(accountNumber);
-
-            App.UpdateStatusMessage("TW Positions 2/2 : " + accountNumber);
-
-            SetHeaders(Token); // reset, lost after previous call
-
-            // retrieve specific positions
-            reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/positions");
-            package = JObject.Parse(reply);
-
-            TWPositions returnList = new TWPositions();
-
-            list = package["data"]["items"].Children().ToList();
-
-            foreach (JToken item in list)
+            catch (Exception ex)
             {
-                TWPosition inst = new TWPosition();
-                inst.Symbol = item["underlying-symbol"].ToString();
-                inst.OptionSymbol = item["symbol"].ToString();
-                inst.Quantity = Convert.ToDecimal(item["quantity"]);
-                if (item["quantity-direction"].ToString() == "Short") inst.Quantity *= -1;
-                DateTime exp = Convert.ToDateTime(item["expires-at"]).Trim(TimeSpan.TicksPerDay);
-                inst.PreviousClose = Convert.ToDecimal(item["close-price"]);
-                if (inst.PreviousClose == 0)  inst.PreviousClose = Convert.ToDecimal(item["average-open-price"]);
-
-                inst.Multiplier = Convert.ToDecimal(item["multiplier"]); ;
-                if (marketValues.ContainsKey(inst.OptionSymbol)) inst.Market = marketValues[inst.OptionSymbol] * inst.Multiplier;
-                if (marketValues.ContainsKey(inst.Symbol)) inst.UnderlyingPrice = marketValues[inst.Symbol];
-
-                inst.OrderActive = orderIds.ContainsKey(inst.Symbol);
-
-                SymbolDecoder symbol = new SymbolDecoder(inst.OptionSymbol, item["instrument-type"].ToString());
-                inst.Type = symbol.Type;
-                inst.ExpDate = symbol.Expiration;
-                inst.Strike = symbol.Strike;
-
-                if (inst.Type == "Stock")
-                    inst.ShortOptionSymbol = inst.Symbol;
-                else
-                    inst.ShortOptionSymbol = string.Format(".{0}{1:yyMMdd}{2}{3}", inst.Symbol, inst.ExpDate, inst.Type.Substring(0, 1), inst.Strike);
-
-                returnList.Add(inst.OptionSymbol.Length > 0 ? inst.OptionSymbol : inst.Symbol, inst);
+                MessageBox.Show(ex.Message, "TW Positions");
+                throw new Exception("Error in Tastyworks.Positions", ex);
             }
-
-
-            return (returnList.Count > 0) ? returnList : null;
         }
 
 
         public static Dictionary<string,Int32> ActiveOrders(string accountNumber)
         {
-            App.UpdateStatusMessage("TW ActiveOrders : " + accountNumber);
-
-            Dictionary<string,Int32> retlist = new Dictionary<string,Int32>();
-            if (Token.Length == 0) return retlist;
-
-            SetHeaders(Token);
-            string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/orders/live");
-
-            JObject package = JObject.Parse(reply);
-
-            List<JToken> list = package["data"]["items"].Children().ToList();
-
-            foreach (JToken item in list)
+            try
             {
-                string symbol = item["underlying-symbol"].ToString();
-                string status = item["status"].ToString();
-                Int32 id = Convert.ToInt32(item["id"].ToString());
+                App.UpdateStatusMessage("TW ActiveOrders : " + accountNumber);
 
-                if ((status != "Filled") && (!retlist.ContainsKey(symbol))) retlist.Add(symbol, id);
+                Dictionary<string, Int32> retlist = new Dictionary<string, Int32>();
+                if (Token.Length == 0) return retlist;
+
+                SetHeaders(Token);
+                string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/orders/live");
+
+                JObject package = JObject.Parse(reply);
+
+                List<JToken> list = package["data"]["items"].Children().ToList();
+
+                foreach (JToken item in list)
+                {
+                    string symbol = item["underlying-symbol"].ToString();
+                    string status = item["status"].ToString();
+                    Int32 id = Convert.ToInt32(item["id"].ToString());
+
+                    if ((status != "Filled") && (!retlist.ContainsKey(symbol))) retlist.Add(symbol, id);
+                }
+
+                return retlist;
             }
-
-            return retlist;
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "TW ActiveOrders");
+                throw new Exception("Error in Tastyworks.ActiveOrders", ex);
+            }
         }
 
 
@@ -464,78 +512,86 @@ namespace OptionView
 
         public static TWTransactions Transactions(string accountNumber, DateTime? start, DateTime? end)
         {
-            App.UpdateStatusMessage("TW Transations");
+            try
+            { 
+                App.UpdateStatusMessage("TW Transations");
 
-            SetHeaders(Token);
+                SetHeaders(Token);
 
-            string url = "https://api.tastyworks.com/accounts/" + accountNumber + "/transactions?";
-            if (start != null) url += "start-date=" + String.Format("{0:yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'}", start) + "&";
-            if (end != null) url += "end-date=" + String.Format("{0:yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'}", end);
+                string url = "https://api.tastyworks.com/accounts/" + accountNumber + "/transactions?";
+                if (start != null) url += "start-date=" + String.Format("{0:yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'}", start) + "&";
+                if (end != null) url += "end-date=" + String.Format("{0:yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'}", end);
 
-            string reply = Web.DownloadString(url);
-            //Debug.WriteLine(reply);
-            JObject package = JObject.Parse(reply);
+                string reply = Web.DownloadString(url);
+                //Debug.WriteLine(reply);
+                JObject package = JObject.Parse(reply);
 
-            TWTransactions returnList = new TWTransactions();
+                TWTransactions returnList = new TWTransactions();
 
-            Int32 pages = Convert.ToInt32( package["pagination"]["total-pages"] );
-            Int32 pageOffset = 0;
-            List<JToken> list = package["data"]["items"].Children().ToList();
+                Int32 pages = Convert.ToInt32( package["pagination"]["total-pages"] );
+                Int32 pageOffset = 0;
+                List<JToken> list = package["data"]["items"].Children().ToList();
 
-            do
+                do
+                {
+                    foreach (JToken item in list)
+                    {
+                        //Debug.WriteLine(item.ToString());
+
+                        TWTransaction inst = new TWTransaction();
+                        inst.TransID = Convert.ToInt32(item["id"]);
+                        inst.Time = Convert.ToDateTime(item["executed-at"]).ToUniversalTime();
+
+                        inst.TransactionCode = item["transaction-type"].ToString();
+                        inst.TransactionSubcode = item["transaction-sub-type"].ToString();
+                        if (item["action"] != null) inst.Action = item["action"].ToString();
+                        inst.Description = item["description"].ToString();
+                        inst.AccountRef = item["account-number"].ToString();
+
+                        inst.Price = Convert.ToDecimal(item["price"]);
+                        inst.Fees = Convert.ToDecimal(item["commission"]) + Convert.ToDecimal(item["clearing-fees"]) + Convert.ToDecimal(item["regulatory-fees"]);
+                        inst.Amount = Convert.ToDecimal(item["value"]) * ((item["value-effect"].ToString() == "Debit") ? -1 : 1);
+
+                        if ((inst.TransactionCode == "Trade") || (inst.TransactionCode == "Receive Deliver"))
+                        {
+                            inst.Symbol = item["underlying-symbol"].ToString();
+                            inst.Quantity = Convert.ToDecimal(item["quantity"]);
+
+                            SymbolDecoder symbol = new SymbolDecoder(item["symbol"].ToString(), item["instrument-type"].ToString());
+                            inst.InsType = symbol.Type;
+                            inst.ExpireDate = symbol.Expiration;
+                            inst.Strike = symbol.Strike;
+                        }
+                        if ((inst.TransactionCode == "Money Movement") && (inst.TransactionSubcode == "Dividend"))
+                        {
+                            inst.TransactionCode = "Dividend";
+                            inst.Symbol = item["underlying-symbol"].ToString();
+                            inst.InsType = "Dividend";
+                            inst.Quantity = 0;
+                        }
+                        CompleteInstance(inst);
+
+                        returnList.Add(inst);
+                    }
+
+                    if (pages > 1)
+                    {
+                        SetHeaders(Token);
+                        reply = Web.DownloadString(url + "&page-offset=" + ++pageOffset);
+                        package = JObject.Parse(reply);
+                        list = package["data"]["items"].Children().ToList();
+                    }
+
+                    pages--;
+                } while (pages > 0);
+
+                return (returnList.Count > 0) ? returnList : null;
+            }
+            catch (Exception ex)
             {
-                foreach (JToken item in list)
-                {
-                    //Debug.WriteLine(item.ToString());
-
-                    TWTransaction inst = new TWTransaction();
-                    inst.TransID = Convert.ToInt32(item["id"]);
-                    inst.Time = Convert.ToDateTime(item["executed-at"]).ToUniversalTime();
-
-                    inst.TransactionCode = item["transaction-type"].ToString();
-                    inst.TransactionSubcode = item["transaction-sub-type"].ToString();
-                    if (item["action"] != null) inst.Action = item["action"].ToString();
-                    inst.Description = item["description"].ToString();
-                    inst.AccountRef = item["account-number"].ToString();
-
-                    inst.Price = Convert.ToDecimal(item["price"]);
-                    inst.Fees = Convert.ToDecimal(item["commission"]) + Convert.ToDecimal(item["clearing-fees"]) + Convert.ToDecimal(item["regulatory-fees"]);
-                    inst.Amount = Convert.ToDecimal(item["value"]) * ((item["value-effect"].ToString() == "Debit") ? -1 : 1);
-
-                    if ((inst.TransactionCode == "Trade") || (inst.TransactionCode == "Receive Deliver"))
-                    {
-                        inst.Symbol = item["underlying-symbol"].ToString();
-                        inst.Quantity = Convert.ToDecimal(item["quantity"]);
-
-                        SymbolDecoder symbol = new SymbolDecoder(item["symbol"].ToString(), item["instrument-type"].ToString());
-                        inst.InsType = symbol.Type;
-                        inst.ExpireDate = symbol.Expiration;
-                        inst.Strike = symbol.Strike;
-                    }
-                    if ((inst.TransactionCode == "Money Movement") && (inst.TransactionSubcode == "Dividend"))
-                    {
-                        inst.TransactionCode = "Dividend";
-                        inst.Symbol = item["underlying-symbol"].ToString();
-                        inst.InsType = "Dividend";
-                        inst.Quantity = 0;
-                    }
-                    CompleteInstance(inst);
-
-                    returnList.Add(inst);
-                }
-
-                if (pages > 1)
-                {
-                    SetHeaders(Token);
-                    reply = Web.DownloadString(url + "&page-offset=" + ++pageOffset);
-                    package = JObject.Parse(reply);
-                    list = package["data"]["items"].Children().ToList();
-                }
-
-                pages--;
-            } while (pages > 0);
-
-            return (returnList.Count > 0) ? returnList : null;
+                MessageBox.Show(ex.Message, "TW Transactions");
+                throw new Exception("Error in Tastyworks.Transactions", ex);
+            }
         }
 
         private static void CompleteInstance (TWTransaction tr)
@@ -617,65 +673,81 @@ namespace OptionView
 
         public static StreamingParams StreamingInfo()
         {
-            App.UpdateStatusMessage("TW StreamingInfo");
+            try
+            { 
+                App.UpdateStatusMessage("TW StreamingInfo");
 
-            SetHeaders(Token);
-            string reply = Web.DownloadString("https://api.tastyworks.com/quote-streamer-tokens");
+                SetHeaders(Token);
+                string reply = Web.DownloadString("https://api.tastyworks.com/quote-streamer-tokens");
 
-            JObject package = JObject.Parse(reply);
+                JObject package = JObject.Parse(reply);
 
-            StreamingParams strmParams = new StreamingParams();
+                StreamingParams strmParams = new StreamingParams();
 
-            JToken data = package["data"];
-            strmParams.Address = data["streamer-url"].ToString();
-            strmParams.Token = data["token"].ToString();
+                JToken data = package["data"];
+                strmParams.Address = data["streamer-url"].ToString();
+                strmParams.Token = data["token"].ToString();
 
-            return strmParams;
+                return strmParams;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "TW StreamingInfo");
+                throw new Exception("Error in Tastyworks.StreamingInfo", ex);
+            }
         }
 
         public static List<string> WatchListSymbols()
         {
-            App.UpdateStatusMessage("TW WatchListSymbols");
-            if (Token.Length == 0) return null;
+            try
+            { 
+                App.UpdateStatusMessage("TW WatchListSymbols");
+                if (Token.Length == 0) return null;
 
-            List<string> retlist = new List<string>();
+                List<string> retlist = new List<string>();
 
-            SetHeaders(Token);
-            string reply = Web.DownloadString("https://api.tastyworks.com/public-watchlists");
+                SetHeaders(Token);
+                string reply = Web.DownloadString("https://api.tastyworks.com/public-watchlists");
 
-            JObject package = JObject.Parse(reply);
+                JObject package = JObject.Parse(reply);
 
-            List<JToken> list = package["data"]["items"].Children().ToList();
+                List<JToken> list = package["data"]["items"].Children().ToList();
 
-            foreach (JToken item in list)
-            {
-                // capture the value of all of the options plus the underlaying
-                //JToken prices = item["marks"];
-                Debug.WriteLine("watchlist: " + item["name"]);
-                string name = item["name"].ToString();
-                if ((name == "High Options Volume") ||
-                    (name == "Dividend Aristocrats") ||
-                    (name == "Liquid ETFs") ||
-                    (name == "tasty Hourly Top Equities") ||
-                    (name == "S&P 500") ||
-                    (name == "NASDAQ 100") 
-                    )
+                foreach (JToken item in list)
                 {
-                    JToken entries = item["watchlist-entries"];
-                    if (entries != null)
+                    // capture the value of all of the options plus the underlaying
+                    //JToken prices = item["marks"];
+                    Debug.WriteLine("watchlist: " + item["name"]);
+                    string name = item["name"].ToString();
+                    if ((name == "High Options Volume") ||
+                        (name == "Dividend Aristocrats") ||
+                        (name == "Liquid ETFs") ||
+                        (name == "tasty Hourly Top Equities") ||
+                        (name == "S&P 500") ||
+                        (name == "NASDAQ 100") 
+                        )
                     {
-                        foreach (JToken entry in entries)
+                        JToken entries = item["watchlist-entries"];
+                        if (entries != null)
                         {
-                            string symbol = entry["symbol"].ToString();
-                            if (!retlist.Contains(symbol)) retlist.Add(symbol);
-                            if (retlist.Count > 10) { return retlist; }
+                            foreach (JToken entry in entries)
+                            {
+                                string symbol = entry["symbol"].ToString();
+                                if (!retlist.Contains(symbol)) retlist.Add(symbol);
+                                if (retlist.Count > 10) { return retlist; }
 
+                            }
                         }
                     }
                 }
-            }
 
-            return retlist;
+                return retlist;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "TW WatchListSymbols");
+                throw new Exception("Error in Tastyworks.WatchListSymbols", ex);
+            }
         }
 
     }
