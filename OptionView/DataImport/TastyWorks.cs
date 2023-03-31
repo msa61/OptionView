@@ -444,7 +444,7 @@ namespace OptionView
                 string status = item["status"].ToString();
                 Int32 id = Convert.ToInt32(item["id"].ToString());
 
-                if (status != "Filled") retlist.Add(symbol, id);
+                if ((status != "Filled") && (!retlist.ContainsKey(symbol))) retlist.Add(symbol, id);
             }
 
             return retlist;
@@ -667,8 +667,9 @@ namespace OptionView
                         foreach (JToken entry in entries)
                         {
                             string symbol = entry["symbol"].ToString();
-                            Debug.WriteLine("   symbol: " + symbol);
                             if (!retlist.Contains(symbol)) retlist.Add(symbol);
+                            if (retlist.Count > 10) { return retlist; }
+
                         }
                     }
                 }
