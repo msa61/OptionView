@@ -1340,7 +1340,7 @@ namespace OptionView
             if (eq != null)
             // If filter is turned on, filter completed items.
             {
-                if ((eq.UnderlyingPrice > minPrice) && (eq.OptionVolume > minVolume) && (eq.ImpliedVolatility > minIV) && (eq.ImpliedVolatilityRank > minIVR) && ((eq.DaysUntilEarnings < -30) || (eq.DaysUntilEarnings > minDTE)))
+                if ((eq.UnderlyingPrice > minPrice) && (eq.OptionVolume > minVolume) && (eq.ImpliedVolatility > minIV) && (eq.ImpliedVolatilityRank > minIVR) && ((eq.DaysUntilEarnings == 0) || (eq.DaysUntilEarnings > minDTE)))
                     ret = true;
             }
             return ret;
