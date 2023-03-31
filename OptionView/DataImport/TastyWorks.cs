@@ -734,8 +734,6 @@ namespace OptionView
                             {
                                 string symbol = entry["symbol"].ToString();
                                 if (!retlist.Contains(symbol)) retlist.Add(symbol);
-                                if (retlist.Count > 10) { return retlist; }
-
                             }
                         }
                     }
