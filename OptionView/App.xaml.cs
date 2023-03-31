@@ -37,7 +37,7 @@ namespace OptionView
 
         public static void UpdateStatusMessage(string txt)
         {
-            if (loadWindow.IsActive) loadWindow.Message = txt;
+            if (loadWindow != null) if (loadWindow.IsActive) loadWindow.Message = txt;
         }
 
         public static void InitializeStatusWindow(int count)
@@ -57,7 +57,7 @@ namespace OptionView
 
         public static void UpdateStatusWindowCount(int count)
         {
-            loadWindow.pbStatus.Maximum = count;
+            if (loadWindow != null) loadWindow.pbStatus.Maximum = count;
         }
 
         public static void OpenConnection()
