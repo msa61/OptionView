@@ -48,7 +48,7 @@ namespace OptionView.DataImport
         {
             foreach (TE item in buf)
             {
-                Debug.WriteLine($"Listening to {buf.Symbol}  IV: {item.Volatility}");
+                //Debug.WriteLine($"Listening to {buf.Symbol}  IV: {item.Volatility}");
 
                 Greek grk = new Greek();
                 grk.Price = item.Price;
@@ -77,7 +77,7 @@ namespace OptionView.DataImport
         {
             foreach (TE item in buf)
             {
-                Debug.WriteLine($"Listening to {buf.Symbol}  Price: {item.Price}");
+                //Debug.WriteLine($"Listening to {buf.Symbol}  Price: {item.Price}");
 
                 Quote qt = new Quote();
                 qt.Price = Convert.ToDecimal(item.Price);
@@ -96,7 +96,7 @@ namespace OptionView.DataImport
         {
             foreach (TE item in buf)
             {
-                Debug.WriteLine($"Listening to {buf.Symbol}"); //  Price: {item.Price}");
+                //Debug.WriteLine($"Listening to {buf.Symbol}"); //  Price: {item.Price}");
 
                 if (!DataFeed.ReturnProfileList.ContainsKey(item.EventSymbol)) DataFeed.ReturnProfileList.Add(item.EventSymbol, item.Description);
                 DataFeed.symbolCount -= 1;
@@ -110,7 +110,7 @@ namespace OptionView.DataImport
         {
             foreach (TE item in buf)
             {
-                Debug.WriteLine($"Listening to {buf.Symbol}"); //  Price: {item.Price}");
+                //Debug.WriteLine($"Listening to {buf.Symbol}"); //  Price: {item.Price}");
 
                 if (!DataFeed.ReturnOptionVolumeList.ContainsKey(item.EventSymbol)) DataFeed.ReturnOptionVolumeList.Add(item.EventSymbol, item.OptionVolume);
                 DataFeed.symbolCount -= 1;
