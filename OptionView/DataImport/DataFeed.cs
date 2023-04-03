@@ -133,9 +133,9 @@ namespace OptionView.DataImport
 
         static public Greeks GetGreeks(List<string> symbols)
         {
-            App.UpdateStatusMessage("Greeks from Datafeed");
-
             if (streaming == null) streaming = TastyWorks.StreamingInfo();
+
+            App.UpdateStatusMessage("Greeks from Datafeed");
 
             var listener = new GreekEventListener();
             connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
@@ -182,6 +182,8 @@ namespace OptionView.DataImport
         static public Dictionary<string, Quote> GetPrices(List<string> symbols)
         {
             if (streaming == null) streaming = TastyWorks.StreamingInfo();
+
+            App.UpdateStatusMessage("Prices from Datafeed");
 
             var listener = new TradeEventListener();
             connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
@@ -231,6 +233,8 @@ namespace OptionView.DataImport
 
             if (streaming == null) streaming = TastyWorks.StreamingInfo();
 
+            App.UpdateStatusMessage("Price from Datafeed");
+
             var listener = new TradeEventListener();
             connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
 
@@ -271,6 +275,8 @@ namespace OptionView.DataImport
         static public Dictionary<string, string> GetProfiles(List<string> symbols)
         {
             if (streaming == null) streaming = TastyWorks.StreamingInfo();
+
+            App.UpdateStatusMessage("Profiles from Datafeed");
 
             var listener = new ProfileEventListener();
             connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
@@ -316,6 +322,8 @@ namespace OptionView.DataImport
         static public Dictionary<string, double> GetVolumes(List<string> symbols)
         {
             if (streaming == null) streaming = TastyWorks.StreamingInfo();
+
+            App.UpdateStatusMessage("Volumes from Datafeed");
 
             var listener = new UnderlyingEventListener();
             connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
