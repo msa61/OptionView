@@ -32,16 +32,12 @@ namespace OptionView
     {
         public EquityProfiles(Portfolio portfolio)
         {
-            App.InitializeStatusWindow(7);
             List<string> symbols = TastyWorks.WatchListSymbols();
             if (symbols.Count > 0)
             {
                 TWMarketInfos symbolData = TastyWorks.MarketInfo(symbols);
-                App.UpdateStatusMessage("Retrieving Dx profiles");
                 Dictionary<string, string> descriptions = DataFeed.GetProfiles(symbols);
-                App.UpdateStatusMessage("Retrieving Dx volumes");
                 Dictionary<string, double> volumes = DataFeed.GetVolumes(symbols);
-                App.UpdateStatusMessage("Retrieving Dx prices");
                 Dictionary<string, Quote> prices = DataFeed.GetPrices(symbols);
 
                 App.UpdateStatusMessage("Reconciling data");
@@ -78,7 +74,6 @@ namespace OptionView
                     this.Add(equity);
                 }
             }
-            App.CloseStatusWindow();
         }
     }
 }
