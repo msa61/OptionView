@@ -99,7 +99,7 @@ namespace OptionView
                 // get total number of groups in order to update the progressbar
                 SQLiteCommand cmd = new SQLiteCommand("SELECT count(id) FROM transgroup WHERE Open = 1", App.ConnStr);
                 int grps = Convert.ToInt32(cmd.ExecuteScalar());
-                App.UpdateStatusWindowCount( 11 + (acc.Count(x => x.Active == true) * 4) + grps);
+                App.UpdateStatusMessageCount( 11 + (acc.Count(x => x.Active == true) * 4) + grps);
 
                 // get all data about open groups
                 string sql = "SELECT *, date(ActionDate) AS TodoDate FROM transgroup AS tg LEFT JOIN";

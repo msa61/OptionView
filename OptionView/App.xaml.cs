@@ -17,7 +17,7 @@ namespace OptionView
     public partial class App : Application
     {
         public static SQLiteConnection ConnStr { get; set; } = null;
-        private static LoadingWindow loadWindow = null;
+        private static MainWindow mainWindow = null;
         public static GroupWindowHandler GroupWindow = new GroupWindowHandler();
         public static bool OfflineMode { get; set; } = false;
         public static bool DataRefreshMode { get; set; } = false;
@@ -28,36 +28,94 @@ namespace OptionView
             if ((e.Args.Count() > 0) && (e.Args[0].ToLower() == "offline")) OfflineMode = true;
             if ((e.Args.Count() > 0) && (e.Args[0].ToLower() == "refresh")) DataRefreshMode = true;
 
-            InitializeStatusWindow(17);
 
-            MainWindow wnd = new MainWindow();
-            CloseStatusWindow();
-            wnd.Show();
+            mainWindow = new MainWindow();
+            InitializeStatusMessagePanel(14);
+            mainWindow.Show();
         }
 
         public static void UpdateStatusMessage(string txt)
         {
-            if (loadWindow != null) if (loadWindow.IsActive) loadWindow.Message = txt;
+            bool onUIThread = ((Dispatcher)mainWindow.Dispatcher).CheckAccess();
+            if (onUIThread)
+            {
+                mainWindow.lbLoadStatus.Content = txt;
+                mainWindow.pbLoadStatus.Value += 1;
+                //mainWindow.lbLoadStatus.Content = mainWindow.pbLoadStatus.Value.ToString();
+            }
+            else
+            {
+                mainWindow.Dispatcher.Invoke(() =>
+                {
+                    mainWindow.lbLoadStatus.Content = txt;
+                    mainWindow.pbLoadStatus.Value += 1;
+                    //mainWindow.lbLoadStatus.Content = mainWindow.pbLoadStatus.Value.ToString();
+                });
+            }
         }
 
-        public static void InitializeStatusWindow(int count)
+        public static void InitializeStatusMessagePanel(int count)
         {
-            if ((loadWindow != null) && (loadWindow.IsActive)) loadWindow.Close();
-
-            loadWindow = new LoadingWindow();
-            loadWindow.pbStatus.Maximum = count;
-            loadWindow.Show();
-            loadWindow.Activate();
+            bool onUIThread = ((Dispatcher)mainWindow.Dispatcher).CheckAccess();
+            if (onUIThread)
+            {
+                ShowPanel( count);
+            }
+            else
+            {
+                mainWindow.Dispatcher.Invoke(() =>
+                {
+                    ShowPanel(count);
+                });
+            }
         }
-        public static void CloseStatusWindow()
+
+        private static void ShowPanel(int count)
         {
-            if (loadWindow != null) loadWindow.Close();
-            loadWindow = null;
+            mainWindow.pbLoadStatus.Maximum = count;
+            mainWindow.pbLoadStatus.Value = 0;
+            mainWindow.LoadStatusPanel.Visibility = Visibility.Visible;
+            mainWindow.OverviewPanel.Visibility = Visibility.Collapsed;
+            mainWindow.MetricsPanel.Visibility = Visibility.Collapsed;
         }
 
-        public static void UpdateStatusWindowCount(int count)
+        public static void HideStatusMessagePanel()
         {
-            if (loadWindow != null) loadWindow.pbStatus.Maximum = count;
+            bool onUIThread = ((Dispatcher)mainWindow.Dispatcher).CheckAccess();
+            if (onUIThread)
+            {
+                HidePanel();
+            }
+            else
+            {
+                mainWindow.Dispatcher.Invoke(() =>
+                {
+                    HidePanel();
+                });
+            }
+        }
+
+        private static void HidePanel()
+        {
+            mainWindow.LoadStatusPanel.Visibility = Visibility.Collapsed;
+            mainWindow.OverviewPanel.Visibility = Visibility.Visible;
+            mainWindow.MetricsPanel.Visibility = Visibility.Visible;
+        }
+
+        public static void UpdateStatusMessageCount(int count)
+        {
+            bool onUIThread = ((Dispatcher)mainWindow.Dispatcher).CheckAccess();
+            if (onUIThread)
+            {
+                mainWindow.pbLoadStatus.Maximum = count;
+            }
+            else
+            {
+                mainWindow.Dispatcher.Invoke(() =>
+                {
+                    mainWindow.pbLoadStatus.Maximum = count;
+                });
+            }
         }
 
         public static void OpenConnection()

@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.Data;
 using Microsoft.Win32;
 using System.Web;
+using System.Timers;
 
 namespace OptionView
 {
@@ -36,6 +37,7 @@ namespace OptionView
         private bool uiDirty = false;
         private bool todoDirty = false;
         private bool initializingDatePicker = false;
+        private Timer refreshTimer = null;
 
 
         public MainWindow()
@@ -43,17 +45,51 @@ namespace OptionView
             InitializeComponent();
             InitializeApp();
             accounts = new Accounts();
+        }
 
-            UpdateHoldingsTiles();
+        private void Window_ContentRendered(object sender, EventArgs e)
+        {
+            // do quick ones before launching thread
+            RestorePreviousSession();
             UpdateResultsGrid();
             UpdateTransactionsGrid();
             UpdateTodosGrid();
-            UpdateFooter();
 
-            LoadDynamicComboBoxes();
-            RestorePreviousSession();
+            // launch the long running tasks
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += InitializeDataAsync;
 
+            worker.RunWorkerAsync();
+
+            // setup timer
+            refreshTimer = new Timer();
+            refreshTimer.Interval = 5 * 60 * 1000;
+            refreshTimer.AutoReset= true;
+            refreshTimer.Elapsed += TimedRefresh;
+            refreshTimer.Start();
+        }
+
+        private void InitializeDataAsync(object sender, DoWorkEventArgs e)
+        {
+            UpdateHoldingsTiles();
+            UpdateFooterAsync();
+
+            LoadDynamicComboBoxesAsync();
+
+            this.Dispatcher.Invoke(() =>
+            {
+                // notifies ui that progressbar can go away
+                AsyncLoadComplete();
+            });
+
+            // wait to this completely in the background
+            UpdateScreenerGrid();
+        }
+
+        private void AsyncLoadComplete()
+        {
             if (App.DataRefreshMode) System.Windows.Application.Current.Shutdown();
+            App.HideStatusMessagePanel();
         }
 
         private void InitializeApp()
@@ -61,6 +97,15 @@ namespace OptionView
             this.Title += " - " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(Int32.MaxValue));
+        }
+
+        private void UpdateFooterAsync()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                // there some minor data fetches within the foot logic that could be pulled out
+                UpdateFooter();
+            });
         }
 
         private void UpdateFooter()
@@ -307,17 +352,36 @@ namespace OptionView
 
         private void OverviewPanel_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            Cursor prev = this.Cursor;
-            this.Cursor = Cursors.Wait;
-
-            UpdateHoldingsTiles();
-            UpdateFooter();
-
-            if (MainTab.SelectedIndex == 1) UpdateAnalysisView();
-
-            this.Cursor = prev;
+            RefreshDisplay();
         }
 
+        private void RefreshDisplay()
+        {
+            App.InitializeStatusMessagePanel(4);
+
+            // launch the long running tasks
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += MinorRefreshAsync;
+            worker.RunWorkerCompleted += MinorLoadComplete;
+
+            worker.RunWorkerAsync();
+        }
+
+        private void MinorRefreshAsync(object sender, DoWorkEventArgs e)
+        {
+            UpdateHoldingsTiles();
+            UpdateFooterAsync();
+        }
+        private void MinorLoadComplete(object sender, RunWorkerCompletedEventArgs e) 
+        {
+            App.HideStatusMessagePanel();
+            //if (MainTab.SelectedIndex == 1) UpdateAnalysisView();
+        }
+
+        private void TimedRefresh(object sender, ElapsedEventArgs e)
+        {
+            RefreshDisplay();
+        }
 
 
 
@@ -328,7 +392,20 @@ namespace OptionView
             portfolio = new Portfolio();
             portfolio.GetCurrentHoldings(accounts);
             BalanceHistory.WriteGroups(portfolio);
-            DisplayTiles();
+
+            if (this.Dispatcher.CheckAccess())
+            {
+                // same thread
+                DisplayTiles();
+            }
+            else
+            {
+                // async load
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    DisplayTiles();
+                });
+            }
         }
 
 
@@ -349,6 +426,14 @@ namespace OptionView
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(),
                     grp.HasInTheMoneyPositions(), (grp.ActionDate > DateTime.MinValue), !grp.OrderActive, (grp.Cost > 0) ? "Prem" : "Cost", null, grp.ChangeFromPreviousClose.ToString("+#;-#;nc"), 1.0);
             }
+        }
+
+        private void LoadDynamicComboBoxesAsync()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                LoadDynamicComboBoxes();
+            });
         }
 
         private void LoadDynamicComboBoxes()
@@ -461,7 +546,8 @@ namespace OptionView
 
             string scrnProps = ((this.WindowState == WindowState.Maximized) ? "1|" : "0|") + this.Left.ToString() + "|" + this.Top.ToString() + "|" + this.Width.ToString() + "|" + this.Height.ToString();
             Config.SetProp("Screen", scrnProps);
-            Config.SetProp("Tab", MainTab.SelectedIndex.ToString());
+            string tabNum = MainTab.SelectedIndex.ToString();
+            Config.SetProp("Tab", (tabNum == "5") ? "0" : tabNum);
 
             string filters = cbAccount.SelectedIndex.ToString() + "|";
             filters += cbDateFilter.SelectedIndex.ToString() + "|";
@@ -933,20 +1019,33 @@ namespace OptionView
         {
             Debug.WriteLine("SyncButton...");
 
-            Cursor prev = this.Cursor;
-            this.Cursor = Cursors.Wait;
+            App.InitializeStatusMessagePanel(14);
 
+            // launch the long running tasks
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += SyncWithTastyTradeAsync;
+            worker.RunWorkerCompleted += SyncWithTastyTradeComplete;
+
+            worker.RunWorkerAsync();
+        }
+
+        private void SyncWithTastyTradeAsync(object sender, DoWorkEventArgs e)
+        {
             DataLoader.Load(accounts);
             UpdateHoldingsTiles();
+        }
+
+        private void SyncWithTastyTradeComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
             UpdateResultsGrid();
             UpdateTransactionsGrid();
             UpdateTodosGrid();
             UpdateFooter();
 
+            App.HideStatusMessagePanel();
             if (MainTab.SelectedIndex == 1) UpdateAnalysisView();
-
-            this.Cursor = prev;
         }
+
 
         private void ValidateButton(object sender, RoutedEventArgs e)
         {
@@ -1298,24 +1397,28 @@ namespace OptionView
                 if (screenerGrid.ItemsSource == null)
                 {
                     EquityProfiles eqProfiles = new EquityProfiles(portfolio);
-    
-                    ListCollectionView lcv = (ListCollectionView)CollectionViewSource.GetDefaultView(eqProfiles);
-                    lcv.Filter = ScreenerFilter;
 
-                    screenerGrid.ItemsSource = lcv;
-
-                    // restore last sort used
-                    string[] screenerSort = Config.GetProp("ScreenerSort").Split('|');
-                    if (screenerSort.Length > 1)
+                    this.Dispatcher.Invoke(() =>
                     {
-                        lcv.SortDescriptions.Add(new SortDescription(screenerSort[0], (screenerSort[1] == "1") ? ListSortDirection.Ascending : ListSortDirection.Descending));
-                    }
+                        ListCollectionView lcv = (ListCollectionView)CollectionViewSource.GetDefaultView(eqProfiles);
+                        lcv.Filter = ScreenerFilter;
 
+                        screenerGrid.ItemsSource = lcv;
+
+                        // restore last sort used
+                        string[] screenerSort = Config.GetProp("ScreenerSort").Split('|');
+                        if (screenerSort.Length > 1)
+                        {
+                            lcv.SortDescriptions.Add(new SortDescription(screenerSort[0], (screenerSort[1] == "1") ? ListSortDirection.Ascending : ListSortDirection.Descending));
+                        }
+
+                        App.HideStatusMessagePanel();
+                    });
                 }
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.Message, "UpdateTransactionsGrid Error");
+                MessageBox.Show(e.Message, "UpdateScreenGrid Error");
             }
         }
 
@@ -1520,7 +1623,11 @@ namespace OptionView
                         UpdateAnalysisView();
                         break;
                     case 5:
-                        UpdateScreenerGrid();
+                        if (screenerGrid.ItemsSource == null)
+                        {
+                            //activate status bar, as loading hasn't
+                            App.InitializeStatusMessagePanel(4);
+                        }
                         break;
                 }
 

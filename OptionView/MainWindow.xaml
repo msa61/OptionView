@@ -7,7 +7,8 @@
         mc:Ignorable="d"
         Title="Option View" Height="933" Width="1251" Left="100" Top="100"
         Closing="MainWindow_Closing"
-        Loaded="Window_Loaded">
+        Loaded="Window_Loaded"
+        ContentRendered="Window_ContentRendered">
 
 
 
@@ -185,7 +186,7 @@
                     </Grid.ColumnDefinitions>
 
                     <Canvas x:Name="MainCanvas"  Grid.Column="0"  Background="#FF454545" MouseLeftButtonDown="CanvasMouseDown" Margin="4,4,0,4" >
-
+<!--
                         <ContentControl Canvas.Top="30" Canvas.Left="80" Width="150" Height="100" Template="{DynamicResource TileTemplate}" Selector.IsSelected="True" >
                             <Canvas Style="{DynamicResource TileCanvas}" >
                                 <Border BorderThickness="3" Canvas.Top="-10" Canvas.Left="-10" Width="150" Height="100" >
@@ -228,6 +229,7 @@
 
                             </Canvas>
                         </ContentControl>
+                        -->
                     </Canvas>
 
                     <DockPanel Background="#FF454545" Grid.Column="1" Margin="6,4,4,4" >
@@ -877,9 +879,13 @@
             <Button DockPanel.Dock="Right" x:Name="Validate"  Width="59"  Height="30" Content="Validate" Margin="6,0,0,0" Click="ValidateButton" FontFamily="Trebuchet MS"/>
             <Button DockPanel.Dock="Right" x:Name="Sync"  Width="59"  Height="30" Content="Sync"  Click="SyncButton" FontFamily="Trebuchet MS"/>
 
+            <StackPanel x:Name="LoadStatusPanel" Orientation="Vertical" Width="400" HorizontalAlignment="Left" Visibility="Visible">
+                <Label x:Name="lbLoadStatus"  Margin="10,6,0,3" Foreground="White" />
+                <ProgressBar x:Name="pbLoadStatus" Height="14"  Value="0" Maximum="100" Margin="16,3"/>
+            </StackPanel>
 
             <StackPanel x:Name="OverviewPanel" Orientation="Vertical" DockPanel.Dock="Left" VerticalAlignment="Center" MouseUp="OverviewPanel_MouseUp">
-                <!-- 
+                <!--
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Account" Width="100"    FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
                     <Label Content="Individual" Width="100"  FontSize="11" FontFamily="Trebuchet MS" Padding="2"/>
