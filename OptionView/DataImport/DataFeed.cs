@@ -81,7 +81,7 @@ namespace OptionView.DataImport
 
                 Quote qt = new Quote();
                 qt.Price = Convert.ToDecimal(item.Price);
-                qt.Change = Convert.ToDecimal(item.Change);
+                qt.Change = (Double.IsNaN(item.Change)) ? 0 : Convert.ToDecimal(item.Change);
 
                 if (!DataFeed.ReturnPriceList.ContainsKey(buf.Symbol)) DataFeed.ReturnPriceList.Add(buf.Symbol, qt);
 
@@ -112,7 +112,8 @@ namespace OptionView.DataImport
             {
                 //Debug.WriteLine($"Listening to {buf.Symbol}"); //  Price: {item.Price}");
 
-                if (!DataFeed.ReturnOptionVolumeList.ContainsKey(item.EventSymbol)) DataFeed.ReturnOptionVolumeList.Add(item.EventSymbol, item.OptionVolume);
+                double volume = (Double.IsNaN(item.OptionVolume)) ? 0 : item.OptionVolume;
+                if (!DataFeed.ReturnOptionVolumeList.ContainsKey(item.EventSymbol)) DataFeed.ReturnOptionVolumeList.Add(item.EventSymbol, volume);
                 DataFeed.symbolCount -= 1;
             }
         }

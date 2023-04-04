@@ -32,47 +32,54 @@ namespace OptionView
     {
         public EquityProfiles(Portfolio portfolio)
         {
-            List<string> symbols = TastyWorks.WatchListSymbols();
-            if (symbols.Count > 0)
+            try
             {
-                TWMarketInfos symbolData = TastyWorks.MarketInfo(symbols);
-                Dictionary<string, string> descriptions = DataFeed.GetProfiles(symbols);
-                Dictionary<string, double> volumes = DataFeed.GetVolumes(symbols);
-                Dictionary<string, Quote> prices = DataFeed.GetPrices(symbols);
-
-                App.UpdateStatusMessage("Reconciling data");
-                foreach (KeyValuePair<string, TWMarketInfo> item in symbolData)
+                List<string> symbols = TastyWorks.WatchListSymbols();
+                if (symbols.Count > 0)
                 {
-                    TWMarketInfo sym = item.Value;
+                    TWMarketInfos symbolData = TastyWorks.MarketInfo(symbols);
+                    Dictionary<string, string> descriptions = DataFeed.GetProfiles(symbols);
+                    Dictionary<string, double> volumes = DataFeed.GetVolumes(symbols);
+                    Dictionary<string, Quote> prices = DataFeed.GetPrices(symbols);
 
-                    EquityProfile equity = new EquityProfile()
+                    App.UpdateStatusMessage("Reconciling data");
+                    foreach (KeyValuePair<string, TWMarketInfo> item in symbolData)
                     {
-                        Symbol = sym.Symbol,
-                        ImpliedVolatility = sym.ImpliedVolatility,
-                        ImpliedVolatilityRank = sym.ImpliedVolatilityRank,
-                        EarningsDate = sym.Earnings
-                    };
-                    if (descriptions.ContainsKey(sym.Symbol)) equity.Name = descriptions[sym.Symbol];
-                    if (volumes.ContainsKey(sym.Symbol)) equity.OptionVolume = volumes[sym.Symbol] / 1000;
-                    if (prices.ContainsKey(sym.Symbol))
-                    {
-                        Quote qt = prices[sym.Symbol];
-                        equity.UnderlyingPrice = qt.Price;
-                        equity.UnderlyingPriceChange = qt.Change;
-                        equity.UnderlyingPriceChangePercent = qt.Change / qt.Price;
+                        TWMarketInfo sym = item.Value;
+
+                        EquityProfile equity = new EquityProfile()
+                        {
+                            Symbol = sym.Symbol,
+                            ImpliedVolatility = sym.ImpliedVolatility,
+                            ImpliedVolatilityRank = sym.ImpliedVolatilityRank,
+                            EarningsDate = sym.Earnings
+                        };
+                        if (descriptions.ContainsKey(sym.Symbol)) equity.Name = descriptions[sym.Symbol];
+                        if (volumes.ContainsKey(sym.Symbol)) equity.OptionVolume = volumes[sym.Symbol] / 1000;
+                        if (prices.ContainsKey(sym.Symbol))
+                        {
+                            Quote qt = prices[sym.Symbol];
+                            equity.UnderlyingPrice = qt.Price;
+                            equity.UnderlyingPriceChange = qt.Change;
+                            equity.UnderlyingPriceChangePercent = qt.Change / qt.Price;
+                        }
+                        if (equity.EarningsDate < DateTime.Now) equity.EarningsDate = DateTime.MinValue;  // clear useless data
+                        if (equity.EarningsDate > DateTime.Now) equity.DaysUntilEarnings = Math.Truncate((equity.EarningsDate - DateTime.Now).TotalDays);
+
+                        foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
+                        {
+                            TransactionGroup grp = entry.Value;
+                            if (grp.Symbol == equity.Symbol)
+                                equity.CurrentlyHeld = Visibility.Visible;
+                        }
+
+                        this.Add(equity);
                     }
-                    if (equity.EarningsDate < DateTime.Now) equity.EarningsDate = DateTime.MinValue;  // clear useless data
-                    if (equity.EarningsDate > DateTime.Now) equity.DaysUntilEarnings = Math.Truncate((equity.EarningsDate - DateTime.Now).TotalDays);
-
-                    foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
-                    {
-                        TransactionGroup grp = entry.Value;
-                        if (grp.Symbol == equity.Symbol)
-                            equity.CurrentlyHeld = Visibility.Visible;    
-                    }
-
-                    this.Add(equity);
                 }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message, "EquityProfiles");
             }
         }
     }
