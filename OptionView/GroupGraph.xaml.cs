@@ -65,8 +65,8 @@ namespace OptionView
             DrawAxis();
 
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.IV).ToList(), ScaleType.Percent, Brushes.DarkGray);
-            DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Underlying).ToList(), ScaleType.Right, Brushes.Green);
-            DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Value).ToList(), ScaleType.Left, Brushes.Blue);
+            DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Underlying).ToList(), ScaleType.Right, Brushes.Blue);
+            DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Value).ToList(), ScaleType.Left, Brushes.Transparent); // 'transparent' lets the function figure out the color
 
             DrawBands(values.Select(x => x.Time).ToList(), values.Select(x => x.Calls).ToList(), Brushes.Red);
             DrawBands(values.Select(x => x.Time).ToList(), values.Select(x => x.Puts).ToList(), Brushes.Red);
@@ -80,9 +80,19 @@ namespace OptionView
             {
                 X1 = margin + 20,
                 Y1 = chartHeight + 25,
+                X2 = margin + 30,
+                Y2 = chartHeight + 25,
+                Stroke = Brushes.Green,
+                StrokeThickness = 1
+            };
+            c.Children.Add(l);
+            l = new Line()
+            {
+                X1 = margin + 30,
+                Y1 = chartHeight + 25,
                 X2 = margin + 40,
                 Y2 = chartHeight + 25,
-                Stroke = Brushes.Blue,
+                Stroke = Brushes.Red,
                 StrokeThickness = 1
             };
             c.Children.Add(l);
@@ -96,7 +106,7 @@ namespace OptionView
                 Y1 = chartHeight + 39,
                 X2 = margin + 40,
                 Y2 = chartHeight + 39,
-                Stroke = Brushes.Green,
+                Stroke = Brushes.Blue,
                 StrokeDashArray = new DoubleCollection() { 2 },
                 StrokeThickness = 1
             };
@@ -176,21 +186,13 @@ namespace OptionView
                 {
                     double nextX = ScaleTime(x[i]);
                     double nextY = ApplyScale(y[i], scaleType);
-                    Line l = new Line()
-                    {
-                        X1 = lastX,
-                        Y1 = lastY,
-                        X2 = nextX,
-                        Y2 = nextY,
-                        Stroke = color,
-                        StrokeThickness = 2
-                    };
+                    Line l = DrawLineSegment(c, lastX, lastY, nextX, nextY, ApplyScale(0, scaleType), color);
                     if (scaleType != ScaleType.Left)
                     {
                         l.StrokeDashArray = new DoubleCollection() { 2 };
                         l.StrokeThickness = 1;
                     }
-                    c.Children.Add(l);
+                    //if (l != null) c.Children.Add(l);
 
                     if (scaleType == ScaleType.Left) DrawPip(nextX, nextY, color);
 
@@ -208,6 +210,63 @@ namespace OptionView
             }
 
 
+        }
+
+        private Line DrawLineSegment(Canvas c, double lastX, double lastY, double nextX, double nextY, double zeroY, Brush color)
+        {
+            bool determineColor = (color == Brushes.Transparent);
+            bool singleSegment = !(determineColor && (Math.Min(lastY, nextY) < zeroY) && (Math.Max(lastY, nextY) > zeroY));
+
+            Line l = null;
+            if (singleSegment)
+            {
+                if (determineColor)
+                {
+                    color = (((lastY+nextY)/2) <= zeroY) ? Brushes.Green : Brushes.Red;
+                }
+                l = new Line()
+                {
+                    X1 = lastX,
+                    Y1 = lastY,
+                    X2 = nextX,
+                    Y2 = nextY,
+                    Stroke = color,
+                    StrokeThickness = 2
+                };
+                c.Children.Add(l);
+            }
+            else
+            {
+                double slope = (nextY - lastY) / (nextX - lastX);
+                double zeroX = ((zeroY - lastY) / slope) + lastX;
+
+                color = (lastY < zeroY) ? Brushes.Green : Brushes.Red;
+                l = new Line()
+                {
+                    X1 = lastX,
+                    Y1 = lastY,
+                    X2 = zeroX,
+                    Y2 = zeroY,
+                    Stroke = color,
+                    StrokeThickness = 2
+                };
+                c.Children.Add(l);
+
+                color = (lastY < zeroY) ? Brushes.Red : Brushes.Green;
+                l = new Line()
+                {
+                    X1 = zeroX,
+                    Y1 = zeroY,
+                    X2 = nextX,
+                    Y2 = nextY,
+                    Stroke = color,
+                    StrokeThickness = 2
+                };
+                c.Children.Add(l);
+            }
+
+
+            return l;
         }
 
         private double ApplyScale(decimal v, ScaleType st)
@@ -283,10 +342,10 @@ namespace OptionView
             };
             c.Children.Add(l);
 
-            AddLabel(maxRight, margin, 0, ScaleType.Left, Brushes.Green);
-            AddLabel(minRight, margin, chartHeight, ScaleType.Left, Brushes.Green);
-            AddLabel(maxLeft, chartWidth + margin, 0, ScaleType.Right, Brushes.Blue);
-            AddLabel(minLeft, chartWidth + margin, chartHeight, ScaleType.Right, Brushes.Blue);
+            AddLabel(maxRight, margin, 0, ScaleType.Left, Brushes.Blue);
+            AddLabel(minRight, margin, chartHeight, ScaleType.Left, Brushes.Blue);
+            AddLabel(maxLeft, chartWidth + margin, 0, ScaleType.Right, (maxLeft > 0) ? Brushes.Green : Brushes.Red);
+            AddLabel(minLeft, chartWidth + margin, chartHeight, ScaleType.Right, (minLeft == 0) ? null : (minLeft > 0) ? Brushes.Green : Brushes.Red);
 
             AddLabel(minTime.ToString("M/d"), margin, chartHeight + 3, ScaleType.Bottom);
             AddLabel(maxTime.ToString("M/d"), chartWidth + margin, chartHeight + 3, ScaleType.Bottom);
