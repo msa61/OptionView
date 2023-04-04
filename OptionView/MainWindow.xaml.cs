@@ -600,7 +600,7 @@ namespace OptionView
                 ContentControl cc = (ContentControl)VisualTreeHelper.GetParent(grid);
 
                 int grp = Convert.ToInt32(cc.Tag);
-                if (grp != 0)
+                if ((portfolio.Count > 0) && (grp != 0))
                 {
                     string ttText = portfolio[grp].GetHistory();
                     decimal price = portfolio[grp].TargetClosePrice();
