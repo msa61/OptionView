@@ -58,7 +58,7 @@ namespace OptionView
             OpenConnection();
             DateTime tm = GetLastEntry(account);
 
-            if (tm.AddHours(4) < DateTime.Now)
+            if ((tm.AddHours(4) < DateTime.Now) && (balance > 0))
             {
                 string sql = "INSERT INTO AccountHistory(Date, Account, Balance, CapitalRequired) Values (@dt,@ac,@ba,@cr)";
                 SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
