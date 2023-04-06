@@ -717,7 +717,7 @@ namespace OptionView
                 {
                     // capture the value of all of the options plus the underlaying
                     //JToken prices = item["marks"];
-                    Debug.WriteLine("watchlist: " + item["name"]);
+                    //Debug.WriteLine("watchlist: " + item["name"]);
                     string name = item["name"].ToString();
                     if ((name == "High Options Volume") ||
                         (name == "Dividend Aristocrats") ||
