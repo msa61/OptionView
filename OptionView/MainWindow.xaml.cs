@@ -45,15 +45,27 @@ namespace OptionView
             InitializeComponent();
             InitializeApp();
             accounts = new Accounts();
+
+            RestorePreviousSession();
+        }
+
+        private void InitializeApp()
+        {
+            this.Title += " - " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+            ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(Int32.MaxValue));
         }
 
         private void Window_ContentRendered(object sender, EventArgs e)
         {
             // do quick ones before launching thread
-            RestorePreviousSession();
+            portfolio = new Portfolio(accounts);
+            DisplayTilesSafe();
             UpdateResultsGrid();
             UpdateTransactionsGrid();
             UpdateTodosGrid();
+
+            App.InitializeStatusMessagePanel(14);
 
             // launch the long running tasks
             BackgroundWorker worker = new BackgroundWorker();
@@ -71,42 +83,63 @@ namespace OptionView
 
         private void InitializeDataAsync(object sender, DoWorkEventArgs e)
         {
-            UpdateHoldingsTiles();
-            UpdateFooterAsync();
+            portfolio.GetCurrentData(accounts);
+            GetAccountData();
+            UpdateFooterSafe();
 
             LoadDynamicComboBoxesAsync();
 
             this.Dispatcher.Invoke(() =>
             {
-                // notifies ui that progressbar can go away
+                // notifies ui that progressbar can go away ** before ALL of the async work is done
                 AsyncLoadComplete();
             });
 
-            // wait to this completely in the background
+            // wait to do this completely in the background
             UpdateScreenerGrid();
         }
 
         private void AsyncLoadComplete()
         {
             if (App.DataRefreshMode) System.Windows.Application.Current.Shutdown();
+            DisplayTilesSafe();
             App.HideStatusMessagePanel();
         }
 
-        private void InitializeApp()
-        {
-            this.Title += " - " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
-            ToolTipService.ShowDurationProperty.OverrideMetadata(typeof(DependencyObject), new FrameworkPropertyMetadata(Int32.MaxValue));
-        }
-
-        private void UpdateFooterAsync()
+        private void UpdateFooterSafe()
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            if (this.Dispatcher.CheckAccess())
             {
-                // there some minor data fetches within the foot logic that could be pulled out
+                // same thread
                 UpdateFooter();
-            });
+            }
+            else
+            {
+                // async load
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    UpdateFooter();
+                });
+            }
         }
+
+        private void GetAccountData()
+        {
+            foreach (Account a in accounts)
+            {
+                if (a.Active)
+                {
+                    TWBalance bal = TastyWorks.Balances(a.ID);
+                    a.NetLiq = bal.NetLiq;
+                    a.OptionBuyingPower = bal.OptionBuyingPower;
+
+                    BalanceHistory.Write(a.Name, a.NetLiq, portfolio.GetAccountCapRequired(a.ID, false));
+                }
+            }
+            BalanceHistory.TimeStamp();
+        }
+
 
         private void UpdateFooter()
         {
@@ -170,22 +203,19 @@ namespace OptionView
                         Label lb = OverviewLabel(sp, a.Name, 80);
 
                         // 2nd column
-                        TWBalance bal = TastyWorks.Balances(a.ID);
-                        combinedNetLiq += bal.NetLiq;
-                        combinedBP += bal.OptionBuyingPower;
+                        combinedNetLiq += a.NetLiq;
+                        combinedBP += a.OptionBuyingPower;
 
-                        DecoratedValueLabel(sp, bal.NetLiq, change);
+                        DecoratedValueLabel(sp, a.NetLiq, change);
 
                         // 3rd column
                         capReq = portfolio.GetAccountCapRequired(a.ID, false);
-                        capReqAll = portfolio.GetAccountCapRequired(a.ID, true);
+                        capReqAll = portfolio.GetAccountCapRequired(a.ID, true);  // includes stock
                         OverviewLabel(sp, capReq.ToString("C0"), 70, toolTip: ("With Stock: " + capReqAll.ToString("C0")));
 
-                        SaveFooterData(a.Name, bal.NetLiq, capReq);  // save it now so that latest data will be included in the graphs
-
                         // 4th column
-                        decimal acctCommittedPercentage = (bal.NetLiq == 0) ? 0 : capReq / bal.NetLiq;
-                        decimal acctCommittedPercentageAll = (bal.NetLiq == 0) ? 0 : capReqAll / bal.NetLiq;
+                        decimal acctCommittedPercentage = (a.NetLiq == 0) ? 0 : capReq / a.NetLiq;
+                        decimal acctCommittedPercentageAll = (a.NetLiq == 0) ? 0 : capReqAll / a.NetLiq;
                         OverviewLabel(sp, acctCommittedPercentage.ToString("P1"), 80, toolTip: ("With Stock: " + acctCommittedPercentageAll.ToString("P1")));
 
                         // 5th column
@@ -241,19 +271,20 @@ namespace OptionView
                 OverviewPanel.Children.Add(sp);
 
                 // now work on the right side of the footer
-                DecoratedFooterLabel(SPYFooterText, portfolio.SPY.Price, portfolio.SPY.Change, true);
- 
-                decimal vix = portfolio.VIX.Price;
-                string vixText; 
-                if (vix <= 15) vixText = "25%";
-                else if (vix <= 20) vixText = "30%";
-                else if (vix <= 30) vixText = "35%";
-                else if (vix <= 40) vixText = "40%";
-                else vixText = "50%";
-                vixText += " allocation";
-                DecoratedFooterLabel(VIXFooterText, portfolio.VIX.Price, portfolio.VIX.Change, false, vixText);
+                if (portfolio.SPY != null) DecoratedFooterLabel(SPYFooterText, portfolio.SPY.Price, portfolio.SPY.Change, true);
 
-                BalanceHistory.TimeStamp();
+                if (portfolio.VIX != null)
+                {
+                    decimal vix = portfolio.VIX.Price;
+                    string vixText;
+                    if (vix <= 15) vixText = "25%";
+                    else if (vix <= 20) vixText = "30%";
+                    else if (vix <= 30) vixText = "35%";
+                    else if (vix <= 40) vixText = "40%";
+                    else vixText = "50%";
+                    vixText += " allocation";
+                    DecoratedFooterLabel(VIXFooterText, portfolio.VIX.Price, portfolio.VIX.Change, false, vixText);
+                }
             }
             catch (Exception e)
             {
@@ -261,19 +292,6 @@ namespace OptionView
             }
         }
 
-        private void SaveFooterData(string account, decimal balance, decimal capReq)
-        {
-            if (balance == 0) return;
-            try
-            {
-                BalanceHistory.Write(account, balance, capReq);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message, "SaveFooterData Error");
-            }
-
-        }
 
         private Label OverviewLabel(StackPanel sp, string txt, int width = 0, int fontSize = 11, string toolTip = "")
         {
@@ -357,7 +375,7 @@ namespace OptionView
 
         private void RefreshDisplay()
         {
-            App.InitializeStatusMessagePanel(4);
+            //App.InitializeStatusMessagePanel(4);
 
             // launch the long running tasks
             BackgroundWorker worker = new BackgroundWorker();
@@ -369,13 +387,48 @@ namespace OptionView
 
         private void MinorRefreshAsync(object sender, DoWorkEventArgs e)
         {
-            UpdateHoldingsTiles();
-            UpdateFooterAsync();
+            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Visible; });  // for temporary diagnostics
+
+            portfolio.GetCurrentData(accounts);
+
+            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Collapsed; });
         }
         private void MinorLoadComplete(object sender, RunWorkerCompletedEventArgs e) 
         {
-            App.HideStatusMessagePanel();
-            //if (MainTab.SelectedIndex == 1) UpdateAnalysisView();
+            RefreshTilesSafe();
+            UpdateFooterSafe();
+            BalanceHistory.WriteGroups(portfolio);
+            //App.HideStatusMessagePanel();
+        }
+
+        private void RefreshTiles()
+        {
+            foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
+            {
+                TransactionGroup grp = entry.Value;
+
+                Tiles.UpdateTile(grp.GroupID, MainCanvas, (grp.CurrentValue + grp.Cost), grp.UnderlyingPrice.ToString("C2"),
+                    ((grp.CurrentValue ?? 0) != 0) ? "P/L: " + ((decimal)grp.CurrentValue + grp.Cost).ToString("C0") : "",
+                    grp.ChangeFromPreviousClose.ToString("+#;-#;nc"),
+                    grp.Strategy, (grp.ActionDate > DateTime.MinValue), !grp.OrderActive, grp.HasInTheMoneyPositions());
+            }
+        }
+
+        private void RefreshTilesSafe()
+        {
+            if (this.Dispatcher.CheckAccess())
+            {
+                // same thread
+                RefreshTiles();
+            }
+            else
+            {
+                // async load
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    RefreshTiles();
+                });
+            }
         }
 
         private void TimedRefresh(object sender, ElapsedEventArgs e)
@@ -389,10 +442,14 @@ namespace OptionView
         {
             App.UpdateStatusMessage("Update tiles");
 
-            portfolio = new Portfolio();
-            portfolio.GetCurrentHoldings(accounts);
-            BalanceHistory.WriteGroups(portfolio);
+            portfolio = new Portfolio(accounts);
+            BalanceHistory.WriteGroups(portfolio); /// TO DO
 
+            DisplayTilesSafe();
+        }
+
+        private void DisplayTilesSafe()
+        {
             if (this.Dispatcher.CheckAccess())
             {
                 // same thread
@@ -407,7 +464,6 @@ namespace OptionView
                 });
             }
         }
-
 
         // enable display refresh with in-memory data
         private void DisplayTiles()
@@ -457,8 +513,6 @@ namespace OptionView
 
         private void RestorePreviousSession()
         {
-            App.UpdateStatusMessage("Restoring previous session");
-
             string scrnProps = Config.GetProp("Screen");
             string[] props = scrnProps.Split('|');
 
@@ -1032,15 +1086,17 @@ namespace OptionView
         private void SyncWithTastyTradeAsync(object sender, DoWorkEventArgs e)
         {
             DataLoader.Load(accounts);
-            UpdateHoldingsTiles();
+            portfolio = new Portfolio(accounts);
+            portfolio.GetCurrentData(accounts);
         }
 
         private void SyncWithTastyTradeComplete(object sender, RunWorkerCompletedEventArgs e)
         {
+            DisplayTilesSafe();
             UpdateResultsGrid();
             UpdateTransactionsGrid();
             UpdateTodosGrid();
-            UpdateFooter();
+            UpdateFooterSafe();
 
             App.HideStatusMessagePanel();
             if (MainTab.SelectedIndex == 1) UpdateAnalysisView();
@@ -1054,8 +1110,7 @@ namespace OptionView
             Cursor prev = this.Cursor;
             this.Cursor = Cursors.Wait;
 
-            portfolio = new Portfolio();
-            portfolio.GetCurrentHoldings(accounts);
+            portfolio = new Portfolio(accounts);
             string response = portfolio.ValidateCurrentHoldings();
 
             this.Cursor = prev;
@@ -1083,7 +1138,26 @@ namespace OptionView
 
             decimal newOriginalCapReq = portfolio[selectedTag].OriginalCapitalRequired + portfolio[combineRequestTag].OriginalCapitalRequired;
             if (TransactionGroup.Combine(selectedTag, combineRequestTag, newOriginalCapReq) == 1)
-                UpdateHoldingsTiles();
+            {
+                // combine function doesn't update any in-memory representations, so a reload is required
+                App.InitializeStatusMessagePanel(8);
+
+                // launch the long running tasks
+                BackgroundWorker worker = new BackgroundWorker();
+                worker.DoWork += CombineRefresh;
+                worker.RunWorkerCompleted += CombineRefreshComplete;
+                worker.RunWorkerAsync();
+            }
+        }
+        private void CombineRefresh(object sender, DoWorkEventArgs e)
+        {
+            portfolio = new Portfolio(accounts);
+            portfolio.GetCurrentData(accounts);
+        }
+        private void CombineRefreshComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            DisplayTilesSafe();
+            App.HideStatusMessagePanel();
         }
 
         private void ContextMenuValidationCheck(object sender, ContextMenuEventArgs e)
@@ -1515,7 +1589,7 @@ namespace OptionView
             tg.ActionDate = DateTime.MinValue;
             tg.Update();
             UpdateTodosGrid();
-            DisplayTiles();  //refresh tiles
+            DisplayTilesSafe();  //refresh tiles
         }
 
         private void TodoContextMenuValidationCheck(object sender, ContextMenuEventArgs e)
@@ -1553,7 +1627,7 @@ namespace OptionView
                 if (tg.ActionDate == DateTime.MinValue)
                 {
                     UpdateTodosGrid();
-                    DisplayTiles();  //refresh tiles
+                    DisplayTilesSafe();  //refresh tiles
                 }
 
 
