@@ -61,13 +61,7 @@ namespace OptionView
             //      </StackPanel >
 
 
-            TileColor color;
-
-            if (profit == null) color = TileColor.Gray;
-            else if (profit > 0) color = TileColor.Green;
-            else if (profit < 0) color = TileColor.Red;
-            else color = TileColor.Blue;
-
+            TileColor color = SelectColor(profit);
 
             double height = 100;
             double width = 150;
@@ -103,41 +97,11 @@ namespace OptionView
             {
                 RadiusX = 5.18,
                 RadiusY = 5.18,
-                IsHitTestVisible = false
+                IsHitTestVisible = false,
+                Tag = "background"
             };
 
-            LinearGradientBrush gradBrush = new LinearGradientBrush();
-            gradBrush.StartPoint = new Point(0.5, 0);
-            gradBrush.EndPoint = new Point(0.5, 1);
-            switch (color)
-            { 
-                case TileColor.Green:
-                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF66A639"), 0.974));
-                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF45761F"), 0.113));
-                    break;
-                case TileColor.Red:
-                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FFC33F32"), 0.974));
-                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF91151D"), 0.113));
-                    break;
-                case TileColor.Gray:
-                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF909090"), 0.974));
-                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF707070"), 0.113));
-                    break;
-                case TileColor.Blue:
-                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF5380C1"), 0.974));
-                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF2056A2"), 0.113));
-                    break;
-            }
-
-            RotateTransform rt = new RotateTransform()
-            {
-                CenterX = 0.5,
-                CenterY = 0.5,
-                Angle = 315
-            };
-            gradBrush.RelativeTransform = rt;
-            gradBrush.Opacity = opacity;
-            rect.Fill = gradBrush;
+            rect.Fill = GetGradientBrush(color, opacity);
 
             border.Child = rect;
             tileCanvas.Children.Add(border);
@@ -188,7 +152,8 @@ namespace OptionView
             txtSymbol = new TextBlock()
             {
                 Text = price,
-                Style = (Style)window.Resources["SymbolPrice"]
+                Style = (Style)window.Resources["SymbolPrice"],
+                Tag = "price"
             };
             spInner.Children.Add(txtSymbol);
 
@@ -217,7 +182,8 @@ namespace OptionView
             TextBlock txtDetail3 = new TextBlock()
             {
                 Text = ((altLabel2 != null) ? altLabel2 : "P/L") + ": " + value2,
-                Style = (Style)window.Resources["SymbolDetails"]
+                Style = (Style)window.Resources["SymbolDetails"],
+                Tag = "value"
             };
             DockPanel.SetDock(txtDetail3, Dock.Left);
             dp.Children.Add(txtDetail3);
@@ -227,19 +193,21 @@ namespace OptionView
                 TextBlock txtDetail3a = new TextBlock()
                 {
                     Text = value2a,
-                    Style = (Style)window.Resources["SymbolChangeInValue"]
+                    Style = (Style)window.Resources["SymbolChangeInValue"],
+                    Tag = "change"
                 };
                 DockPanel.SetDock(txtDetail3, Dock.Left);
                 dp.Children.Add(txtDetail3a);
             }
 
             // warning symbol for lack of cooresponding order
-            if ((size == TileSize.Regular) && warning)
+            if (size == TileSize.Regular)
             {
                 TextBlock txtOrder = new TextBlock()
                 {
-                    Text = "∆",
-                    Style = (Style)window.Resources["SymbolHeader"]
+                    Text = warning ? "∆" : "",
+                    Style = (Style)window.Resources["SymbolHeader"],
+                    Tag = "order"
                 };
                 DockPanel.SetDock(txtOrder, Dock.Right);
                 dp.Children.Add(txtOrder);
@@ -265,31 +233,31 @@ namespace OptionView
                 DockPanel.SetDock(txtDTE, Dock.Right);
                 dp.Children.Add(txtDTE);
 
-                if (itm)
+                Border itmBorder = new Border()
                 {
-                    Border itmBorder = new Border()
-                    {
-                        BorderBrush = Brushes.White,
-                        BorderThickness = new Thickness(1),
-                        Margin = new Thickness(0, 0, 6, 0)
-                    };
-                    DockPanel.SetDock(itmBorder, Dock.Left);
-                    dp.Children.Add(itmBorder);
+                    BorderBrush = Brushes.White,
+                    BorderThickness = new Thickness(1),
+                    Margin = new Thickness(0, 0, 6, 0),
+                    Visibility = itm ? Visibility.Visible : Visibility.Collapsed,
+                    Tag = "itmborder"
+                };
+                DockPanel.SetDock(itmBorder, Dock.Left);
+                dp.Children.Add(itmBorder);
 
-                    TextBlock txtITM = new TextBlock()
-                    {
-                        Text = "ITM",
-                        Style = (Style)window.Resources["SymbolITM"]
-                    };
-                    itmBorder.Child = txtITM;
-                }
+                TextBlock txtITM = new TextBlock()
+                {
+                    Text = "ITM",
+                    Style = (Style)window.Resources["SymbolITM"]
+                };
+                itmBorder.Child = txtITM;
 
                 Image img = new Image()
                 {
                     Height = 16,
                     Width = 16,
                     Source = new BitmapImage(new Uri("pack://application:,,,/icons/alarm.ico")),
-                    Visibility = alarm ? Visibility.Visible : Visibility.Hidden,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    Visibility = alarm ? Visibility.Visible : Visibility.Collapsed,
                     Tag = "alarmIcon"
                 };
                 dp.Children.Add(img);
@@ -306,31 +274,147 @@ namespace OptionView
             canvas.Children.Add(cc);
         }
 
+        public static TileColor SelectColor(decimal? value)
+        {
+            TileColor retval = TileColor.Gray;
+
+            if (value == null) retval = TileColor.Gray;
+            else if (value > 0) retval = TileColor.Green;
+            else if (value < 0) retval = TileColor.Red;
+            else retval = TileColor.Blue;
+
+            return retval;
+        }
+
+        public static LinearGradientBrush GetGradientBrush(TileColor color, double opacity)
+        {
+            LinearGradientBrush gradBrush = new LinearGradientBrush();
+            gradBrush.StartPoint = new Point(0.5, 0);
+            gradBrush.EndPoint = new Point(0.5, 1);
+            switch (color)
+            {
+                case TileColor.Green:
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF66A639"), 0.974));
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF45761F"), 0.113));
+                    break;
+                case TileColor.Red:
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FFC33F32"), 0.974));
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF91151D"), 0.113));
+                    break;
+                case TileColor.Gray:
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF909090"), 0.974));
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF707070"), 0.113));
+                    break;
+                case TileColor.Blue:
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF5380C1"), 0.974));
+                    gradBrush.GradientStops.Add(new GradientStop((Color)ColorConverter.ConvertFromString("#FF2056A2"), 0.113));
+                    break;
+            }
+
+            RotateTransform rt = new RotateTransform()
+            {
+                CenterX = 0.5,
+                CenterY = 0.5,
+                Angle = 315
+            };
+            gradBrush.RelativeTransform = rt;
+            gradBrush.Opacity = opacity;
+            return gradBrush;
+        }
+
+
         public static void UpdateTile(int tag, Canvas canvas, string strategy, bool alarm)
         {
+            UpdateTile(tag, canvas, null, null, null, null, strategy, alarm);
+        }
+        
+        public static void UpdateTile(int tag, Canvas canvas, decimal? profit, string price, string value, string change, string strategy, bool? alarm = null, bool? order = null, bool? itm = null)
+        {
+
             foreach (ContentControl cc in canvas.Children)
             {
                 if ((int)cc.Tag == tag)
                 {
                     Debug.WriteLine("UpdateTile found: " + tag.ToString());
-                    UIElementCollection children = ((Canvas)cc.Content).Children;
-                    StackPanel sp = (StackPanel)children[1];
-                    ((TextBlock)FindChildByTag(sp.Children, "strategy")).Text = strategy;
 
-                    DockPanel dp = (DockPanel)sp.Children[4];  //footer dockpanel
-                    ((Image)FindChildByTag(dp.Children, "alarmIcon")).Visibility = alarm ? Visibility.Visible : Visibility.Hidden;
+                    if (profit != null)
+                    { 
+                        IEnumerable<Rectangle> rectangles = FindVisualChildren<Rectangle>(cc);
+                        foreach (Rectangle rect in rectangles)
+                        {
+                            if ((string)rect.Tag == "background")
+                            {
+                                TileColor color = SelectColor(profit);
+                                GradientBrush brush = GetGradientBrush(color, 1.0);
+                                rect.Fill = brush;
+                                break;
+                            }
+                        }
+                    }
+
+                    IEnumerable<TextBlock> textBlocks = FindVisualChildren<TextBlock>(cc);
+                    foreach (TextBlock tb in textBlocks)
+                    {
+                        switch ((string)tb.Tag)
+                        {
+                            case "price":
+                                if (price != null) tb.Text = price;
+                                break;
+                            case "value":
+                                if (value != null) tb.Text = value;
+                                break;
+                            case "change":
+                                if (change != null) tb.Text = change;
+                                break;
+                            case "strategy":
+                                if (strategy != null) tb.Text = strategy;
+                                break;
+                            case "order":
+                                if (order != null) tb.Text = (order ?? false) ? "∆" : "";
+                                break;
+                        }
+                    }
+
+                    if (alarm != null)
+                    { 
+                        IEnumerable<Image> images = FindVisualChildren<Image>(cc);
+                        foreach (Image img in images)
+                        {
+                            if ((string)img.Tag == "alarmIcon")
+                            {
+                                img.Visibility = (alarm ?? false) ? Visibility.Visible : Visibility.Collapsed;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (itm != null)
+                    {
+                        IEnumerable<Border> borders = FindVisualChildren<Border>(cc);
+                        foreach (Border bord in borders)
+                        {
+                            if ((string)bord.Tag == "itmborder")
+                            {
+                                bord.Visibility = (itm ?? false) ? Visibility.Visible : Visibility.Collapsed;
+                                break;
+                            }
+                        }
+                    }
+
                 }
             }
         }
 
-        private static UIElement FindChildByTag (UIElementCollection children, string tag)
+        public static IEnumerable<T> FindVisualChildren<T>(DependencyObject depObj) where T : DependencyObject
         {
-            foreach (UIElement elem in children)
+            if (depObj == null) yield return (T)Enumerable.Empty<T>();
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
             {
-                string val = Convert.ToString(elem.GetType().GetProperty("Tag", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public).GetValue(elem));
-                if (val == tag) return elem;
+                DependencyObject ithChild = VisualTreeHelper.GetChild(depObj, i);
+                if (ithChild == null) continue;
+                if (ithChild is T t) yield return t;
+                foreach (T childOfChild in FindVisualChildren<T>(ithChild)) yield return childOfChild;
             }
-            return null;
         }
 
         public static void UpdateTilePosition(string tag, int x, int y)
