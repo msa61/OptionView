@@ -15,6 +15,8 @@ namespace OptionView
         public string ID { get; set; }
         public string Name { get; set; }
         public bool Active { get; set; }
+        public decimal NetLiq { get; set; }
+        public decimal OptionBuyingPower { get; set; }
     }
 
     public class Accounts : List<Account>
