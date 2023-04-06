@@ -61,6 +61,7 @@ namespace OptionView
         public TransactionGroup()
         {
             Symbol = "undef";
+            OrderActive = true;
             Initialize();
         }
         public TransactionGroup(string sym)
@@ -169,6 +170,7 @@ namespace OptionView
         public bool HasInTheMoneyPositions()
         {
             bool retval = false;
+            if (this.UnderlyingPrice == 0) return retval;
 
             foreach (KeyValuePair<string, Position> item in this.Holdings)
             {
