@@ -30,7 +30,6 @@ namespace OptionView
 
 
             mainWindow = new MainWindow();
-            InitializeStatusMessagePanel(14);
             mainWindow.Show();
         }
 
@@ -59,7 +58,7 @@ namespace OptionView
             bool onUIThread = ((Dispatcher)mainWindow.Dispatcher).CheckAccess();
             if (onUIThread)
             {
-                ShowPanel( count);
+                ShowPanel(count);
             }
             else
             {
