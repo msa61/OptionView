@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Windows;
 using OptionView.DataImport;
 
+
 namespace OptionView
 {
 
@@ -27,6 +28,11 @@ namespace OptionView
         public Portfolio()
         {
             if (!App.OfflineMode) TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
+        }
+
+        public Portfolio(Accounts acc) : this()
+        {
+            GetCurrentHoldings(acc);
         }
 
 
@@ -140,8 +146,7 @@ namespace OptionView
 
                     grp.EarliestExpiration = FindEarliestDate(grp.Holdings);
                     App.UpdateStatusMessage("Retrieve current data - " + grp.Symbol);
-                    RetrieveCurrentData(grp);
-
+                    
                     this.Add(grp.GroupID, grp);
                 }  // end of transaction group loop
 
@@ -166,12 +171,31 @@ namespace OptionView
             return ret;
         }
 
-        private void RetrieveCurrentData(TransactionGroup grp)
+        public void GetCurrentData(Accounts acc)
+        {
+            if (App.OfflineMode) return;
+
+            // retrieve global values
+            List<string> pSymbols = new List<string> { "SPY", "VIX" };
+            Dictionary<string, Quote> prices = DataFeed.GetPrices(pSymbols);
+            if (prices.ContainsKey("SPY")) SPY = prices["SPY"];
+            if (prices.ContainsKey("VIX")) VIX = prices["VIX"];
+
+            // cycle thru each group
+            foreach (KeyValuePair<int, TransactionGroup> grpItem in this)
+            {
+                TransactionGroup grp = grpItem.Value;
+
+                RetrieveCurrentGroupData(grp);
+            }
+
+            BalanceHistory.WriteGroups(this); /// TO DO
+        }
+
+        private void RetrieveCurrentGroupData(TransactionGroup grp)
         {
             decimal? currentValue = null;
             decimal previousCloseValue = 0;
-
-            if (App.OfflineMode) return;
 
             try
             {
@@ -197,7 +221,6 @@ namespace OptionView
 
                                 if (pos != null)
                                 {
-                                    symbols.Add("SPY");
                                     foreach (KeyValuePair<string, TWPosition> p in pos)
                                     {
                                         if (!symbols.Contains(p.Value.Symbol)) symbols.Add(p.Value.Symbol);
@@ -226,16 +249,16 @@ namespace OptionView
                         //    Debug.WriteLine("Greek: {0}, Delta{1}", g.Key, g.Value.Delta);
                         //}
 
-                        List<string> pSymbols = new List<string> { "SPY", "VIX" };
-                        Dictionary<string, Quote> prices = DataFeed.GetPrices(pSymbols);
-                        if (prices.ContainsKey("SPY")) SPY = prices["SPY"];
-                        if (prices.ContainsKey("VIX")) VIX = prices["VIX"];
                     }
                 }
 
                 // ensure that positions got instanciated AND that the particular account isn't empty
                 if ((twPositions != null) && (twPositions.Count > 0) && (twPositions[grp.Account] != null))
                 {
+                    // reset greek values
+                    grp.GreekData.Delta = 0;
+                    grp.GreekData.Theta = 0;
+
                     foreach (KeyValuePair<string, Position> item in grp.Holdings)
                     {
                         Position pos = item.Value;
@@ -292,7 +315,7 @@ namespace OptionView
                     grp.ImpliedVolatilityRank = twMarketInfo[grp.ShortSymbol].ImpliedVolatilityRank;
                     grp.DividendYield = twMarketInfo[grp.ShortSymbol].DividendYield;
 
-                    grp.GreekData.WeightedDelta = Convert.ToDouble(grp.UnderlyingPrice) * grp.GreekData.Delta * twMarketInfo[grp.ShortSymbol].Beta / Convert.ToDouble(SPY.Price);
+                    if (SPY != null) grp.GreekData.WeightedDelta = Convert.ToDouble(grp.UnderlyingPrice) * grp.GreekData.Delta * twMarketInfo[grp.ShortSymbol].Beta / Convert.ToDouble(SPY.Price);
                 }
 
                 // update current capital requirements from tw
