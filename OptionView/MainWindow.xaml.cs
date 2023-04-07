@@ -70,6 +70,7 @@ namespace OptionView
             // launch the long running tasks
             BackgroundWorker worker = new BackgroundWorker();
             worker.DoWork += InitializeDataAsync;
+            worker.RunWorkerCompleted += InitializeDataComplete;
 
             worker.RunWorkerAsync();
 
@@ -97,6 +98,11 @@ namespace OptionView
 
             // wait to do this completely in the background
             UpdateScreenerGrid();
+        }
+
+        private void InitializeDataComplete(object sender, RunWorkerCompletedEventArgs e)
+        {
+            refreshActive = false;
         }
 
         private void AsyncLoadComplete()
@@ -368,13 +374,15 @@ namespace OptionView
             return retval;
         }
 
+        private bool refreshActive = true;  // defaults to on until screener is finished
         private void OverviewPanel_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            RefreshDisplay();
+            if (!refreshActive) RefreshDisplay();
         }
 
         private void RefreshDisplay()
         {
+            refreshActive = true;
             //App.InitializeStatusMessagePanel(4);
 
             // launch the long running tasks
@@ -399,6 +407,7 @@ namespace OptionView
             UpdateFooterSafe();
             BalanceHistory.WriteGroups(portfolio);
             //App.HideStatusMessagePanel();
+            refreshActive = false;
         }
 
         private void RefreshTiles()
@@ -1021,7 +1030,7 @@ namespace OptionView
             if (Decimal.TryParse(txtRisk.Text.Replace("$", ""), out retval)) grp.Risk = retval;
 
             grp.Update();
-            portfolio.GetCurrentHoldings(accounts, true);  //refresh
+            portfolio.GetCurrentHoldings(accounts);  //refresh
             if (uiDirty)
             {
                 grp = portfolio[tag];
