@@ -131,7 +131,7 @@
             <Setter Property="FontSize" Value="10"/>
             <Setter Property="IsHitTestVisible" Value="False" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Padding" Value="8,2,0,0" />
+            <Setter Property="Padding" Value="8,0,0,0" />
         </Style>
 
         <Style x:Key="SymbolDetailsRight" TargetType="{x:Type TextBlock}">
@@ -212,9 +212,9 @@
                                     <TextBlock Text="Text" Style="{DynamicResource SymbolDetails}"  />
                                     <TextBlock Text="Text2 - dafa;jkda adfj;daf fafafadf" Style="{DynamicResource SymbolDetails}" />
                                     <DockPanel LastChildFill="False" >
-                                        <TextBlock Text="Text3" Style="{DynamicResource SymbolDetails}" DockPanel.Dock="Left"/>
-                                        <TextBlock Text="Text3a" Style="{DynamicResource SymbolChangeInValue}" DockPanel.Dock="Left" />
-                                        <TextBlock Text="!" Style="{DynamicResource SymbolDetails}" DockPanel.Dock="Right"/>
+                                        <TextBlock Text="P/L: $540" Style="{DynamicResource SymbolDetails}" DockPanel.Dock="Left"/>
+                                        <TextBlock Text="+20" Style="{DynamicResource SymbolChangeInValue}" VerticalAlignment="Center" DockPanel.Dock="Left" />
+                                        <TextBlock Text="∆" Style="{DynamicResource SymbolHeader}" DockPanel.Dock="Right"/>
                                     </DockPanel>
                                     <DockPanel Margin="0,6,0,0" LastChildFill="False"  >
                                         <TextBlock Text="66" Style="{DynamicResource SymbolDetails}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
