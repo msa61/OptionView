@@ -24,7 +24,7 @@ namespace OptionView
         }
     }
 
-    class TWMarketInfo
+    public class TWMarketInfo
     {
         public string Symbol { get; set; }
         public double ImpliedVolatility { get; set; }
@@ -34,32 +34,26 @@ namespace OptionView
         public double CorrelationToSPY { get; set; }
         public DateTime Earnings { get; set; }
     }
-    class TWMarketInfos : Dictionary<string, TWMarketInfo>
+    public class TWMarketInfos : Dictionary<string, TWMarketInfo>
     {
     }
 
 
 
-    class TWAccount
+    public class TWAccount
     {
         public string Name { get; set; }
         public string Number { get; set; }
     }
-    class TWAccounts : Dictionary<string, TWAccount>
+    public class TWAccounts : Dictionary<string, TWAccount>
     {
     }
 
-    class TWMargin
-    {
-        public string Symbol { get; set; }
-        public decimal CapitalRequirement { get; set; }
-        public decimal UnderlyingPrice { get; set; }
-    }
-    class TWMargins : Dictionary<string,TWMargin>
+    public class TWCapitalRequirements : Dictionary<string,decimal>
     {
     }
 
-    class TWBalance
+    public class TWBalance
     {
         public decimal NetLiq { get; set; }
         public decimal OptionBuyingPower { get; set; }
@@ -67,7 +61,7 @@ namespace OptionView
         public decimal CommittedPercentage { get; set; }
     }
 
-    class TWPosition
+    public class TWPosition
     {
         public string Symbol { get; set; }
         public string OptionSymbol { get; set; }
@@ -88,11 +82,11 @@ namespace OptionView
             OrderActive = false;
         }
     }
-    class TWPositions : Dictionary<string, TWPosition>
+    public class TWPositions : Dictionary<string, TWPosition>
     {
     }
 
-    class TWTransaction
+    public class TWTransaction
     {
         public DateTime Time { get; set; }
         public string TransactionCode { get; set; }
@@ -133,11 +127,11 @@ namespace OptionView
             return ret;
         }
     }
-    class TWTransactions : List<TWTransaction>
+    public class TWTransactions : List<TWTransaction>
     {
     }
 
-    class StreamingParams
+    public class StreamingParams
     {
         public string Address { get; set; }
         public string Token { get; set; }
@@ -145,12 +139,11 @@ namespace OptionView
 
 
 
-    class TastyWorks
+    public class TastyWorks
     {
         static private string Token = "";
         static EncodedWebClient Web = null;
         static bool alreadyFailedOnce = false;
-        static Dictionary<string, TWMargins> twCapRequirementsCache = null;
 
         public TastyWorks()
         {
@@ -288,15 +281,10 @@ namespace OptionView
         }
 
         // used for determining capital requirement during initial load
-        public static TWMargins MarginData(string accountNumber)
+        public static TWCapitalRequirements MarginData(string accountNumber)
         {
             try
             { 
-                if (twCapRequirementsCache.ContainsKey(accountNumber))
-                {
-                    return twCapRequirementsCache[accountNumber];
-                }
-
                 App.UpdateStatusMessage("TW MarginData : " + accountNumber);
 
                 SetHeaders(Token);
@@ -306,17 +294,11 @@ namespace OptionView
 
                 List<JToken> list = package["data"]["underlyings"].Children().ToList();
 
-                TWMargins retval = new TWMargins();
+                TWCapitalRequirements retval = new TWCapitalRequirements();
 
                 foreach (JToken item in list)
                 {
-                    TWMargin mar = new TWMargin()
-                    {
-                        Symbol = item["underlying-symbol"].ToString(),
-                        UnderlyingPrice = Convert.ToDecimal(item["underlying-price"]),
-                        CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"])
-                    };
-                    retval.Add(mar.Symbol, mar);
+                    retval.Add(item["underlying-symbol"].ToString(), Convert.ToDecimal(item["maintenance-requirement"]));
                 }
 
                 return retval;
@@ -369,59 +351,21 @@ namespace OptionView
         {
             try
             { 
-                App.UpdateStatusMessage("TW Positions 1/2 : " + accountNumber);
-
-                Dictionary<string, decimal> marketValues = new Dictionary<string, decimal>();
-                Dictionary<string, Int32> orderIds;
-                TWMargins acctCapRequirements = new TWMargins();
-
-                SetHeaders(Token);
-
-                // retrieve current values
-                string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
-                JObject package = JObject.Parse(reply);
-
-                List<JToken> list = package["data"]["underlyings"].Children().ToList();
-
-                foreach (JToken item in list)
-                {
-                    // capture the value of all of the options plus the underlaying
-                    JToken prices = item["marks"];
-                    foreach (JProperty price in prices)
-                    {
-                        if (!marketValues.ContainsKey(price.Name)) marketValues.Add(price.Name, Convert.ToDecimal(price.Value));
-                    }
-
-                    // capture the capital requirements while we're here
-                    string symbol = item["underlying-symbol"].ToString();
-                    TWMargin mar = new TWMargin()
-                    {
-                        Symbol = symbol,
-                        UnderlyingPrice = Convert.ToDecimal(item["underlying-price"]),
-                        CapitalRequirement = Convert.ToDecimal(item["maintenance-requirement"])
-                    };
-                    acctCapRequirements.Add(symbol, mar);
-                }
-
-                // update cap req to cache
-                if (twCapRequirementsCache == null) twCapRequirementsCache = new Dictionary<string, TWMargins>();
-                if (twCapRequirementsCache.ContainsKey(accountNumber)) twCapRequirementsCache.Remove(accountNumber);
-                twCapRequirementsCache.Add(accountNumber, acctCapRequirements);
+                App.UpdateStatusMessage("TW Positions : " + accountNumber);
 
                 // get active orders
-                orderIds = ActiveOrders(accountNumber);
+                Dictionary<string, Int32> orderIds = ActiveOrders(accountNumber);
 
-                App.UpdateStatusMessage("TW Positions 2/2 : " + accountNumber);
 
                 SetHeaders(Token); // reset, lost after previous call
 
                 // retrieve specific positions
-                reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/positions");
-                package = JObject.Parse(reply);
+                string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/positions");
+                JObject package = JObject.Parse(reply);
 
                 TWPositions returnList = new TWPositions();
 
-                list = package["data"]["items"].Children().ToList();
+                List<JToken> list = package["data"]["items"].Children().ToList();
 
                 foreach (JToken item in list)
                 {
@@ -435,9 +379,6 @@ namespace OptionView
                     if (inst.PreviousClose == 0)  inst.PreviousClose = Convert.ToDecimal(item["average-open-price"]);
 
                     inst.Multiplier = Convert.ToDecimal(item["multiplier"]); ;
-                    if (marketValues.ContainsKey(inst.OptionSymbol)) inst.Market = marketValues[inst.OptionSymbol] * inst.Multiplier;
-                    if (marketValues.ContainsKey(inst.Symbol)) inst.UnderlyingPrice = marketValues[inst.Symbol];
-
                     inst.OrderActive = orderIds.ContainsKey(inst.Symbol);
 
                     SymbolDecoder symbol = new SymbolDecoder(inst.OptionSymbol, item["instrument-type"].ToString());

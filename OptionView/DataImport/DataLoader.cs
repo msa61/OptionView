@@ -18,7 +18,7 @@ namespace OptionView
     public class DataLoader
     {
         private static Dictionary<string, TWPositions> twpositions = null;
-        private static Dictionary<string, TWMargins> twMarginData = null;
+        private static Dictionary<string, TWCapitalRequirements> twMarginData = null;
 
         public static void Load(Accounts accounts)
         {
@@ -31,7 +31,7 @@ namespace OptionView
                 {
                     // cache the current positions for details required to establish default risk and capreq
                     twpositions = new Dictionary<string, TWPositions>();
-                    twMarginData = new Dictionary<string, TWMargins>();
+                    twMarginData = new Dictionary<string, TWCapitalRequirements>();
                     foreach (Account a in accounts)
                     {
                         if (a.Active)
@@ -41,7 +41,7 @@ namespace OptionView
                             twpositions.Add(a.ID, pos);
 
                             // retrieve the current capital requirement and underlying price
-                            TWMargins mar = TastyWorks.MarginData(a.ID);
+                            TWCapitalRequirements mar = TastyWorks.MarginData(a.ID);
                             twMarginData.Add(a.ID, mar);
                         }
                     }
@@ -131,8 +131,7 @@ namespace OptionView
                         decimal underlyingPrice = 0;
                         if (record.Symbol != null)  // need to skip for non-security transactions
                         {
-                            underlyingPrice = FindTWUnderlyingPrice(record.AccountRef, record.Symbol);
-                            if (underlyingPrice == 0) underlyingPrice = DataFeed.GetPrice(record.Symbol);  // this is necessary because underlying data won't exist after its closed
+                            underlyingPrice = DataFeed.GetPrice(record.Symbol);  
                         }
                         cmd.Parameters.AddWithValue("up", underlyingPrice);
 
@@ -387,7 +386,7 @@ namespace OptionView
                     cmd.Parameters.AddWithValue("ns", DefaultNeutralStrategy(strat));
                     decimal risk = DefaultRisk(account, strat, holdings);
                     cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, risk, holdings));
-                    decimal capReq = FindTWMarginRequirement(account, holdings);
+                    decimal capReq = twMarginData[account][symbol];
                     cmd.Parameters.AddWithValue("cap", capReq);
                     cmd.Parameters.AddWithValue("cap2", capReq);
                     cmd.ExecuteNonQuery();
@@ -570,37 +569,6 @@ namespace OptionView
             }
 
             return null;
-        }
-
-        private static decimal FindTWMarginRequirement(string account, Positions positions)
-        {
-            Position pos = positions.ElementAt(0).Value;
-
-            // this loop could be eliminated if the long symbol name gets persisted in database
-            foreach (KeyValuePair<string, TWMargin> p in twMarginData[account])
-            {
-                TWMargin mar = p.Value;
-                if (pos.Symbol == mar.Symbol) 
-                {
-                    return mar.CapitalRequirement;
-                }
-            }
-
-            return 0M;
-        }
-
-        private static decimal FindTWUnderlyingPrice(string account, string symbol)
-        {
-            foreach (KeyValuePair<string, TWMargin> p in twMarginData[account])
-            {
-                TWMargin mar = p.Value;
-                if (symbol == mar.Symbol)
-                {
-                    return mar.UnderlyingPrice;
-                }
-            }
-
-            return 0M;
         }
 
 
