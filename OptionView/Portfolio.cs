@@ -293,7 +293,7 @@ namespace OptionView
                                 //Debug.Assert(twpos.UnderlyingPrice == dxQuotes[twpos.Symbol].Price, string.Format("{0} not equal {1} != {2}", pos.Symbol, twpos.UnderlyingPrice, dxQuotes[twpos.Symbol].Price));
 
                                 // capture the underlying price from the first position for the overall group
-                                if (grp.UnderlyingPrice == 0) grp.UnderlyingPrice = twpos.UnderlyingPrice;
+                                if (grp.UnderlyingPrice == 0) grp.UnderlyingPrice = pos.UnderlyingPrice;
 
                                 // update groups order status based on any of items constituent holdings
                                 grp.OrderActive = twpos.OrderActive;

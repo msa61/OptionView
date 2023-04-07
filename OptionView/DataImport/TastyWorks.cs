@@ -70,8 +70,6 @@ namespace OptionView
         public decimal Strike { get; set; }
         public string Type { get; set; }
         public decimal Quantity { get; set; }
-        public decimal Market { get; set; }
-        public decimal UnderlyingPrice { get; set; }
         public decimal Multiplier { get; set; }
         public decimal PreviousClose { get; set; }
         public bool OrderActive { get; set; }
