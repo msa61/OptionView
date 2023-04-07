@@ -14,13 +14,31 @@ using OptionView.DataImport;
 
 namespace OptionView
 {
+    public class CurrentDataCache
+    {
+        public Dictionary<string, TWPositions> TwPositionList { get; set; } = null;             // cache for holdings in account
+        public Dictionary<string, TWCapitalRequirements> TwReqCapital { get; set; } = null;  // maintenance requirement values from tw
+        public TWMarketInfos TwMarketInfo { get; set; } = null;                              // IV and IVR data
+        public Dictionary<string, Quote> DxQuotes { get; set; } = null;                      // current prices of options and underlyings
+        public Greeks DxOptionGreeks { get; set; } = null;                                   // greek data for individual options
+
+        public CurrentDataCache()
+        {
+            TwPositionList = new Dictionary<string, TWPositions>();
+            TwReqCapital = new Dictionary<string, TWCapitalRequirements>();
+        }
+
+        public bool IsCacheInitialized(string acct)
+        {
+            return ((TwPositionList != null) && (TwPositionList.Count > 0) && TwPositionList.ContainsKey(acct));
+        }
+    }
+
+
 
     public class Portfolio : Dictionary<int, TransactionGroup>
     {
-        private Dictionary<string, TWPositions> twPositions = null;      // cache for current value lookup
-        private Dictionary<string, TWMargins> twReqCapital = null;       // cache of maintenance requirement values from tw
-        private TWMarketInfos twMarketInfo = null;                       // cache of IV data
-        private Greeks optionGreeks = null;                              // cache of greek data
+        private CurrentDataCache dataCache = null;
         public Quote SPY { get; set; }
         public Quote VIX { get; set; }
         private Accounts accounts = null;
@@ -84,7 +102,7 @@ namespace OptionView
             return (reader.GetOrdinal(column) >= 0);
         }
 
-        public void GetCurrentHoldings(Accounts acc, Boolean minorUpdate = false)
+        public void GetCurrentHoldings(Accounts acc)
         {
             App.UpdateStatusMessage("Get current holdings");
 
@@ -92,10 +110,6 @@ namespace OptionView
 
             try
             {
-                if (!minorUpdate)
-                {
-                    twPositions = null;  // clear cache
-                }
                 // always start with an empty list
                 this.Clear();
 
@@ -145,7 +159,6 @@ namespace OptionView
                     }
 
                     grp.EarliestExpiration = FindEarliestDate(grp.Holdings);
-                    App.UpdateStatusMessage("Retrieve current data - " + grp.Symbol);
                     
                     this.Add(grp.GroupID, grp);
                 }  // end of transaction group loop
@@ -175,6 +188,8 @@ namespace OptionView
         {
             if (App.OfflineMode) return;
 
+            dataCache = null;  // clear any previous data
+
             // retrieve global values
             List<string> pSymbols = new List<string> { "SPY", "VIX" };
             Dictionary<string, Quote> prices = DataFeed.GetPrices(pSymbols);
@@ -200,7 +215,7 @@ namespace OptionView
             try
             {
                 // retrieve and cache current data from tastyworks for this a subsequent passes
-                if (twPositions == null)
+                if (dataCache == null)
                 {
                     App.UpdateStatusMessage("Fetching current data for cache");
 
@@ -209,16 +224,18 @@ namespace OptionView
                         List<string> symbols = new List<string>();
                         List<string> optionSymbols = new List<string>();
 
-                        twPositions = new Dictionary<string, TWPositions>();
-                        twReqCapital = new Dictionary<string, TWMargins>();
+                        dataCache = new CurrentDataCache();
+
+                        // step thru the account-specific queries
                         foreach (Account a in accounts)
                         {
                             if (a.Active)
                             {
                                 // retrieve Tastyworks positions for given account
                                 TWPositions pos = TastyWorks.Positions(a.ID);
-                                twPositions.Add(a.ID, pos);
+                                dataCache.TwPositionList.Add(a.ID, pos);
 
+                                // build symbol list for last step in building cache
                                 if (pos != null)
                                 {
                                     foreach (KeyValuePair<string, TWPosition> p in pos)
@@ -234,26 +251,20 @@ namespace OptionView
                                 }
 
                                 // retreive cap requirements for holdings in this account
-                                TWMargins mar = TastyWorks.MarginData(a.ID);
-                                twReqCapital.Add(a.ID, mar);
+                                TWCapitalRequirements mar = TastyWorks.MarginData(a.ID);
+                                dataCache.TwReqCapital.Add(a.ID, mar);
                             }
                         }
 
-                        twMarketInfo = TastyWorks.MarketInfo(symbols);  // get IV's
-                        optionGreeks = DataFeed.GetGreeks(optionSymbols);
-
-                        Dictionary<string, Quote> tmp = DataFeed.GetPrices(optionSymbols);
-                        
-                        //foreach (KeyValuePair<string, Greek> g in optionGreeks)
-                        //{
-                        //    Debug.WriteLine("Greek: {0}, Delta{1}", g.Key, g.Value.Delta);
-                        //}
-
+                        // get the symbol-specific data
+                        dataCache.TwMarketInfo = TastyWorks.MarketInfo(symbols);  // get IV's
+                        dataCache.DxOptionGreeks = DataFeed.GetGreeks(optionSymbols);
+                        dataCache.DxQuotes = DataFeed.GetPrices(symbols.Concat(optionSymbols).ToList());
                     }
                 }
 
-                // ensure that positions got instanciated AND that the particular account isn't empty
-                if ((twPositions != null) && (twPositions.Count > 0) && (twPositions[grp.Account] != null))
+                // insure that positions got instanciated AND that the particular account isn't empty
+                if ((dataCache != null) && dataCache.IsCacheInitialized(grp.Account))
                 {
                     // reset greek values
                     grp.GreekData.Delta = 0;
@@ -264,20 +275,22 @@ namespace OptionView
                         Position pos = item.Value;
 
                         // this loop could be eliminated if the long symbol name gets persisted in database
-                        foreach (KeyValuePair<string,TWPosition> p in twPositions[grp.Account])
+                        foreach (KeyValuePair<string,TWPosition> p in dataCache.TwPositionList[grp.Account])
                         {
                             TWPosition twpos = p.Value;
                             if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate))
                             {
                                 //Debug.WriteLine(twpos.Market);
                                 if (currentValue == null) currentValue = 0;  // initialize now that we've found a match
-                                currentValue += pos.Quantity * twpos.Market;
+                                currentValue += pos.Quantity * (dataCache.DxQuotes[twpos.ShortOptionSymbol].Price * twpos.Multiplier); // twpos.Market;
                                 previousCloseValue += pos.Quantity * twpos.PreviousClose * twpos.Multiplier;
 
                                 // capture current details while we have it
-                                pos.Market = twpos.Market;
+                                pos.Market = (dataCache.DxQuotes[twpos.ShortOptionSymbol].Price * twpos.Multiplier); // twpos.Market;  
+                                //Debug.Assert(twpos.Market == (dxQuotes[twpos.ShortOptionSymbol].Price * twpos.Multiplier), string.Format("{0} not equal {1} != {2}", pos.Symbol,twpos.Market, (dxQuotes[twpos.ShortOptionSymbol].Price * twpos.Multiplier)));
                                 pos.Multiplier = twpos.Multiplier;
-                                pos.UnderlyingPrice = twpos.UnderlyingPrice;
+                                pos.UnderlyingPrice = dataCache.DxQuotes[twpos.Symbol].Price; // twpos.UnderlyingPrice;
+                                //Debug.Assert(twpos.UnderlyingPrice == dxQuotes[twpos.Symbol].Price, string.Format("{0} not equal {1} != {2}", pos.Symbol, twpos.UnderlyingPrice, dxQuotes[twpos.Symbol].Price));
 
                                 // capture the underlying price from the first position for the overall group
                                 if (grp.UnderlyingPrice == 0) grp.UnderlyingPrice = twpos.UnderlyingPrice;
@@ -289,9 +302,9 @@ namespace OptionView
                                 {
                                     grp.GreekData.Delta += Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);  // delta is 1 per share
                                 }
-                                else if ((optionGreeks != null) && (optionGreeks.ContainsKey(twpos.ShortOptionSymbol)))
+                                else if ((dataCache.DxOptionGreeks != null) && (dataCache.DxOptionGreeks.ContainsKey(twpos.ShortOptionSymbol)))
                                 {
-                                    pos.GreekData = optionGreeks[twpos.ShortOptionSymbol];
+                                    pos.GreekData = dataCache.DxOptionGreeks[twpos.ShortOptionSymbol];
 
                                     grp.GreekData.Delta += pos.GreekData.Delta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
                                     grp.GreekData.Theta += pos.GreekData.Theta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
@@ -309,19 +322,19 @@ namespace OptionView
                     grp.PreviousCloseValue = previousCloseValue;
                     grp.ChangeFromPreviousClose = (currentValue ?? 0) - previousCloseValue;
                 }
-                if ((twMarketInfo != null) && (twMarketInfo.ContainsKey(grp.ShortSymbol)))
+                if ((dataCache != null) && (dataCache.TwMarketInfo != null) && (dataCache.TwMarketInfo.ContainsKey(grp.ShortSymbol)))
                 {
-                    grp.ImpliedVolatility = twMarketInfo[grp.ShortSymbol].ImpliedVolatility;
-                    grp.ImpliedVolatilityRank = twMarketInfo[grp.ShortSymbol].ImpliedVolatilityRank;
-                    grp.DividendYield = twMarketInfo[grp.ShortSymbol].DividendYield;
+                    grp.ImpliedVolatility = dataCache.TwMarketInfo[grp.ShortSymbol].ImpliedVolatility;
+                    grp.ImpliedVolatilityRank = dataCache.TwMarketInfo[grp.ShortSymbol].ImpliedVolatilityRank;
+                    grp.DividendYield = dataCache.TwMarketInfo[grp.ShortSymbol].DividendYield;
 
-                    if (SPY != null) grp.GreekData.WeightedDelta = Convert.ToDouble(grp.UnderlyingPrice) * grp.GreekData.Delta * twMarketInfo[grp.ShortSymbol].Beta / Convert.ToDouble(SPY.Price);
+                    if (SPY != null) grp.GreekData.WeightedDelta = Convert.ToDouble(grp.UnderlyingPrice) * grp.GreekData.Delta * dataCache.TwMarketInfo[grp.ShortSymbol].Beta / Convert.ToDouble(SPY.Price);
                 }
 
                 // update current capital requirements from tw
-                if (twReqCapital.ContainsKey(grp.Account) & twReqCapital[grp.Account].ContainsKey(grp.Symbol))
+                if ((dataCache != null) && (dataCache.TwReqCapital.ContainsKey(grp.Account) && dataCache.TwReqCapital[grp.Account].ContainsKey(grp.Symbol)))
                 {
-                    decimal capReq = twReqCapital[grp.Account][grp.Symbol].CapitalRequirement;
+                    decimal capReq = dataCache.TwReqCapital[grp.Account][grp.Symbol];
                     if ((capReq > 0) && ((capReq != grp.CapitalRequired)) || (grp.OriginalCapitalRequired == 0))
                     {
                         // this cleans up legacy groups without an original
