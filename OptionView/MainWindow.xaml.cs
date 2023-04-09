@@ -699,8 +699,8 @@ namespace OptionView
                     };
                     sp.Children.Add(l);
 
-                    List<GroupHistoryValue> vals = BalanceHistory.GetGroup(portfolio[grp]);
-                    sp.Children.Add(new GroupGraph(vals));
+                    GroupHistory hist = BalanceHistory.GetGroup(portfolio[grp]);
+                    sp.Children.Add(new GroupGraph(hist));
 
 
                     ToolTip tt = new ToolTip() { HasDropShadow = true };
@@ -876,8 +876,8 @@ namespace OptionView
                             snapShot.Update();
                         }
 
-                        List<GroupHistoryValue> vals = BalanceHistory.GetGroup(portfolio[grp.GroupID]);
-                        App.GroupWindow.Update(new GroupGraph(vals));
+                        GroupHistory hist = BalanceHistory.GetGroup(portfolio[grp.GroupID]);
+                        App.GroupWindow.Update(new GroupGraph(hist));
                     }
                 }
 
@@ -1360,8 +1360,8 @@ namespace OptionView
             if (row.Item.GetType() == typeof(TransactionGroup))
             {
                 TransactionGroup tg = (TransactionGroup)row.Item;
-                List<GroupHistoryValue> vals = BalanceHistory.GetGroup(tg);
-                App.GroupWindow.Update(new GroupGraph(vals));
+                GroupHistory hist = BalanceHistory.GetGroup(tg);
+                App.GroupWindow.Update(new GroupGraph(hist));
 
             }
         }

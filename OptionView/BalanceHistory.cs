@@ -21,10 +21,14 @@ namespace OptionView
         public decimal Underlying { get; set; }
         public decimal IV { get; set; }
         public decimal IVR { get; set; }
-        public List<decimal> Puts { get; set; }
-        public List<decimal> Calls { get; set; }
     }
 
+    public class GroupHistory
+    {
+        public List<GroupHistoryValue> Values { get; set; } 
+        public SortedList<DateTime, List<decimal>> Puts { get; set; }
+        public SortedList<DateTime, List<decimal>> Calls { get; set; }
+    }
 
     internal class BalanceHistory
     {
@@ -58,11 +62,11 @@ namespace OptionView
             OpenConnection();
             DateTime tm = GetLastEntry(account);
 
-            if ((tm.AddHours(4) < DateTime.Now) && (balance > 0))
+            if ((tm.AddHours(4) < DateTime.UtcNow) && (balance > 0))
             {
                 string sql = "INSERT INTO AccountHistory(Date, Account, Balance, CapitalRequired) Values (@dt,@ac,@ba,@cr)";
                 SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
-                cmd.Parameters.AddWithValue("dt", DateTime.Now);
+                cmd.Parameters.AddWithValue("dt", DateTime.UtcNow);
                 cmd.Parameters.AddWithValue("ac", account);
                 cmd.Parameters.AddWithValue("ba", balance);
                 cmd.Parameters.AddWithValue("cr", capRequired);
@@ -78,7 +82,7 @@ namespace OptionView
 
             string sql = "INSERT INTO UpdateHistory(TimeStamp) Values (@dt)";
             SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
-            cmd.Parameters.AddWithValue("dt", DateTime.Now);
+            cmd.Parameters.AddWithValue("dt", DateTime.UtcNow);
             cmd.ExecuteNonQuery();
 
             CloseConnection();
@@ -212,7 +216,7 @@ namespace OptionView
 
                         string sql = "INSERT INTO GroupHistory(Date, GroupID, Value, Underlying, IV, IVR) Values (@dt,@id,@va,@ul,@iv,@ir)";
                         SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
-                        cmd.Parameters.AddWithValue("dt", DateTime.Now);
+                        cmd.Parameters.AddWithValue("dt", DateTime.UtcNow);
                         cmd.Parameters.AddWithValue("id", grp.GroupID);
                         cmd.Parameters.AddWithValue("va", value);
                         cmd.Parameters.AddWithValue("ul", grp.UnderlyingPrice);
@@ -233,9 +237,10 @@ namespace OptionView
             return (obj == DBNull.Value) ? DateTime.MinValue : Convert.ToDateTime(obj);
         }
 
-        public static List<GroupHistoryValue> GetGroup(TransactionGroup grp)
+        public static GroupHistory GetGroup(TransactionGroup grp)
         {
-            List<GroupHistoryValue> retval = new List<GroupHistoryValue>();
+            GroupHistory retval = new GroupHistory();
+            retval.Values = new List<GroupHistoryValue>();
 
             OpenConnection();
 
@@ -250,6 +255,10 @@ namespace OptionView
             // all records
             string sql = "SELECT date, value, underlying, IV, IVR FROM GroupHistory WHERE GroupID = @grp ORDER BY date";
 
+            //string sql = "SELECT date, value, underlying, IV, IVR, CAST(strftime('%w', date) AS Integer) as DoW";
+            //sql += " FROM GroupHistory WHERE GroupID = @grp AND  DoW > 0 AND DoW < 6 ORDER BY date";
+
+
             SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
             cmd.Parameters.AddWithValue("grp", grp.GroupID);
             SQLiteDataReader reader = cmd.ExecuteReader();
@@ -262,11 +271,12 @@ namespace OptionView
                 if (reader["IV"] != DBNull.Value) val.IV = reader.GetDecimal(3);
                 if (reader["IVR"] != DBNull.Value) val.IVR = reader.GetDecimal(4);
 
-                val.Calls = grp.GetStrikes("Call");
-                val.Puts = grp.GetStrikes("Put");
-
-                retval.Add(val);
+                retval.Values.Add(val);
             }
+
+            retval.Calls = grp.GetOptionHistoryList("Call");
+            retval.Puts = grp.GetOptionHistoryList("Put");
+
             CloseConnection();
 
             return retval;

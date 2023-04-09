@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json.Linq;
+using OptionView.DataImport;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -52,24 +53,25 @@ namespace OptionView
         }
 
 
-        public GroupGraph(List<GroupHistoryValue> values)
+        public GroupGraph(GroupHistory hist)
         {
             InitializeComponent();
 
             chartWidth = CtlWidth - (2 * margin);
             chartHeight = CtlHeight - legendHeight;
 
-            if (InitializeScale(values) == false) return;
+            if (InitializeScale(hist) == false) return;
 
             CreateCanvas();
             DrawAxis();
 
+            List<GroupHistoryValue> values = hist.Values;
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.IV).ToList(), ScaleType.Percent, Brushes.DarkGray);
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Underlying).ToList(), ScaleType.Right, Brushes.Blue);
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Value).ToList(), ScaleType.Left, Brushes.Transparent); // 'transparent' lets the function figure out the color
 
-            DrawBands(values.Select(x => x.Time).ToList(), values.Select(x => x.Calls).ToList(), Brushes.Red);
-            DrawBands(values.Select(x => x.Time).ToList(), values.Select(x => x.Puts).ToList(), Brushes.Red);
+            DrawBands(hist.Calls, Brushes.Red);
+            DrawBands(hist.Puts, Brushes.Red);
 
             DrawLegend();
         }
@@ -130,48 +132,61 @@ namespace OptionView
             AddLabel("Underlying IV", margin + 45, chartHeight + 53, ScaleType.None);
         }
 
-        private void DrawBands(List<DateTime> x, List<List<decimal>> strikes, Brush color)
+        private void DrawBands(SortedList<DateTime, List<decimal>> strikeList, Brush color)
         {
-            bool singleLine = true;
-            PointCollection points = new PointCollection();
-            for (int i = 0; i < x.Count; i++)
+            for (int i = 0; i < strikeList.Count; i++)
             {
-                if (strikes[i] != null) points.Add(new Point(ScaleTime(x[i]), ApplyScale(strikes[i][0], ScaleType.Right)));
-            }
-            if ((strikes[0] != null) && (strikes[0].Count > 1))
-            {
-                singleLine = false;
-                for (int i = x.Count - 1; i >= 0; i--)
-                {
-                    points.Add(new Point(ScaleTime(x[i]), ApplyScale(strikes[i][1], ScaleType.Right)));
-                }
-            }
+                bool singleLine = true;
+                PointCollection points = new PointCollection();
 
-            Brush lColor = color.Clone();
-            lColor.Opacity = 0.15;
-            if (points.Count > 1)
-            {
-                if (singleLine)
+                KeyValuePair<DateTime,List<decimal>> item = strikeList.ElementAt(i);
+                DateTime time = item.Key;
+                List<decimal> list = item.Value;
+
+                points.Add(new Point(ScaleTime((i==0) ? minTime : time), ApplyScale(list.Min(), ScaleType.Right)));
+                if (list.Count > 1)
                 {
-                    Polyline polyline = new Polyline()
-                    {
-                        Points = points,
-                        Stroke = lColor,
-                        StrokeThickness = 8
-                    };
-                    c.Children.Add(polyline);
+                    singleLine = false;
+                    points.Add(new Point(ScaleTime((i == 0) ? minTime : time), ApplyScale(list.Max(), ScaleType.Right)));
+                }
+
+                if ((i+1) >= strikeList.Count)
+                {
+                    time = maxTime;
                 }
                 else
                 {
-                    Polygon polygon = new Polygon()
+                    time = strikeList.ElementAt(i + 1).Key;
+                }
+                points.Add(new Point(ScaleTime(time), ApplyScale(list.Max(), ScaleType.Right)));
+                if (list.Count > 1) points.Add(new Point(ScaleTime(time), ApplyScale(list.Min(), ScaleType.Right)));
+
+
+                Brush lColor = color.Clone();
+                lColor.Opacity = 0.15;
+                if (points.Count > 1)
+                {
+                    if ((singleLine) || (points[0].Y == points[1].Y))  // single line or rectangle with no height
                     {
-                        Points = points,
-                        Fill = lColor
-                    };
-                    c.Children.Add(polygon);
+                        Polyline polyline = new Polyline()
+                        {
+                            Points = points,
+                            Stroke = lColor,
+                            StrokeThickness = 8
+                        };
+                        c.Children.Add(polyline);
+                    }
+                    else
+                    {
+                        Polygon polygon = new Polygon()
+                        {
+                            Points = points,
+                            Fill = lColor
+                        };
+                        c.Children.Add(polygon);
+                    }
                 }
             }
-
         }
 
 
@@ -417,8 +432,9 @@ namespace OptionView
         }
 
 
-        private bool InitializeScale(List<GroupHistoryValue> values)
+        private bool InitializeScale(GroupHistory hist)
         {
+            List<GroupHistoryValue> values = hist.Values;
             if (values.Count < 2)
             {
                 scaleLeft = 0;
@@ -427,14 +443,16 @@ namespace OptionView
             }
 
             List<decimal> prices = values.Select(x => x.Underlying).ToList();
-            foreach (GroupHistoryValue v in values)
+            List<decimal> strikes = new List<decimal>();
+            foreach (KeyValuePair<DateTime, List<decimal>> x in hist.Calls)
             {
-                List<decimal> strikes = new List<decimal>();
-                if (v.Calls != null) strikes = strikes.Concat(v.Calls).ToList();
-                if (v.Puts != null) strikes = strikes.Concat(v.Puts).ToList();
-
-                prices = prices.Concat(strikes).ToList();
+                strikes = strikes.Concat(x.Value).ToList();
             }
+            foreach (KeyValuePair<DateTime, List<decimal>> x in hist.Puts)
+            {
+                strikes = strikes.Concat(x.Value).ToList();
+            }
+            prices = prices.Concat(strikes).ToList();
 
             minLeft = values.Min(x => x.Value);
             maxLeft = values.Max(x => x.Value);
@@ -482,6 +500,7 @@ namespace OptionView
         private double ScaleTime(DateTime dt)
         {
             TimeSpan ts = dt - minTime;
+            if (ts.TotalMinutes < 0) return margin;
             return (ts.TotalMinutes * scaleTime) + margin;
         }
 

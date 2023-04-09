@@ -9,6 +9,7 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.Windows;
 using OptionView.DataImport;
+using System.Windows.Markup;
 
 namespace OptionView
 {
@@ -207,9 +208,9 @@ namespace OptionView
                 string symbol = reader["Symbol"].ToString();
                 string type = reader["Type"].ToString();
                 DateTime expDate = DateTime.MinValue;
-                if (reader["ExpireDate"] != DBNull.Value)  expDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
+                if (reader["ExpireDate"] != DBNull.Value) expDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
                 decimal strike = 0;
-                if (reader["Strike"] != DBNull.Value)  strike = Convert.ToDecimal(reader["Strike"]);
+                if (reader["Strike"] != DBNull.Value) strike = Convert.ToDecimal(reader["Strike"]);
                 decimal quantity = Convert.ToDecimal(reader["Quantity"]);
                 decimal amount = Convert.ToDecimal(reader["Amount"]);
                 string transType = reader["TransSubType"].ToString();
@@ -220,7 +221,7 @@ namespace OptionView
             }
 
             string returnValue = "";
-            foreach (KeyValuePair<DateTime,Positions> key in data)
+            foreach (KeyValuePair<DateTime, Positions> key in data)
             {
                 Positions positions = key.Value;
                 decimal total = SumAmounts(positions);
@@ -280,10 +281,10 @@ namespace OptionView
             return returnValue;
         }
 
-        private decimal SumAmounts (Positions positions)
+        private decimal SumAmounts(Positions positions)
         {
             decimal returnValue = 0;
-            foreach (KeyValuePair<string,Position> key in positions)
+            foreach (KeyValuePair<string, Position> key in positions)
             {
                 Position pos = key.Value;
                 returnValue += pos.Amount;
@@ -481,6 +482,38 @@ namespace OptionView
             return retval.Count > 0 ? retval : null;
         }
 
+
+        public SortedList<DateTime, List<decimal>> GetOptionHistoryList(string typ)
+        {
+            SortedList<DateTime, List<decimal>> retval = new SortedList<DateTime, List<decimal>>();
+
+            // step thru open transactions
+            string sql = "SELECT datetime(time) AS Time, type, datetime(expiredate) AS ExpireDate, strike, quantity, TransSubType FROM transactions";
+            sql += " WHERE (transgroupid = @gr) ORDER BY time";
+            SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+            cmd.Parameters.AddWithValue("gr", this.GroupID);
+
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                DateTime time = ((reader["Time"] != DBNull.Value) ? Convert.ToDateTime(reader["Time"].ToString()) : DateTime.MinValue);
+                time = DateTime.SpecifyKind(time, DateTimeKind.Utc);
+
+                string type = reader["Type"].ToString();
+                decimal strike = 0;
+                if (reader["Strike"] != DBNull.Value) strike = Convert.ToDecimal(reader["Strike"]);
+                decimal quantity = Convert.ToDecimal(reader["Quantity"]);
+                string transType = reader["TransSubType"].ToString();
+
+
+                if (typ == type)
+                {
+                    if (!retval.ContainsKey(time)) retval.Add(time, new List<decimal>());
+                    if (transType.Contains("Open")) retval[time].Add(strike);
+                }
+            }
+            return retval;
+        }
 
     }
 }
