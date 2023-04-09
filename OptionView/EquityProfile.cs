@@ -35,7 +35,7 @@ namespace OptionView
             try
             {
                 List<string> symbols = TastyWorks.WatchListSymbols();
-                if (symbols.Count > 0)
+                if ((symbols != null) && (symbols.Count > 0))
                 {
                     TWMarketInfos symbolData = TastyWorks.MarketInfo(symbols);
                     Dictionary<string, string> descriptions = DataFeed.GetProfiles(symbols);
