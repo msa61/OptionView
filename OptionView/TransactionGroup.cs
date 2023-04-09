@@ -494,6 +494,7 @@ namespace OptionView
             cmd.Parameters.AddWithValue("gr", this.GroupID);
 
             SQLiteDataReader reader = cmd.ExecuteReader();
+            DateTime prevTime = DateTime.MinValue;
             while (reader.Read())
             {
                 DateTime time = ((reader["Time"] != DBNull.Value) ? Convert.ToDateTime(reader["Time"].ToString()) : DateTime.MinValue);
@@ -508,8 +509,17 @@ namespace OptionView
 
                 if (typ == type)
                 {
-                    if (!retval.ContainsKey(time)) retval.Add(time, new List<decimal>());
+                    if (!retval.ContainsKey(time))
+                    {
+                        retval.Add(time, new List<decimal>());
+                        if (prevTime > DateTime.MinValue)
+                        {
+                            retval[time] = retval[time].Concat(retval[prevTime]).ToList();
+                        }
+                        prevTime = time;
+                    }
                     if (transType.Contains("Open")) retval[time].Add(strike);
+                    if (transType.Contains("Close")) retval[time].Remove(strike);
                 }
             }
             return retval;
