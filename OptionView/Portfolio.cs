@@ -266,6 +266,7 @@ namespace OptionView
                 // insure that positions got instanciated AND that the particular account isn't empty
                 if ((dataCache != null) && dataCache.IsCacheInitialized(grp.Account))
                 {
+                    grp.UnderlyingPrice = 0;
                     // reset greek values
                     grp.GreekData.Delta = 0;
                     grp.GreekData.Theta = 0;
