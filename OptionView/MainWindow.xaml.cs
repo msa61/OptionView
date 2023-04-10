@@ -568,15 +568,7 @@ namespace OptionView
                 cbAnalysisAccount.SelectedIndex = fIdx;
             }
 
-            string[] screenerView = Config.GetProp("Screener").Split('|');
-            if (screenerView.Length == 5)
-            {
-                txtMinPrice.Text = screenerView[0];
-                txtMinVolume.Text = screenerView[1];
-                txtMinIV.Text = screenerView[2];
-                txtMinIVR.Text = screenerView[3];
-                txtMinDTE.Text = screenerView[4];
-            }
+            UpdateScreenerFields();
 
             // do last to avoid extraineous events
             string tab = Config.GetProp("Tab");
@@ -629,12 +621,7 @@ namespace OptionView
             Config.SetProp("AnalysisView", cbAnalysisView.SelectedIndex.ToString() + "|" + cbAnalysisAccount.SelectedIndex.ToString() + "|" + chkOutliers.IsChecked.ToString());
 
             // save screener filters
-            Config.SetProp("Screener", txtMinPrice.Text + "|" + txtMinVolume.Text + "|" + txtMinIV.Text + "|" + txtMinIVR.Text + "|" + txtMinDTE.Text);
-            if (screenerGrid.ItemsSource != null)
-            {
-                SortDescription sd = ((ListCollectionView)screenerGrid.ItemsSource).SortDescriptions[0];
-                Config.SetProp("ScreenerSort", sd.PropertyName + "|" + ((sd.Direction == ListSortDirection.Ascending) ? "1" : "0"));
-            }
+            SaveScreenerFields();
 
             if ((selectedTag != 0) && detailsDirty) SaveTransactionGroupDetails(selectedTag);
 
@@ -1473,6 +1460,7 @@ namespace OptionView
         // 
         //
 
+        int totalScreenerRows = 0;
         private void UpdateScreenerGrid()
         {
             try
@@ -1480,6 +1468,7 @@ namespace OptionView
                 if (screenerGrid.ItemsSource == null)
                 {
                     EquityProfiles eqProfiles = new EquityProfiles(portfolio);
+                    totalScreenerRows = eqProfiles.Count;
 
                     this.Dispatcher.Invoke(() =>
                     {
@@ -1495,6 +1484,7 @@ namespace OptionView
                             lcv.SortDescriptions.Add(new SortDescription(screenerSort[0], (screenerSort[1] == "1") ? ListSortDirection.Ascending : ListSortDirection.Descending));
                         }
 
+                        lbScreenerStatus.Content = String.Format($"{screenerGrid.Items.Count} of {totalScreenerRows} showing");
                         App.HideStatusMessagePanel();
                     });
                 }
@@ -1509,6 +1499,8 @@ namespace OptionView
         {
             if (screenerGrid.ItemsSource != null)   // grid not initialized yet
                 CollectionViewSource.GetDefaultView(screenerGrid.ItemsSource).Refresh();
+
+            lbScreenerStatus.Content = String.Format($"{screenerGrid.Items.Count} of {totalScreenerRows} showing");
         }
 
         private bool ScreenerFilter(object item)
@@ -1538,6 +1530,42 @@ namespace OptionView
             double val = -100000;
             if (tb.Text.Length > 0) Double.TryParse(tb.Text, out val);
             return val;
+        }
+
+        private void SaveScreenerConfigButton(object sender, RoutedEventArgs e)
+        {
+            SaveScreenerFields();
+        }
+
+        private void RecallScreenerConfigButton(object sender, RoutedEventArgs e)
+        {
+            UpdateScreenerFields();
+
+            if (screenerGrid.ItemsSource != null)   // grid not initialized yet
+                CollectionViewSource.GetDefaultView(screenerGrid.ItemsSource).Refresh();
+        }
+
+        private void UpdateScreenerFields()
+        {
+            string[] screenerView = Config.GetProp("Screener").Split('|');
+            if (screenerView.Length == 5)
+            {
+                txtMinPrice.Text = screenerView[0];
+                txtMinVolume.Text = screenerView[1];
+                txtMinIV.Text = screenerView[2];
+                txtMinIVR.Text = screenerView[3];
+                txtMinDTE.Text = screenerView[4];
+            }
+        }
+
+        private void SaveScreenerFields()
+        {
+            Config.SetProp("Screener", txtMinPrice.Text + "|" + txtMinVolume.Text + "|" + txtMinIV.Text + "|" + txtMinIVR.Text + "|" + txtMinDTE.Text);
+            if (screenerGrid.ItemsSource != null)
+            {
+                SortDescription sd = ((ListCollectionView)screenerGrid.ItemsSource).SortDescriptions[0];
+                Config.SetProp("ScreenerSort", sd.PropertyName + "|" + ((sd.Direction == ListSortDirection.Ascending) ? "1" : "0"));
+            }
         }
 
         // 

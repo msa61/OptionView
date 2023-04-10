@@ -862,6 +862,10 @@
                             <TextBox Name="txtMinDTE" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerlFilter_KeyUp"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,15,0,0" Height="25" HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <Button Width="50" Content="Save" Margin="8,0,8,0" Click="SaveScreenerConfigButton" FontSize="12" FontFamily="Trebuchet MS" />
+                            <Button Width="50" Content="Recall" Margin="8,0,8,0" Click="RecallScreenerConfigButton" FontSize="12" FontFamily="Trebuchet MS" />
+                        </StackPanel>
                         <!--
                         <StackPanel >
                             <Label Content="Symbol" Margin="6,0,0,0" />
@@ -869,6 +873,8 @@
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
 -->
+                        <Label Name="lbScreenerStatus" Margin="6,0,6,6" Padding="5,4,4,4" VerticalAlignment="Bottom" HorizontalAlignment="Center" />
+
                     </DockPanel>
                 </Grid>
 
