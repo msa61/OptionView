@@ -1002,7 +1002,7 @@ namespace OptionView
         private void SaveTransactionGroupDetails(int tag)
         {
             Debug.WriteLine("Saving... " + tag.ToString());
-            TransactionGroup grp = new TransactionGroup();
+            TransactionGroup grp = portfolio[tag];
             grp.GroupID = tag;
             grp.Strategy = txtStrategy.Text;
             grp.ExitStrategy = txtExit.Text;
@@ -1017,7 +1017,6 @@ namespace OptionView
             if (Decimal.TryParse(txtRisk.Text.Replace("$", ""), out retval)) grp.Risk = retval;
 
             grp.Update();
-            portfolio.GetCurrentHoldings(accounts);  //refresh
             if (uiDirty)
             {
                 grp = portfolio[tag];
