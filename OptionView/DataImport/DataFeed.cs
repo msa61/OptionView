@@ -59,8 +59,11 @@ namespace OptionView.DataImport
                 grk.Rho = item.Rho;
                 grk.Vega = item.Vega;
 
-                if (!DataFeed.ReturnList.ContainsKey(buf.Symbol)) DataFeed.ReturnList.Add(buf.Symbol, grk);
-                DataFeed.symbolCount -= 1;
+                if (!DataFeed.ReturnList.ContainsKey(buf.Symbol))
+                {
+                    DataFeed.ReturnList.Add(buf.Symbol, grk);
+                    DataFeed.symbolCount -= 1;
+                }
             }
         }
     }
@@ -77,15 +80,17 @@ namespace OptionView.DataImport
         {
             foreach (TE item in buf)
             {
-                //Debug.WriteLine($"Listening to {buf.Symbol}  Price: {item.Price}");
+                Debug.WriteLine($"Listening to {buf.Symbol}  Price: {item.Price}");
 
                 Quote qt = new Quote();
                 qt.Price = Convert.ToDecimal(item.Price);
                 qt.Change = (Double.IsNaN(item.Change)) ? 0 : Convert.ToDecimal(item.Change);
 
-                if (!DataFeed.ReturnPriceList.ContainsKey(buf.Symbol)) DataFeed.ReturnPriceList.Add(buf.Symbol, qt);
-
-                DataFeed.symbolCount -= 1;
+                if (!DataFeed.ReturnPriceList.ContainsKey(buf.Symbol))
+                {
+                    DataFeed.ReturnPriceList.Add(buf.Symbol, qt);
+                    DataFeed.symbolCount -= 1;
+                }
             }
         }
     }
@@ -98,8 +103,11 @@ namespace OptionView.DataImport
             {
                 //Debug.WriteLine($"Listening to {buf.Symbol}"); //  Price: {item.Price}");
 
-                if (!DataFeed.ReturnProfileList.ContainsKey(item.EventSymbol)) DataFeed.ReturnProfileList.Add(item.EventSymbol, item.Description);
-                DataFeed.symbolCount -= 1;
+                if (!DataFeed.ReturnProfileList.ContainsKey(item.EventSymbol))
+                {
+                    DataFeed.ReturnProfileList.Add(item.EventSymbol, item.Description);
+                    DataFeed.symbolCount -= 1;
+                }
             }
         }
     }
@@ -113,8 +121,11 @@ namespace OptionView.DataImport
                 //Debug.WriteLine($"Listening to {buf.Symbol}"); //  Price: {item.Price}");
 
                 double volume = (Double.IsNaN(item.OptionVolume)) ? 0 : item.OptionVolume;
-                if (!DataFeed.ReturnOptionVolumeList.ContainsKey(item.EventSymbol)) DataFeed.ReturnOptionVolumeList.Add(item.EventSymbol, volume);
-                DataFeed.symbolCount -= 1;
+                if (!DataFeed.ReturnOptionVolumeList.ContainsKey(item.EventSymbol))
+                {
+                    DataFeed.ReturnOptionVolumeList.Add(item.EventSymbol, volume);
+                    DataFeed.symbolCount -= 1;
+                }
             }
         }
     }
@@ -208,7 +219,7 @@ namespace OptionView.DataImport
                     Thread.Sleep(100);
                     i--;
                 }
-                //Debug.WriteLine("done...");
+                Debug.WriteLine("done...  Requested: {0}, left {1}, returned {2}, timer {3}", symbols.Count, symbolCount, ReturnPriceList.Count, i);
             }
             catch (DxException dxException)
             {
