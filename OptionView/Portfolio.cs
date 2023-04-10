@@ -292,8 +292,12 @@ namespace OptionView
                                 pos.UnderlyingPrice = dataCache.DxQuotes[twpos.Symbol].Price; // twpos.UnderlyingPrice;
                                 //Debug.Assert(twpos.UnderlyingPrice == dxQuotes[twpos.Symbol].Price, string.Format("{0} not equal {1} != {2}", pos.Symbol, twpos.UnderlyingPrice, dxQuotes[twpos.Symbol].Price));
 
-                                // capture the underlying price from the first position for the overall group
-                                if (grp.UnderlyingPrice == 0) grp.UnderlyingPrice = pos.UnderlyingPrice;
+                                // capture the underlying price on the first pass thru for the overall group
+                                if (grp.UnderlyingPrice == 0)
+                                {
+                                    grp.UnderlyingPrice = dataCache.DxQuotes[twpos.Symbol].Price;
+                                    grp.UnderlyingPriceChange = dataCache.DxQuotes[twpos.Symbol].Change;
+                                }
 
                                 // update groups order status based on any of items constituent holdings
                                 grp.OrderActive = twpos.OrderActive;

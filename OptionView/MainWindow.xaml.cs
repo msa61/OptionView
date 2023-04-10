@@ -416,7 +416,7 @@ namespace OptionView
             {
                 TransactionGroup grp = entry.Value;
 
-                Tiles.UpdateTile(grp.GroupID, MainCanvas, (grp.CurrentValue + grp.Cost), grp.UnderlyingPrice.ToString("C2"),
+                Tiles.UpdateTile(grp.GroupID, MainCanvas, (grp.CurrentValue + grp.Cost), grp.UnderlyingPrice, grp.UnderlyingPriceChange,
                     ((grp.CurrentValue ?? 0) != 0) ? "P/L: " + ((decimal)grp.CurrentValue + grp.Cost).ToString("C0") : "",
                     grp.ChangeFromPreviousClose.ToString("+#;-#;nc"),
                     grp.Strategy, (grp.ActionDate > DateTime.MinValue), !grp.OrderActive, grp.HasInTheMoneyPositions());
@@ -487,7 +487,7 @@ namespace OptionView
                 // massage cost to incude per lot value as well
                 string cost = grp.Cost.ToString("C0") + grp.GetPerLotCost();
 
-                Tiles.CreateTile(this, MainCanvas, Tiles.TileSize.Regular, (grp.CurrentValue + grp.Cost), grp.GroupID, grp.Symbol, grp.UnderlyingPrice.ToString("C2"), grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, ((grp.CurrentValue ?? 0) != 0) ? ((decimal)grp.CurrentValue + grp.Cost).ToString("C0") : "",
+                Tiles.CreateTile(this, MainCanvas, Tiles.TileSize.Regular, (grp.CurrentValue + grp.Cost), grp.GroupID, grp.Symbol, grp.UnderlyingPrice, grp.UnderlyingPriceChange, grp.AccountName, grp.X, grp.Y, grp.Strategy, cost, ((grp.CurrentValue ?? 0) != 0) ? ((decimal)grp.CurrentValue + grp.Cost).ToString("C0") : "",
                     (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(),
                     grp.HasInTheMoneyPositions(), (grp.ActionDate > DateTime.MinValue), !grp.OrderActive, (grp.Cost > 0) ? "Prem" : "Cost", null, grp.ChangeFromPreviousClose.ToString("+#;-#;nc"), 1.0);
             }
@@ -2007,7 +2007,7 @@ namespace OptionView
                     //Debug.WriteLine("Value1: {0}  Value2: {1}", grp.AnalysisXValue, grp.AnalysisYValue);
                     //Debug.WriteLine("Left:   {0}  Top:    {1}", left, top);
 
-                    Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, ((grp.CurrentValue ?? 0) + grp.Cost), grp.GroupID, grp.Symbol, "", grp.AccountName, 
+                    Tiles.CreateTile(this, AnalysisCanvas, Tiles.TileSize.Small, ((grp.CurrentValue ?? 0) + grp.Cost), grp.GroupID, grp.Symbol, 0, 0, grp.AccountName, 
                         left, top, grp.Strategy, value2, value1,
                         (grp.EarliestExpiration == DateTime.MaxValue) ? "" : (grp.EarliestExpiration - DateTime.Today).TotalDays.ToString(), false, false, false,
                         viewList[viewIndex].YLabel, viewList[viewIndex].XLabel, (viewIndex == 0) ? grp.ChangeFromPreviousClose.ToString("+#;-#") : null, 1.0 );

@@ -46,6 +46,7 @@ namespace OptionView
         public decimal PreviousCloseValue { get; set; }
         public decimal ChangeFromPreviousClose { get; set; }
         public decimal UnderlyingPrice { get; set; }
+        public decimal UnderlyingPriceChange { get; set; }
         public double ImpliedVolatility { get; set; }
         public double ImpliedVolatilityRank { get; set; }
         public double DividendYield { get; set; }

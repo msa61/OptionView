@@ -11,6 +11,7 @@ using System.Windows.Media.Imaging;
 using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
+using System.Web;
 
 
 
@@ -22,7 +23,7 @@ namespace OptionView
         public enum TileSize { Regular, Small };
         public enum TileColor { Green, Red, Gray, Blue };
 
-        public static void CreateTile(Window window, Canvas canvas, TileSize size, decimal? profit, int ID, string symbol, string price, string account, int left, int top, string strategy, 
+        public static void CreateTile(Window window, Canvas canvas, TileSize size, decimal? profit, int ID, string symbol, decimal price, decimal priceChange, string account, int left, int top, string strategy, 
             string value1, string value2, string dte, bool itm, bool alarm, bool warning, string altLabel1, string altLabel2, string value2a, double opacity)
         {
             //<ContentControl Canvas.Top = "10" Canvas.Left = "10" Template = "{StaticResource DesignerItemTemplate}" >
@@ -149,14 +150,24 @@ namespace OptionView
             };
             spInner.Children.Add(txtSymbol);
 
-            txtSymbol = new TextBlock()
+            if (price > 0)
             {
-                Text = price,
-                Style = (Style)window.Resources["SymbolPrice"],
-                Tag = "price"
-            };
-            spInner.Children.Add(txtSymbol);
+                txtSymbol = new TextBlock()
+                {
+                    Text = price.ToString("C2"),
+                    Style = (Style)window.Resources["SymbolPrice"],
+                    Tag = "price"
+                };
+                spInner.Children.Add(txtSymbol);
 
+                txtSymbol = new TextBlock()
+                {
+                    Text = ChangeIndicator(priceChange),
+                    Style = (Style)window.Resources["SymbolPriceBase"],
+                    Tag = "priceIndicator"
+                };
+                spInner.Children.Add(txtSymbol);
+            }
 
             TextBlock txtDetail1 = new TextBlock()
             {
@@ -194,7 +205,7 @@ namespace OptionView
                 {
                     Text = value2a,
                     Style = (Style)window.Resources["SymbolChangeInValue"],
-                    Tag = "change"
+                    Tag = "valueChange"
                 };
                 DockPanel.SetDock(txtDetail3, Dock.Left);
                 dp.Children.Add(txtDetail3a);
@@ -274,6 +285,14 @@ namespace OptionView
             canvas.Children.Add(cc);
         }
 
+        private static string ChangeIndicator(decimal val)
+        {
+            string up = HttpUtility.HtmlDecode("&#x2BC5;");
+            string down = HttpUtility.HtmlDecode("&#x2BC6;");
+            return (val > 0) ? up : (val < 0) ? down : "";
+        }
+
+
         public static TileColor SelectColor(decimal? value)
         {
             TileColor retval = TileColor.Gray;
@@ -325,10 +344,10 @@ namespace OptionView
 
         public static void UpdateTile(int tag, Canvas canvas, string strategy, bool alarm)
         {
-            UpdateTile(tag, canvas, null, null, null, null, strategy, alarm);
+            UpdateTile(tag, canvas, null, 0, 0, null, null, strategy, alarm);
         }
         
-        public static void UpdateTile(int tag, Canvas canvas, decimal? profit, string price, string value, string change, string strategy, bool? alarm = null, bool? order = null, bool? itm = null)
+        public static void UpdateTile(int tag, Canvas canvas, decimal? profit, decimal price, decimal priceChange, string value, string valueChange, string strategy, bool? alarm = null, bool? order = null, bool? itm = null)
         {
 
             foreach (ContentControl cc in canvas.Children)
@@ -358,13 +377,16 @@ namespace OptionView
                         switch ((string)tb.Tag)
                         {
                             case "price":
-                                if (price != null) tb.Text = price;
+                                if (price != 0) tb.Text = price.ToString("C2");
+                                break;
+                            case "priceChange":
+                                if (priceChange != 0) tb.Text = ChangeIndicator(priceChange);
                                 break;
                             case "value":
                                 if (value != null) tb.Text = value;
                                 break;
-                            case "change":
-                                if (change != null) tb.Text = change;
+                            case "valueChange":
+                                if (valueChange != null) tb.Text = valueChange;
                                 break;
                             case "strategy":
                                 if (strategy != null) tb.Text = strategy;
