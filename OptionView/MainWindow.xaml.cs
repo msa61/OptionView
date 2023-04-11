@@ -1234,6 +1234,8 @@ namespace OptionView
                 lcv.Filter = ResultsFilter;
 
                 resultsGrid.ItemsSource = lcv;
+
+                UpdateFilterStats();
             }
             catch (Exception e)
             {
