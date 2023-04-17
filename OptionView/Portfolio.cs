@@ -38,7 +38,7 @@ namespace OptionView
 
     public class Portfolio : Dictionary<int, TransactionGroup>
     {
-        private CurrentDataCache dataCache = null;
+        public CurrentDataCache dataCache { get; set; } = null;
         public Quote SPY { get; set; }
         public Quote VIX { get; set; }
         private Accounts accounts = null;
