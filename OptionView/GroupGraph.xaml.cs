@@ -424,9 +424,10 @@ namespace OptionView
         {
             c = new Canvas()
             {
-                Height = chartHeight,
-                Width = chartWidth + (2 * margin),
-                Margin = new Thickness(10, 20, 10, 20)
+                Height = CtlHeight,
+                Width = CtlWidth,
+                Margin = new Thickness(10, 20, 10, 20),
+                HorizontalAlignment = HorizontalAlignment.Center,
             };
             ((Grid)(this.Content)).Children.Add(c);
         }
