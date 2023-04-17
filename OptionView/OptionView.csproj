@@ -119,8 +119,8 @@
     <Compile Include="GroupGraph.xaml.cs">
       <DependentUpon>GroupGraph.xaml</DependentUpon>
     </Compile>
-    <Compile Include="GroupDetailWindow.xaml.cs">
-      <DependentUpon>GroupDetailWindow.xaml</DependentUpon>
+    <Compile Include="GroupDetailsWindow.xaml.cs">
+      <DependentUpon>GroupDetailsWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="GroupWindowHandler.cs" />
     <Compile Include="LineGraph.xaml.cs">
@@ -157,7 +157,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="GroupDetailWindow.xaml">
+    <Page Include="GroupDetailsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

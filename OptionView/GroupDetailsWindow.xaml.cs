@@ -32,18 +32,47 @@ namespace OptionView
             App.GroupWindow.Window = null;
         }
 
-        public void Update (GroupGraph gg, double left = 0, double top = 0)
+        public void Update (GroupGraph gg, List<Detail> prices, List<Detail> details)
         {
             GroupGraphHolder.Children.Clear();
             if (gg != null) GroupGraphHolder.Children.Add(gg);
 
-            if (left > 0) this.Left = left;
-            if (top> 0) this.Top = top;
+            SetGrid(priceGrid, prices, priceLabel);
+            SetGrid(detailsGrid, details, detailsLabel);
         }
         public void Clear ()
         {
             GroupGraphHolder.Children.Clear();
+            DetailTables.Visibility = Visibility.Collapsed;
+        }
+
+        private void SetGrid(DataGrid grid, List<Detail> details, Label label)
+        {
+            if (details == null)
+            {
+                grid.Visibility = Visibility.Collapsed;
+                label.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                DetailTables.Visibility = Visibility.Visible;
+                grid.Visibility = Visibility.Visible;
+                grid.ItemsSource = details;
+                label.Visibility = Visibility.Visible;
+            }
         }
 
     }
+
+
+
+    public class Detail
+    {
+        public string ItemName { get; set; }
+        public string Property { get; set; }
+    }
+
+
+
+
 }

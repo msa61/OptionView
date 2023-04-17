@@ -1,0 +1,55 @@
+﻿<Window x:Class="OptionView.GroupDetailsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OptionView"
+        mc:Ignorable="d"
+        Closing="Window_Closing"
+        Title="GroupWindow" Width="400" ResizeMode="CanResize"
+        ShowInTaskbar="False">
+    <StackPanel Orientation="Vertical">
+
+        <StackPanel x:Name="GroupGraphHolder" />
+
+        <StackPanel x:Name="DetailTables">
+            <Label x:Name="priceLabel" Content="Prices:" Margin="26,0,0,0" FontSize="12"/>
+            <DataGrid x:Name="priceGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" 
+                      CanUserAddRows="False"  Margin="30,0,30,0" HeadersVisibility="None" Width="Auto"
+                      IsReadOnly="True" FontSize="12" BorderThickness="0" VerticalGridLinesBrush="Transparent" HorizontalGridLinesBrush="Transparent"
+                      d:ItemsSource="{d:SampleData ItemCount=4}">
+                <DataGrid.CellStyle>
+                    <Style TargetType="{x:Type DataGridCell}">
+                        <Setter Property="Margin" Value="4,0,10,0"/>
+                    </Style>
+                </DataGrid.CellStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" />
+                    <DataGridTextColumn Header="Price" Binding="{Binding Property}" >
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Label x:Name="detailsLabel" Content="Properties:" Margin="26,12,0,0" FontSize="12"/>
+            <DataGrid x:Name="detailsGrid" AutoGenerateColumns="False" HorizontalContentAlignment="Left" 
+                      CanUserAddRows="False"  Margin="30,0,30,0" HeadersVisibility="None" Width="Auto"
+                      IsReadOnly="True" FontSize="12" BorderThickness="0" VerticalGridLinesBrush="Transparent" HorizontalGridLinesBrush="Transparent"
+                      d:ItemsSource="{d:SampleData ItemCount=4}">
+                <DataGrid.CellStyle>
+                    <Style TargetType="{x:Type DataGridCell}">
+                        <Setter Property="Margin" Value="4,0,10,0"/>
+                    </Style>
+                </DataGrid.CellStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" />
+                    <DataGridTextColumn Header="Price" Binding="{Binding Property}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+    </StackPanel>
+</Window>
