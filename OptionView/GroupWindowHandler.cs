@@ -11,10 +11,12 @@ namespace OptionView
         public GroupDetailsWindow Window { get; set; } = null;
         public double Left { get; set; } = 0;
         public double Top { get; set; } = 0;
-        private GroupGraph groupContents = null;
+        public GroupGraph GraphContents { set; get; } = null;
+        public List<Detail> Prices { get; set; } = null;
+        public List<Detail> GroupDetails { get; set; } = null;
 
 
-        public void Open(GroupGraph gg = null)
+        public void Open()
         {
             if (Window == null)
             {
@@ -24,12 +26,14 @@ namespace OptionView
             }
             Window.Show();
 
-            Window.Update((gg == null) ? groupContents : gg);
+            Window.Update(GraphContents, Prices, GroupDetails);
         }
-        public void Update(GroupGraph gg)
+        public void Update(GroupGraph gg = null, List<Detail> prices = null, List<Detail> details = null)
         {
-            groupContents = gg;
-            if ((Window != null) && (Window.IsVisible)) Window.Update(gg);
+            if (gg !=null) GraphContents = gg;
+            if (prices != null) Prices = prices;
+            if (details != null) GroupDetails = details;
+            if ((Window != null) && (Window.IsVisible)) Window.Update(GraphContents, Prices, GroupDetails);
         }
         public void Close()
         {
@@ -38,7 +42,9 @@ namespace OptionView
         }
         public void Clear()
         {
-            groupContents = null;
+            GraphContents = null;
+            Prices = null;
+            GroupDetails= null;
             if (Window != null) Window.Clear();
         }
     }

@@ -864,11 +864,46 @@ namespace OptionView
                         }
 
                         GroupHistory hist = BalanceHistory.GetGroup(portfolio[grp.GroupID]);
-                        App.GroupWindow.Update(new GroupGraph(hist));
+                        App.GroupWindow.GraphContents = new GroupGraph(hist);
+                        App.GroupWindow.Prices = AddHoldingsPrice(grp);
+                        App.GroupWindow.GroupDetails = new List<Detail> { 
+                            new Detail { ItemName = "IV", Property = grp.ImpliedVolatility.ToString("P1") },
+                            new Detail { ItemName = "IV Rank", Property = grp.ImpliedVolatilityRank.ToString("P1") },
+                            new Detail { ItemName = "Price", Property = grp.UnderlyingPrice.ToString("C2") },
+                            new Detail { ItemName = "Price Change", Property = grp.UnderlyingPriceChange.ToString("C2") },
+                        };
+                        App.GroupWindow.Update();
                     }
                 }
 
             }
+        }
+
+        private List<Detail> AddHoldingsPrice(TransactionGroup tg)
+        {
+            List<Detail> retlist = new List<Detail>();
+
+            decimal total = 0;
+            bool missingValue = false;
+            foreach (KeyValuePair<string,Position> pos in tg.Holdings)
+            {
+                Position p = pos.Value;
+                string sym = string.Format(".{0}{1:yyMMdd}{2}{3}", p.Symbol, p.ExpDate, p.Type.Substring(0, 1), p.Strike);
+                if ((portfolio.dataCache != null) && (portfolio.dataCache.DxQuotes != null) && (portfolio.dataCache.DxQuotes.ContainsKey(sym)))
+                {
+                    decimal price = portfolio.dataCache.DxQuotes[sym].Price * p.Multiplier * p.Quantity / Math.Abs(p.Quantity);
+                    total += price;
+                    retlist.Add(new Detail { ItemName = sym, Property = price.ToString("N2") });
+                }
+                else
+                {
+                    missingValue = true;
+                    retlist.Add(new Detail { ItemName = sym, Property = "**" });
+                }
+            }
+            if ((!missingValue) && (retlist.Count > 1)) retlist.Add(new Detail { ItemName = "Total", Property = total.ToString("N2") });
+
+            return retlist;
         }
 
         private void SetTextBox(TextBox tb, string txt, bool enable)
@@ -1349,7 +1384,8 @@ namespace OptionView
             {
                 TransactionGroup tg = (TransactionGroup)row.Item;
                 GroupHistory hist = BalanceHistory.GetGroup(tg);
-                App.GroupWindow.Update(new GroupGraph(hist));
+                App.GroupWindow.Clear();
+                App.GroupWindow.Update(new GroupGraph(hist), null, null);
 
             }
         }
