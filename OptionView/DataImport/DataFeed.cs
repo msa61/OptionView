@@ -82,14 +82,21 @@ namespace OptionView.DataImport
             {
                 Debug.WriteLine($"Listening to {buf.Symbol}  Price: {item.Price}");
 
-                Quote qt = new Quote();
-                qt.Price = Convert.ToDecimal(item.Price);
-                qt.Change = (Double.IsNaN(item.Change)) ? 0 : Convert.ToDecimal(item.Change);
-
-                if (!DataFeed.ReturnPriceList.ContainsKey(buf.Symbol))
+                if (!Double.IsNaN(item.Change))
                 {
-                    DataFeed.ReturnPriceList.Add(buf.Symbol, qt);
-                    DataFeed.symbolCount -= 1;
+                    Quote qt = new Quote();
+                    qt.Price = Convert.ToDecimal(item.Price);
+                    qt.Change = Convert.ToDecimal(item.Change);
+
+                    if (!DataFeed.ReturnPriceList.ContainsKey(buf.Symbol))
+                    {
+                        DataFeed.ReturnPriceList.Add(buf.Symbol, qt);
+                        DataFeed.symbolCount -= 1;
+                    }
+                }
+                else
+                {
+                    Debug.WriteLine("X");
                 }
             }
         }
