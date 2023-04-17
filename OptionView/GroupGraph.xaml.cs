@@ -143,6 +143,8 @@ namespace OptionView
                 DateTime time = item.Key;
                 List<decimal> list = item.Value;
 
+                if (list.Count == 0) break;
+
                 points.Add(new Point(ScaleTime((i==0) ? minTime : time), ApplyScale(list.Min(), ScaleType.Right)));
                 if (list.Count > 1)
                 {
