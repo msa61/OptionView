@@ -45,7 +45,7 @@ namespace OptionView
 
         public Portfolio()
         {
-            if (!App.OfflineMode) TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
+            //if (!App.OfflineMode) TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
         }
 
         public Portfolio(Accounts acc) : this()
@@ -186,7 +186,10 @@ namespace OptionView
 
         public void GetCurrentData(Accounts acc)
         {
-            if (App.OfflineMode) return;
+            if (App.OfflineMode) 
+                return;
+            else
+                TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
 
             dataCache = null;  // clear any previous data
 
