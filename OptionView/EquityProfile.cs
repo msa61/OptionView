@@ -22,7 +22,10 @@ namespace OptionView
         public decimal UnderlyingPriceChangePercent { get; set; }
         public double OptionVolume { get; set; }
         public DateTime EarningsDate { get; set; }
-        public double DaysUntilEarnings { get; set; }
+        public double DaysUntilEarnings { get; set; } = -1;
+        public Visibility EarningsInNextSession { get; set; } = Visibility.Collapsed;
+        public string EarningsTimeOfDay { get; set; }
+        public decimal MarketCap { get; set; }
         public Visibility CurrentlyHeld { get; set; } = Visibility.Hidden;
     }
 
@@ -52,8 +55,11 @@ namespace OptionView
                             Symbol = sym.Symbol,
                             ImpliedVolatility = sym.ImpliedVolatility,
                             ImpliedVolatilityRank = sym.ImpliedVolatilityRank,
-                            EarningsDate = sym.Earnings
+                            EarningsDate = sym.Earnings,
+                            EarningsTimeOfDay = (sym.EarningsTimeOfDay != null) ? sym.EarningsTimeOfDay.Substring(0,1).ToLower() : "",
+                            MarketCap = sym.MarketCap
                         };
+
                         if (descriptions.ContainsKey(sym.Symbol)) equity.Name = descriptions[sym.Symbol];
                         if (volumes.ContainsKey(sym.Symbol)) equity.OptionVolume = volumes[sym.Symbol] / 1000;
                         if (prices.ContainsKey(sym.Symbol))
@@ -63,8 +69,13 @@ namespace OptionView
                             equity.UnderlyingPriceChange = qt.Change;
                             equity.UnderlyingPriceChangePercent = qt.Change / qt.Price;
                         }
-                        if (equity.EarningsDate < DateTime.Now) equity.EarningsDate = DateTime.MinValue;  // clear useless data
-                        if (equity.EarningsDate > DateTime.Now) equity.DaysUntilEarnings = Math.Truncate((equity.EarningsDate - DateTime.Now).TotalDays);
+                        if (equity.EarningsDate < DateTime.Today) equity.EarningsDate = DateTime.MinValue;  // clear useless data
+                        if (equity.EarningsDate >= DateTime.Today) equity.DaysUntilEarnings = Math.Truncate((equity.EarningsDate - DateTime.Today).TotalDays);
+                        if (((equity.EarningsDate == DateTime.Today) && (equity.EarningsTimeOfDay == "a")) ||
+                            ((equity.EarningsDate == DateTime.Today.AddDays(1)) && (equity.EarningsTimeOfDay == "b")))
+                        {
+                            equity.EarningsInNextSession = Visibility.Visible;
+                        }
 
                         foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
                         {

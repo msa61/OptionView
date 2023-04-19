@@ -781,7 +781,7 @@
                             <local:ValueToBrushConverter x:Key="BrushConverter"/>
                         </DataGrid.Resources>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Symbol" Width="80">
+                            <DataGridTextColumn Header="Symbol" Width="80" SortMemberPath="Symbol">
                                 <DataGridTextColumn.CellStyle>
                                     <Style TargetType="{x:Type DataGridCell}">
                                         <Setter Property="Padding" Value="4"/>
@@ -819,14 +819,32 @@
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
                             <DataGridTextColumn Header="Volume" Binding="{Binding OptionVolume, StringFormat={}{0:#\,##0.0;;'-'}}" Width="80"  CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
-                            <DataGridTextColumn Header="Earnings" Binding="{Binding EarningsDate, Converter={StaticResource ExpDateBlank}}" Width="100" CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}">
+                            <DataGridTextColumn Header="MarketCap" Binding="{Binding MarketCap, StringFormat={}{0:#\,##0.0;;'-'}}" Width="80"  CellStyle="{StaticResource CenterJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
+                            <DataGridTextColumn Header="Earnings" Binding="{Binding EarningsDate, Converter={StaticResource ExpDateBlank}}" Width="100" SortMemberPath="EarningsDate" HeaderStyle="{StaticResource CenterHeader}">
+                                <DataGridTextColumn.CellStyle>
+                                    <Style TargetType="{x:Type DataGridCell}" BasedOn="{StaticResource CenterJustifiedCell}">
+                                        <Setter Property="Padding" Value="4"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding EarningsDate, Converter={StaticResource ExpDateBlank}}" />
+                                                        <TextBlock Text="{Binding EarningsTimeOfDay}" FontSize="11" Foreground="LightBlue" Padding="2,0,0,0" />
+                                                        <TextBlock Text="●" Visibility="{Binding EarningsInNextSession}" Foreground="LightYellow" Padding="1,0,0,0" />
+                                                    </StackPanel>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGridTextColumn.CellStyle>
+
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="{x:Type TextBlock}">
                                         <Setter Property="FontFamily" Value="Calibri Light" />
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Header="DTEarnings" Binding="{Binding DaysUntilEarnings, StringFormat={}{0:#;;' '}}" Width="80" CellStyle="{StaticResource CenterJustifiedCell}"/>
+                            <DataGridTextColumn Header="DTEarnings" Binding="{Binding DaysUntilEarnings, StringFormat={}{0:#;'';'Today'}}" Width="80" CellStyle="{StaticResource CenterJustifiedCell}"/>
                             <DataGridTextColumn Header="Description" Binding="{Binding Name}" Width="360" />
                         </DataGrid.Columns>
                     </DataGrid>
@@ -839,27 +857,39 @@
                         </StackPanel>
                         <StackPanel >
                             <Label Content="Minimum Price" Margin="6,0,0,0" />
-                            <TextBox Name="txtMinPrice" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerlFilter_KeyUp"/>
+                            <TextBox Name="txtMinPrice" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerFilter_KeyUp"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
                             <Label Content="Minimum Volume" Margin="6,0,0,0" />
-                            <TextBox Name="txtMinVolume" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerlFilter_KeyUp"/>
+                            <TextBox Name="txtMinVolume" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerFilter_KeyUp"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
                             <Label Content="Minimum IV" Margin="6,0,0,0" />
-                            <TextBox Name="txtMinIV" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerlFilter_KeyUp"/>
+                            <TextBox Name="txtMinIV" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerFilter_KeyUp"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
                             <Label Content="Minimum IVR" Margin="6,0,0,0" />
-                            <TextBox Name="txtMinIVR" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerlFilter_KeyUp"/>
+                            <TextBox Name="txtMinIVR" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerFilter_KeyUp"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <Label Content="Minimum Market Cap" Margin="6,0,0,0" />
+                            <TextBox Name="txtMinMarketCap" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerFilter_KeyUp"/>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel >
                             <Label Content="Minimum Days" Margin="6,0,0,0" />
-                            <TextBox Name="txtMinDTE" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerlFilter_KeyUp"/>
+                            <TextBox Name="txtMinDTE" Margin="6,0,6,6" Padding="5,4,4,4" AcceptsReturn="True" KeyUp="txtScreenerFilter_KeyUp"/>
+                            <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
+                        </StackPanel>
+                        <StackPanel >
+                            <DockPanel>
+                                <Label Content="Earnings Trade" Margin="6,0,6,0"  />
+                                <CheckBox Name="chkEarningsTrade" VerticalAlignment="Center" IsEnabled="True" IsChecked="False" Checked="chkEarningsTrade_Check" Unchecked="chkEarningsTrade_Check" />
+                            </DockPanel>
                             <Border BorderThickness="0,0,0,1" BorderBrush="DarkGray" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,15,0,0" Height="25" HorizontalAlignment="Center" VerticalAlignment="Top">

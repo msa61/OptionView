@@ -893,7 +893,7 @@ namespace OptionView
                 {
                     decimal price = portfolio.dataCache.DxQuotes[sym].Price * p.Multiplier * p.Quantity / Math.Abs(p.Quantity);
                     total += price;
-                    retlist.Add(new Detail { ItemName = sym, Property = price.ToString("N2") });
+                    retlist.Add(new Detail { ItemName = sym, Property = price.ToString("N0") });
                 }
                 else
                 {
@@ -901,7 +901,7 @@ namespace OptionView
                     retlist.Add(new Detail { ItemName = sym, Property = "**" });
                 }
             }
-            if ((!missingValue) && (retlist.Count > 1)) retlist.Add(new Detail { ItemName = "Total", Property = total.ToString("N2") });
+            if ((!missingValue) && (retlist.Count > 1)) retlist.Add(new Detail { ItemName = "Total", Property = total.ToString("N0") });
 
             return retlist;
         }
@@ -1532,7 +1532,18 @@ namespace OptionView
             }
         }
 
-        private void txtScreenerlFilter_KeyUp(object sender, KeyEventArgs e)
+
+        private void txtScreenerFilter_KeyUp(object sender, KeyEventArgs e)
+        {
+            RefreshScreener();
+        }
+
+        private void chkEarningsTrade_Check(object sender, RoutedEventArgs e)
+        {
+            RefreshScreener();
+        }
+
+        private void RefreshScreener()
         {
             if (screenerGrid.ItemsSource != null)   // grid not initialized yet
                 CollectionViewSource.GetDefaultView(screenerGrid.ItemsSource).Refresh();
@@ -1548,15 +1559,31 @@ namespace OptionView
             double minVolume = SafeValueFromTextBox(txtMinVolume);
             double minIV = SafeValueFromTextBox(txtMinIV) / 100;
             double minIVR = SafeValueFromTextBox(txtMinIVR) / 100;
+            decimal minMarketCap = Convert.ToDecimal(SafeValueFromTextBox(txtMinMarketCap));
             double minDTE = SafeValueFromTextBox(txtMinDTE);
+            bool earningsTrade = chkEarningsTrade.IsChecked.Value;
 
             EquityProfile eq = (EquityProfile)item;
 
             if (eq != null)
             // If filter is turned on, filter completed items.
             {
-                if ((eq.UnderlyingPrice > minPrice) && (eq.OptionVolume > minVolume) && (eq.ImpliedVolatility > minIV) && (eq.ImpliedVolatilityRank > minIVR) && ((eq.DaysUntilEarnings == 0) || (eq.DaysUntilEarnings > minDTE)))
+                if ((eq.UnderlyingPrice > minPrice)
+                    && (eq.OptionVolume > minVolume)
+                    && (eq.ImpliedVolatility > minIV)
+                    && (eq.ImpliedVolatilityRank > minIVR)
+                    && (eq.MarketCap > minMarketCap)
+                    && ((eq.DaysUntilEarnings == 0) || (eq.DaysUntilEarnings > minDTE))
+                   )
+                {
                     ret = true;
+                }
+
+                if (earningsTrade)
+                {
+                    if (eq.EarningsInNextSession != Visibility.Visible)
+                        ret = false;
+                }
             }
             return ret;
 
@@ -1585,19 +1612,20 @@ namespace OptionView
         private void UpdateScreenerFields()
         {
             string[] screenerView = Config.GetProp("Screener").Split('|');
-            if (screenerView.Length == 5)
+            if (screenerView.Length == 6)
             {
                 txtMinPrice.Text = screenerView[0];
                 txtMinVolume.Text = screenerView[1];
                 txtMinIV.Text = screenerView[2];
                 txtMinIVR.Text = screenerView[3];
-                txtMinDTE.Text = screenerView[4];
+                txtMinMarketCap.Text = screenerView[4];
+                txtMinDTE.Text = screenerView[5];
             }
         }
 
         private void SaveScreenerFields()
         {
-            Config.SetProp("Screener", txtMinPrice.Text + "|" + txtMinVolume.Text + "|" + txtMinIV.Text + "|" + txtMinIVR.Text + "|" + txtMinDTE.Text);
+            Config.SetProp("Screener", txtMinPrice.Text + "|" + txtMinVolume.Text + "|" + txtMinIV.Text + "|" + txtMinIVR.Text + "|" + txtMinMarketCap.Text + "|" + txtMinDTE.Text);
             if (screenerGrid.ItemsSource != null)
             {
                 SortDescription sd = ((ListCollectionView)screenerGrid.ItemsSource).SortDescriptions[0];
