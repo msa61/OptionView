@@ -69,8 +69,14 @@ namespace OptionView
                             equity.UnderlyingPriceChange = qt.Change;
                             equity.UnderlyingPriceChangePercent = qt.Change / qt.Price;
                         }
-                        if (equity.EarningsDate < DateTime.Today) equity.EarningsDate = DateTime.MinValue;  // clear useless data
+                        if (equity.EarningsDate < DateTime.Today)
+                        {
+                            // clear useless data
+                            equity.EarningsDate = DateTime.MinValue;
+                            equity.EarningsTimeOfDay = "";
+                        }
                         if (equity.EarningsDate >= DateTime.Today) equity.DaysUntilEarnings = Math.Truncate((equity.EarningsDate - DateTime.Today).TotalDays);
+                        // set visibility to indicate earnings trade in next session
                         if (((equity.EarningsDate == DateTime.Today) && (equity.EarningsTimeOfDay == "a")) ||
                             ((equity.EarningsDate == DateTime.Today.AddDays(1)) && (equity.EarningsTimeOfDay == "b")))
                         {

@@ -1573,7 +1573,7 @@ namespace OptionView
                     && (eq.ImpliedVolatility > minIV)
                     && (eq.ImpliedVolatilityRank > minIVR)
                     && (eq.MarketCap > minMarketCap)
-                    && ((eq.DaysUntilEarnings == 0) || (eq.DaysUntilEarnings > minDTE))
+                    && ((eq.DaysUntilEarnings == -1) || (eq.DaysUntilEarnings > minDTE))
                    )
                 {
                     ret = true;
