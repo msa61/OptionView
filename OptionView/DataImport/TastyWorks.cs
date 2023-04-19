@@ -33,6 +33,8 @@ namespace OptionView
         public double Beta { get; set; }
         public double CorrelationToSPY { get; set; }
         public DateTime Earnings { get; set; }
+        public decimal MarketCap { get; set; }
+        public string EarningsTimeOfDay { get; set; }
     }
     public class TWMarketInfos : Dictionary<string, TWMarketInfo>
     {
@@ -226,11 +228,16 @@ namespace OptionView
                         ImpliedVolatilityRank = Convert.ToDouble(item["implied-volatility-index-rank"]),
                         DividendYield = Convert.ToDouble(item["dividend-yield"]),
                         Beta = Convert.ToDouble(item["beta"]),
-                        CorrelationToSPY = Convert.ToDouble(item["corr-spy-3month"])
+                        CorrelationToSPY = Convert.ToDouble(item["corr-spy-3month"]),
+                        MarketCap = Convert.ToDecimal(item["market-cap"]) / 1E9m
                     };
 
                     JToken earnings = item["earnings"];
-                    if ((earnings != null) && (earnings["expected-report-date"] != null)) info.Earnings = Convert.ToDateTime(earnings["expected-report-date"]).Trim(TimeSpan.TicksPerDay);
+                    if (earnings != null)
+                    {
+                        if (earnings["expected-report-date"] != null) info.Earnings = Convert.ToDateTime(earnings["expected-report-date"]).Trim(TimeSpan.TicksPerDay);
+                        if (earnings["time-of-day"] != null) info.EarningsTimeOfDay = earnings["time-of-day"].ToString();
+                    } 
 
                     returnList.Add(info.Symbol, info);
                 }
@@ -643,7 +650,7 @@ namespace OptionView
                 App.UpdateStatusMessage("TW WatchListSymbols");
                 if (Token.Length == 0) return null;
 
-                List<string> retlist = new List<string>();
+                List<string> retlist = new List<string>() { "BSY" };
 
                 SetHeaders(Token);
                 string reply = Web.DownloadString("https://api.tastyworks.com/public-watchlists");
