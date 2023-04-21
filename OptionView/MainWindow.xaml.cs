@@ -871,6 +871,7 @@ namespace OptionView
                             new Detail { ItemName = "IV Rank", Property = grp.ImpliedVolatilityRank.ToString("P1") },
                             new Detail { ItemName = "Price", Property = grp.UnderlyingPrice.ToString("C2") },
                             new Detail { ItemName = "Price Change", Property = grp.UnderlyingPriceChange.ToString("C2") },
+                            new Detail { ItemName = "Earnings", Property = grp.EarningsDate.ToString("d MMM") },
                         };
                         App.GroupWindow.Update();
                     }

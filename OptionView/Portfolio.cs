@@ -330,11 +330,20 @@ namespace OptionView
                     grp.PreviousCloseValue = previousCloseValue;
                     grp.ChangeFromPreviousClose = (currentValue ?? 0) - previousCloseValue;
                 }
+
+                // overlay market info from TW
                 if ((dataCache != null) && (dataCache.TwMarketInfo != null) && (dataCache.TwMarketInfo.ContainsKey(grp.ShortSymbol)))
                 {
-                    grp.ImpliedVolatility = dataCache.TwMarketInfo[grp.ShortSymbol].ImpliedVolatility;
-                    grp.ImpliedVolatilityRank = dataCache.TwMarketInfo[grp.ShortSymbol].ImpliedVolatilityRank;
-                    grp.DividendYield = dataCache.TwMarketInfo[grp.ShortSymbol].DividendYield;
+                    TWMarketInfo mi = dataCache.TwMarketInfo[grp.ShortSymbol];
+                    grp.ImpliedVolatility = mi.ImpliedVolatility;
+                    grp.ImpliedVolatilityRank = mi.ImpliedVolatilityRank;
+                    grp.DividendYield = mi.DividendYield;
+                    grp.EarningsDate = mi.EarningsDate;
+
+                    if ((grp.ActionDate == DateTime.MinValue) && (grp.EarningsDate >= DateTime.Today) && (grp.EarningsDate.AddDays(-7) < DateTime.Today))
+                    {
+                        grp.ActionDate = grp.EarningsDate.AddDays(-7);
+                    }
 
                     if (SPY != null) grp.GreekData.WeightedDelta = Convert.ToDouble(grp.UnderlyingPrice) * grp.GreekData.Delta * dataCache.TwMarketInfo[grp.ShortSymbol].Beta / Convert.ToDouble(SPY.Price);
                 }

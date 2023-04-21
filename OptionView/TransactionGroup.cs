@@ -49,6 +49,7 @@ namespace OptionView
         public decimal UnderlyingPriceChange { get; set; }
         public double ImpliedVolatility { get; set; }
         public double ImpliedVolatilityRank { get; set; }
+        public DateTime EarningsDate { get; set; }
         public double DividendYield { get; set; }
         public decimal AnalysisXValue { get; set; }
         public decimal AnalysisYValue { get; set; }
