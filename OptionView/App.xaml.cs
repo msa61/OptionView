@@ -139,5 +139,20 @@ namespace OptionView
             if ((ConnStr != null) && ConnStr.State == ConnectionState.Open) ConnStr.Close();
         }
 
+        public static void UpdateToDos()
+        {
+            bool onUIThread = ((Dispatcher)mainWindow.Dispatcher).CheckAccess();
+            if (onUIThread)
+            {
+                mainWindow.UpdateTodosGrid();
+            }
+            else
+            {
+                mainWindow.Dispatcher.Invoke(() =>
+                {
+                    mainWindow.UpdateTodosGrid();
+                });
+            }
+        }
     }
 }

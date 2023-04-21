@@ -1639,7 +1639,7 @@ namespace OptionView
         // code for Todo tab
         // 
         //
-        private void UpdateTodosGrid()
+        public void UpdateTodosGrid()
         {
             try
             {

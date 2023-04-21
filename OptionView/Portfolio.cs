@@ -340,9 +340,11 @@ namespace OptionView
                     grp.DividendYield = mi.DividendYield;
                     grp.EarningsDate = mi.EarningsDate;
 
-                    if ((grp.ActionDate == DateTime.MinValue) && (grp.EarningsDate >= DateTime.Today) && (grp.EarningsDate.AddDays(-7) < DateTime.Today))
+                    if ((grp.ActionDate == DateTime.MinValue) && (grp.EarningsDate >= DateTime.Today) && (grp.EarningsDate.AddDays(-3) < DateTime.Today))
                     {
-                        grp.ActionDate = grp.EarningsDate.AddDays(-7);
+                        grp.ActionDate = grp.EarningsDate.AddDays(-3);
+                        grp.Update();
+                        App.UpdateToDos();
                     }
 
                     if (SPY != null) grp.GreekData.WeightedDelta = Convert.ToDouble(grp.UnderlyingPrice) * grp.GreekData.Delta * dataCache.TwMarketInfo[grp.ShortSymbol].Beta / Convert.ToDouble(SPY.Price);
