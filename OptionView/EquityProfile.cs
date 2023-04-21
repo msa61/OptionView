@@ -55,7 +55,7 @@ namespace OptionView
                             Symbol = sym.Symbol,
                             ImpliedVolatility = sym.ImpliedVolatility,
                             ImpliedVolatilityRank = sym.ImpliedVolatilityRank,
-                            EarningsDate = sym.Earnings,
+                            EarningsDate = sym.EarningsDate,
                             EarningsTimeOfDay = (sym.EarningsTimeOfDay != null) ? sym.EarningsTimeOfDay.Substring(0,1).ToLower() : "",
                             MarketCap = sym.MarketCap
                         };
