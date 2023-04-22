@@ -150,6 +150,7 @@ namespace OptionView
         public string GetPerLotCost()
         {
             decimal defaultAmount = 0;
+            bool onlyStock = true;
 
             foreach (KeyValuePair<string, Position> item in this.Holdings)
             {
@@ -162,10 +163,11 @@ namespace OptionView
                 {
                     if (Math.Abs(p.Quantity) != defaultAmount) return " *";
                 }
+                if (p.Type != "Stock") onlyStock = false;
             }
 
             if (defaultAmount == 0) return " oopsie";
-            if (defaultAmount == 1) return "";
+            if ((defaultAmount == 1) || onlyStock) return "";
 
             return " - " + String.Format("{0:C0}", this.Cost / defaultAmount) + "/lot";
         }
