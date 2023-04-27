@@ -866,13 +866,20 @@ namespace OptionView
                         GroupHistory hist = BalanceHistory.GetGroup(portfolio[grp.GroupID]);
                         App.GroupWindow.GraphContents = new GroupGraph(hist);
                         App.GroupWindow.Prices = AddHoldingsPrice(grp);
-                        App.GroupWindow.GroupDetails = new List<Detail> { 
-                            new Detail { ItemName = "IV", Property = grp.ImpliedVolatility.ToString("P1") },
-                            new Detail { ItemName = "IV Rank", Property = grp.ImpliedVolatilityRank.ToString("P1") },
-                            new Detail { ItemName = "Price", Property = grp.UnderlyingPrice.ToString("C2") },
-                            new Detail { ItemName = "Price Change", Property = grp.UnderlyingPriceChange.ToString("C2") },
-                            new Detail { ItemName = "Earnings", Property = grp.EarningsDate.ToString("d MMM") },
-                        };
+
+                        // 3rd section
+                        List<Detail> lst = new List<Detail>();
+                        if ((grp.UnderlyingPrice != 0))
+                        {
+                            lst.Add(new Detail { ItemName = "Price", Property = grp.UnderlyingPrice.ToString("C2") });
+                            lst.Add(new Detail { ItemName = "Price Change", Property = grp.UnderlyingPriceChange.ToString("C2") });
+                            lst.Add(new Detail { ItemName = "Price Change %", Property = (grp.UnderlyingPriceChange / grp.UnderlyingPrice).ToString("P2") });
+                        }
+                        lst.Add(new Detail { ItemName = "IV", Property = grp.ImpliedVolatility.ToString("P1") });
+                        lst.Add(new Detail { ItemName = "IV Rank", Property = grp.ImpliedVolatilityRank.ToString("P1") });
+                        lst.Add(new Detail { ItemName = "Earnings", Property = grp.EarningsDate.ToString("d MMM") });
+                        App.GroupWindow.GroupDetails = lst;
+
                         App.GroupWindow.Update();
                     }
                 }
