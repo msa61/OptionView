@@ -9,7 +9,7 @@
         Title="GroupWindow" Width="400" ResizeMode="CanResize"
         ShowInTaskbar="False">
     <StackPanel Orientation="Vertical">
-
+        <Label Content="SYMB" x:Name="DetailHeaderLabel" Margin="25,10,25,10" FontWeight="Bold" FontSize="18" />
         <StackPanel x:Name="GroupGraphHolder" />
 
         <StackPanel x:Name="DetailTables">
@@ -24,8 +24,8 @@
                     </Style>
                 </DataGrid.CellStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" />
-                    <DataGridTextColumn Header="Price" Binding="{Binding Property}" >
+                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="120"/>
+                    <DataGridTextColumn Header="Price" Binding="{Binding Property}" Width="35">
                         <DataGridTextColumn.CellStyle>
                             <Style TargetType="DataGridCell">
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
@@ -46,8 +46,8 @@
                     </Style>
                 </DataGrid.CellStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" />
-                    <DataGridTextColumn Header="Price" Binding="{Binding Property}"/>
+                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="120" />
+                    <DataGridTextColumn Header="Price" Binding="{Binding Property}" />
                 </DataGrid.Columns>
             </DataGrid>
         </StackPanel>

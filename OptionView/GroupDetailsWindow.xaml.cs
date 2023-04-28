@@ -32,8 +32,10 @@ namespace OptionView
             App.GroupWindow.Window = null;
         }
 
-        public void Update (GroupGraph gg, List<Detail> prices, List<Detail> details)
+        public void Update (string symbol, GroupGraph gg, List<Detail> prices, List<Detail> details)
         {
+            SetHeader(DetailHeaderLabel, symbol);
+
             GroupGraphHolder.Children.Clear();
             if (gg != null) GroupGraphHolder.Children.Add(gg);
 
@@ -42,6 +44,7 @@ namespace OptionView
         }
         public void Clear ()
         {
+            DetailHeaderLabel.Visibility = Visibility.Collapsed;
             GroupGraphHolder.Children.Clear();
             DetailTables.Visibility = Visibility.Collapsed;
         }
@@ -62,6 +65,18 @@ namespace OptionView
             }
         }
 
+        private void SetHeader(Label label, string sym)
+        {
+            if (sym.Length == 0)
+            {
+                label.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                label.Visibility = Visibility.Visible;
+                label.Content = sym;
+            }
+        }
     }
 
 

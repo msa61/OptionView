@@ -863,28 +863,41 @@ namespace OptionView
                             snapShot.Update();
                         }
 
-                        GroupHistory hist = BalanceHistory.GetGroup(portfolio[grp.GroupID]);
-                        App.GroupWindow.GraphContents = new GroupGraph(hist);
-                        App.GroupWindow.Prices = AddHoldingsPrice(grp);
+                        UpdateGroupDetailWindow(grp);
 
-                        // 3rd section
-                        List<Detail> lst = new List<Detail>();
-                        if ((grp.UnderlyingPrice != 0))
-                        {
-                            lst.Add(new Detail { ItemName = "Price", Property = grp.UnderlyingPrice.ToString("C2") });
-                            lst.Add(new Detail { ItemName = "Price Change", Property = grp.UnderlyingPriceChange.ToString("C2") });
-                            lst.Add(new Detail { ItemName = "Price Change %", Property = (grp.UnderlyingPriceChange / grp.UnderlyingPrice).ToString("P2") });
-                        }
-                        lst.Add(new Detail { ItemName = "IV", Property = grp.ImpliedVolatility.ToString("P1") });
-                        lst.Add(new Detail { ItemName = "IV Rank", Property = grp.ImpliedVolatilityRank.ToString("P1") });
-                        lst.Add(new Detail { ItemName = "Earnings", Property = grp.EarningsDate.ToString("d MMM") });
-                        App.GroupWindow.GroupDetails = lst;
-
-                        App.GroupWindow.Update();
                     }
                 }
 
             }
+        }
+
+        private void UpdateGroupDetailWindow(TransactionGroup grp)
+        {
+            // header
+            App.GroupWindow.Symbol = grp.Symbol;
+
+            // graph
+            GroupHistory hist = BalanceHistory.GetGroup(portfolio[grp.GroupID]);
+            App.GroupWindow.GraphContents = new GroupGraph(hist);
+
+            // 2nd section
+            App.GroupWindow.Prices = AddHoldingsPrice(grp);
+
+            // 3rd section
+            List<Detail> lst = new List<Detail>();
+            if ((grp.UnderlyingPrice != 0))
+            {
+                lst.Add(new Detail { ItemName = "Price", Property = grp.UnderlyingPrice.ToString("C2") });
+                lst.Add(new Detail { ItemName = "Price Change", Property = grp.UnderlyingPriceChange.ToString("C2") });
+                lst.Add(new Detail { ItemName = "Price Change %", Property = (grp.UnderlyingPriceChange / grp.UnderlyingPrice).ToString("P2") });
+            }
+            lst.Add(new Detail { ItemName = "IV", Property = grp.ImpliedVolatility.ToString("P1") });
+            lst.Add(new Detail { ItemName = "IV Rank", Property = grp.ImpliedVolatilityRank.ToString("P1") });
+            string dateText = (grp.EarningsDate == DateTime.MinValue) ? "N/A" : grp.EarningsDate.ToString("d MMM");
+            lst.Add(new Detail { ItemName = "Earnings", Property = dateText });
+            App.GroupWindow.GroupDetails = lst;
+
+            App.GroupWindow.Update();
         }
 
         private List<Detail> AddHoldingsPrice(TransactionGroup tg)
@@ -1393,7 +1406,7 @@ namespace OptionView
                 TransactionGroup tg = (TransactionGroup)row.Item;
                 GroupHistory hist = BalanceHistory.GetGroup(tg);
                 App.GroupWindow.Clear();
-                App.GroupWindow.Update(new GroupGraph(hist), null, null);
+                App.GroupWindow.Update(tg.Symbol, new GroupGraph(hist), null, null);
 
             }
         }
