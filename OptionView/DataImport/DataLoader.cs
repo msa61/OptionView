@@ -426,7 +426,14 @@ namespace OptionView
 
             if (positions.Count == 1)
             {
-                retval = positions.ElementAt(0).Value.Quantity < 0 ? "Short " : "Long ";
+                if (positions.ElementAt(0).Value.Quantity == 0)
+                {
+                    retval = positions.ElementAt(0).Value.InitialQuantity < 0 ? "Short " : "Long ";
+                }
+                else
+                {
+                    retval = positions.ElementAt(0).Value.Quantity < 0 ? "Short " : "Long ";
+                }
                 retval += positions.ElementAt(0).Value.Type;
             }
             else if (positions.Count == 2)

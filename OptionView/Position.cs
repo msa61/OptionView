@@ -15,6 +15,7 @@ namespace OptionView
         public decimal Market { get; set; }
         public decimal Multiplier { get; set; }
         public string ShortOptionSymbol { get; set; }
+        public decimal InitialQuantity { get; set; }
 
         public Position ()
         {
@@ -58,6 +59,7 @@ namespace OptionView
                 p.Amount += amount;
                 if ((transTime != null) && (transTime < p.TransTime)) p.TransTime = (DateTime)transTime;
                 p.Rows.Add(row);
+                if (p.InitialQuantity == 0) p.InitialQuantity = quant;
             }
             else
             {
@@ -71,6 +73,7 @@ namespace OptionView
                 if (transTime != null) p.TransTime = (DateTime)transTime;
                 p.UnderlyingPrice = underlyingPrice;
                 p.Rows.Add(row);
+                if (p.InitialQuantity == 0) p.InitialQuantity = quant;
                 this.Add(key, p);
             }
 
