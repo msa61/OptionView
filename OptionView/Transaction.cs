@@ -1,4 +1,5 @@
-﻿using OptionView.DataImport;
+﻿using Newtonsoft.Json.Linq;
+using OptionView.DataImport;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -64,6 +65,7 @@ namespace OptionView
                 DateTime transTime = DateTime.MinValue;
                 if (reader["TransTime"] != DBNull.Value) transTime = Convert.ToDateTime(reader["TransTime"].ToString());
                 t.TransTime = DateTime.SpecifyKind(transTime, DateTimeKind.Utc);
+                t.TransTime = TimeZone.CurrentTimeZone.ToLocalTime(t.TransTime);
 
                 if (reader["TransType"] != DBNull.Value) t.TransType = reader["TransType"].ToString();
                 if (reader["TransSubType"] != DBNull.Value) t.TransSubType = reader["TransSubType"].ToString();

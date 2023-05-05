@@ -587,6 +587,8 @@ namespace OptionView
 
                         if (reader["Time"] != DBNull.Value) t.TransTime = Convert.ToDateTime(reader["Time"].ToString());
                         t.TransTime = DateTime.SpecifyKind(t.TransTime, DateTimeKind.Utc);
+                        t.TransTime = TimeZone.CurrentTimeZone.ToLocalTime(t.TransTime);
+
                         if (reader["Type"] != DBNull.Value) t.Type = reader["Type"].ToString();
                         if (reader["TransSubType"] != DBNull.Value) t.TransType = reader["TransSubType"].ToString();
 

@@ -447,7 +447,7 @@
                                 <DataGrid ItemsSource="{Binding Transactions}" AutoGenerateColumns="False" CanUserAddRows="False" Background="Gray" RowBackground="Gray"
                                           HeadersVisibility="Column" Margin="20,4,4,4" BorderBrush="{x:Null}" IsReadOnly="True"  >
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Date" Binding="{Binding Path=TransTime}" />
+                                        <DataGridTextColumn Header="Date" Binding="{Binding Path=TransTime, StringFormat={}{0:dd-MMM-yy h:mm:ss t}}" />
                                         <DataGridTextColumn Header="Transaction" Binding="{Binding TransType}"  />
                                         <DataGridTextColumn Header="Type" Binding="{Binding Type}"  />
                                         <DataGridTextColumn Header="Expire Date" Binding="{Binding Path=ExpDateText}" />
@@ -613,7 +613,7 @@
                             <DataGridTextColumn Header="Account" Binding="{Binding Account}" Width="90" />
                             <DataGridTextColumn Header="Symbol" Binding="{Binding Symbol}" Width="70" />
                             <DataGridTextColumn Header="Group" Binding="{Binding GroupID, StringFormat={}{0:0;;' '}}" Width="70" />
-                            <DataGridTextColumn Header="Trans Time" Binding="{Binding Path=TransTime, StringFormat={}{0:dd-MMM-yy H:mm:ss}}" Width="140" />
+                            <DataGridTextColumn Header="Trans Time" Binding="{Binding Path=TransTime, StringFormat={}{0:dd-MMM-yy h:mm:ss t}}" Width="140" />
                             <DataGridTextColumn Header="Trans Type" Binding="{Binding TransType}" Width="100" />
                             <DataGridTextColumn Header="Sub Type" Binding="{Binding TransSubType}" Width="100" />
                             <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="70" />
