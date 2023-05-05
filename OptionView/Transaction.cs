@@ -45,8 +45,8 @@ namespace OptionView
         public void GetRecent()
         {
             // query all of the transactions in this account, for given symbol that are either part of an open chain or not part of chain yet
-            string sql = "SELECT tg.Account, tg.Symbol, tg.Open, datetime(Time) AS TransTime, TransType, TransSubType, TransGroupID, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, Fees, Amount, Description";
-            sql += " FROM transactions";
+            string sql = "SELECT t.Account, t.Symbol, tg.Open, datetime(Time) AS TransTime, TransType, TransSubType, TransGroupID, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, Fees, Amount, Description";
+            sql += " FROM transactions AS t";
             sql += " LEFT JOIN transgroup AS tg ON transgroupid = tg.id";
             sql += " WHERE time > date('now', '-30 day')";
             sql += " ORDER BY Time DESC";
