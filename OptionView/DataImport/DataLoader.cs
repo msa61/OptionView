@@ -232,7 +232,9 @@ namespace OptionView
                 App.OpenConnection();
 
                 // get list of symbols that aren't in a group yet
-                string sql = "SELECT DISTINCT account, symbol, transSubType from Transactions WHERE TransGroupID is NULL AND symbol != '' AND TransType != 'Money Movement' ORDER BY symbol";
+                string sql = "SELECT DISTINCT account, symbol, transSubType from Transactions ";
+                sql += "WHERE ((TransGroupID is NULL) OR (TransGroupID = 0)) AND symbol != '' AND TransType != 'Money Movement' ";
+                sql += "ORDER BY symbol";
                 //string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol = 'AMD' ORDER BY symbol";
                 SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
                 SQLiteDataReader reader = cmd.ExecuteReader();
@@ -386,7 +388,10 @@ namespace OptionView
                     cmd.Parameters.AddWithValue("ns", DefaultNeutralStrategy(strat));
                     decimal risk = DefaultRisk(account, strat, holdings);
                     cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, risk, holdings));
-                    decimal capReq = twMarginData[account][symbol];
+
+                    // there might not be in entry for positions that have opened and closed between syncs
+                    decimal capReq = 0;
+                    if (twMarginData[account].ContainsKey(symbol)) capReq = twMarginData[account][symbol];
                     cmd.Parameters.AddWithValue("cap", capReq);
                     cmd.Parameters.AddWithValue("cap2", capReq);
                     cmd.ExecuteNonQuery();
@@ -699,7 +704,7 @@ namespace OptionView
                         if (process)
                         {
                             int grpID = 0;
-                            if (r["TransGroupID"] != DBNull.Value) grpID = (int)r.Field<Int64>("TransGroupID");
+                            if ((r["TransGroupID"] != DBNull.Value) && (Convert.ToInt64(r["TransGroupID"]) != 0)) grpID = (int)r.Field<Int64>("TransGroupID");
 
                             string key = holdings.Add(p.Symbol, p.Type, p.ExpDate, p.Strike, (Int32)r.Field<Int64>("Quantity"), (Int32)r.Field<Int64>("ID"), r.Field<string>("Open-Close").ToString(), grpID);
                             Debug.WriteLine("    Closing transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString() + "   row: " + r.Field<Int64>("id").ToString());
