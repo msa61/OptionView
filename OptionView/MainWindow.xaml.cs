@@ -1126,6 +1126,8 @@ namespace OptionView
 
             App.InitializeStatusMessagePanel(14);
 
+            this.Cursor = Cursors.Wait;
+
             // launch the long running tasks
             BackgroundWorker worker = new BackgroundWorker();
             worker.DoWork += SyncWithTastyTradeAsync;
@@ -1149,6 +1151,7 @@ namespace OptionView
             UpdateTodosGrid();
             UpdateFooterSafe();
 
+            this.Cursor = null;
             App.HideStatusMessagePanel();
             if (MainTab.SelectedIndex == 1) UpdateAnalysisView();
         }
