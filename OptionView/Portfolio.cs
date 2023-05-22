@@ -282,7 +282,9 @@ namespace OptionView
                         foreach (KeyValuePair<string,TWPosition> p in dataCache.TwPositionList[grp.Account])
                         {
                             TWPosition twpos = p.Value;
-                            if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate))
+                            if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) 
+                                && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate) 
+                                && dataCache.DxQuotes.ContainsKey(twpos.ShortOptionSymbol))  // if dx returns nothing
                             {
                                 //Debug.WriteLine(twpos.Market);
                                 if (currentValue == null) currentValue = 0;  // initialize now that we've found a match
