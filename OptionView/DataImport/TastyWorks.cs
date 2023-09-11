@@ -399,8 +399,8 @@ namespace OptionView
                     returnList.Add(inst.OptionSymbol.Length > 0 ? inst.OptionSymbol : inst.Symbol, inst);
                 }
 
-
-                return (returnList.Count > 0) ? returnList : null;
+                return returnList;
+                //return (returnList.Count > 0) ? returnList : null;
             }
             catch (Exception ex)
             {
