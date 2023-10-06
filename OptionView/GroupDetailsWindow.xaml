@@ -25,7 +25,7 @@
                 </DataGrid.CellStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="120"/>
-                    <DataGridTextColumn Header="Price" Binding="{Binding Property}" Width="35">
+                    <DataGridTextColumn Header="Price" Binding="{Binding Property}" >
                         <DataGridTextColumn.CellStyle>
                             <Style TargetType="DataGridCell">
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
