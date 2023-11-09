@@ -66,8 +66,9 @@ namespace OptionView
     public class TWPosition
     {
         public string Symbol { get; set; }
+        public string StreamerSymbol { get; set; }
         public string OptionSymbol { get; set; }
-        public string ShortOptionSymbol { get; set; }
+        public string OptionStreamerSymbol { get; set; }
         public DateTime ExpDate { get; set; }
         public decimal Strike { get; set; }
         public string Type { get; set; }
@@ -392,9 +393,20 @@ namespace OptionView
                     inst.Strike = symbol.Strike;
 
                     if (inst.Type == "Stock")
-                        inst.ShortOptionSymbol = inst.Symbol;
+                    {
+                        inst.StreamerSymbol = inst.Symbol;
+                        inst.OptionStreamerSymbol = inst.Symbol;
+                    }
+                    else if (item["instrument-type"].ToString() == "Future Option")
+                    {
+                        inst.StreamerSymbol = TastyWorks.GetFutureOptionSymbol(inst.Symbol);
+                        inst.OptionStreamerSymbol = GetFutureOptionSymbol(inst.OptionSymbol);
+                    }
                     else
-                        inst.ShortOptionSymbol = string.Format(".{0}{1:yyMMdd}{2}{3}", inst.Symbol, inst.ExpDate, inst.Type.Substring(0, 1), inst.Strike);
+                    {
+                        inst.StreamerSymbol = inst.Symbol;
+                        inst.OptionStreamerSymbol = string.Format(".{0}{1:yyMMdd}{2}{3}", inst.Symbol, inst.ExpDate, inst.Type.Substring(0, 1), inst.Strike);
+                    }
 
                     returnList.Add(inst.OptionSymbol.Length > 0 ? inst.OptionSymbol : inst.Symbol, inst);
                 }
@@ -408,6 +420,40 @@ namespace OptionView
                 throw new Exception("Error in Tastyworks.Positions", ex);
             }
         }
+
+        public static string GetFutureOptionSymbol(string symbol)
+        {
+            string retval = "";
+            try
+            {
+                // inderminate, so skip
+                //App.UpdateStatusMessage("TW GetFutureOptionSymbol : " + symbol);
+
+                SetHeaders(Token); // reset, lost after previous call
+
+                string url = "https://api.tastyworks.com/instruments/";
+                if (symbol.Substring(0, 1) == ".")
+                    url += "future-options/" + symbol.Replace("/", "%2F");
+                else
+                    url += "futures" + symbol;
+
+                string reply = Web.DownloadString(url);
+
+                JObject package = JObject.Parse(reply);
+
+                retval = package["data"]["streamer-symbol"].ToString();
+
+                return retval;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "TW GetFutureOptionSymbol");
+                throw new Exception("Error in Tastyworks.GetFutureOptionSymbol", ex);
+            }
+        }
+
+
+
 
 
         public static Dictionary<string,Int32> ActiveOrders(string accountNumber)
