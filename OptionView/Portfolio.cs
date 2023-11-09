@@ -226,6 +226,7 @@ namespace OptionView
                     {
                         List<string> symbols = new List<string>();
                         List<string> optionSymbols = new List<string>();
+                        List<string> mrkInfoSymbols = new List<string>();
 
                         dataCache = new CurrentDataCache();
 
@@ -243,12 +244,13 @@ namespace OptionView
                                 {
                                     foreach (KeyValuePair<string, TWPosition> p in pos)
                                     {
-                                        if (!symbols.Contains(p.Value.Symbol)) symbols.Add(p.Value.Symbol);
+                                        if (!symbols.Contains(p.Value.StreamerSymbol)) symbols.Add(p.Value.StreamerSymbol);
+                                        if (!mrkInfoSymbols.Contains(p.Value.Symbol)) mrkInfoSymbols.Add(p.Value.Symbol);
 
                                         // individual option list
                                         if (p.Value.Type.Substring(0, 1) != "S")
                                         {
-                                            if (!optionSymbols.Contains(p.Value.ShortOptionSymbol)) optionSymbols.Add(p.Value.ShortOptionSymbol);
+                                            if (!optionSymbols.Contains(p.Value.OptionStreamerSymbol)) optionSymbols.Add(p.Value.OptionStreamerSymbol);
                                         }
                                     }
                                 }
@@ -260,7 +262,7 @@ namespace OptionView
                         }
 
                         // get the symbol-specific data
-                        dataCache.TwMarketInfo = TastyWorks.MarketInfo(symbols);  // get IV's
+                        dataCache.TwMarketInfo = TastyWorks.MarketInfo(mrkInfoSymbols);  // get IV's
                         dataCache.DxOptionGreeks = DataFeed.GetGreeks(optionSymbols);
                         dataCache.DxQuotes = DataFeed.GetPrices(symbols.Concat(optionSymbols).ToList());
                     }
@@ -284,25 +286,30 @@ namespace OptionView
                             TWPosition twpos = p.Value;
                             if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) 
                                 && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate) 
-                                && dataCache.DxQuotes.ContainsKey(twpos.ShortOptionSymbol))  // if dx returns nothing
+                                && dataCache.DxQuotes.ContainsKey(twpos.OptionStreamerSymbol))  // if dx returns nothing
                             {
                                 //Debug.WriteLine(twpos.Market);
                                 if (currentValue == null) currentValue = 0;  // initialize now that we've found a match
-                                currentValue += pos.Quantity * (dataCache.DxQuotes[twpos.ShortOptionSymbol].Price * twpos.Multiplier); // twpos.Market;
+                                currentValue += pos.Quantity * (dataCache.DxQuotes[twpos.OptionStreamerSymbol].Price * twpos.Multiplier); // twpos.Market;
                                 previousCloseValue += pos.Quantity * twpos.PreviousClose * twpos.Multiplier;
 
                                 // capture current details while we have it
-                                pos.Market = (dataCache.DxQuotes[twpos.ShortOptionSymbol].Price * twpos.Multiplier); // twpos.Market;  
+                                pos.Market = dataCache.DxQuotes[twpos.OptionStreamerSymbol].Price; // twpos.Market;  
                                 //Debug.Assert(twpos.Market == (dxQuotes[twpos.ShortOptionSymbol].Price * twpos.Multiplier), string.Format("{0} not equal {1} != {2}", pos.Symbol,twpos.Market, (dxQuotes[twpos.ShortOptionSymbol].Price * twpos.Multiplier)));
                                 pos.Multiplier = twpos.Multiplier;
-                                pos.UnderlyingPrice = dataCache.DxQuotes[twpos.Symbol].Price; // twpos.UnderlyingPrice;
-                                //Debug.Assert(twpos.UnderlyingPrice == dxQuotes[twpos.Symbol].Price, string.Format("{0} not equal {1} != {2}", pos.Symbol, twpos.UnderlyingPrice, dxQuotes[twpos.Symbol].Price));
 
-                                // capture the underlying price on the first pass thru for the overall group
-                                if (grp.UnderlyingPrice == 0)
+                                // just in case dx doesn't return a symbol
+                                if (dataCache.DxQuotes.ContainsKey(twpos.StreamerSymbol))
                                 {
-                                    grp.UnderlyingPrice = dataCache.DxQuotes[twpos.Symbol].Price;
-                                    grp.UnderlyingPriceChange = dataCache.DxQuotes[twpos.Symbol].Change;
+                                    pos.UnderlyingPrice = dataCache.DxQuotes[twpos.StreamerSymbol].Price; // twpos.UnderlyingPrice;
+                                    //Debug.Assert(twpos.UnderlyingPrice == dxQuotes[twpos.Symbol].Price, string.Format("{0} not equal {1} != {2}", pos.Symbol, twpos.UnderlyingPrice, dxQuotes[twpos.Symbol].Price));
+
+                                    // capture the underlying price on the first pass thru for the overall group
+                                    if (grp.UnderlyingPrice == 0)
+                                    {
+                                        grp.UnderlyingPrice = dataCache.DxQuotes[twpos.StreamerSymbol].Price;
+                                        grp.UnderlyingPriceChange = dataCache.DxQuotes[twpos.StreamerSymbol].Change;
+                                    }
                                 }
 
                                 // update groups order status based on any of items constituent holdings
@@ -312,9 +319,9 @@ namespace OptionView
                                 {
                                     grp.GreekData.Delta += Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);  // delta is 1 per share
                                 }
-                                else if ((dataCache.DxOptionGreeks != null) && (dataCache.DxOptionGreeks.ContainsKey(twpos.ShortOptionSymbol)))
+                                else if ((dataCache.DxOptionGreeks != null) && (dataCache.DxOptionGreeks.ContainsKey(twpos.OptionStreamerSymbol)))
                                 {
-                                    pos.GreekData = dataCache.DxOptionGreeks[twpos.ShortOptionSymbol];
+                                    pos.GreekData = dataCache.DxOptionGreeks[twpos.OptionStreamerSymbol];
 
                                     grp.GreekData.Delta += pos.GreekData.Delta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
                                     grp.GreekData.Theta += pos.GreekData.Theta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
