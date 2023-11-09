@@ -14,7 +14,6 @@ namespace OptionView
         public List<int> Rows { get; set; }
         public decimal Market { get; set; }
         public decimal Multiplier { get; set; }
-        public string ShortOptionSymbol { get; set; }
         public decimal InitialQuantity { get; set; }
 
         public Position ()
@@ -40,8 +39,6 @@ namespace OptionView
         public string Add(Position pos)
         {
             string key = (pos.Type == "Stock") ? pos.Symbol : pos.Symbol + pos.ExpDate.ToString("yyMMdd") + pos.Strike.ToString("0000.0") + pos.Type;
-
-            pos.ShortOptionSymbol = (pos.Type == "Stock") ? "" : string.Format(".{0}{1:yyMMdd}{2}{3}", pos.Symbol, pos.ExpDate, pos.Type.Substring(0, 1), pos.Strike);
 
             this.Add(key, pos);
             return key;
