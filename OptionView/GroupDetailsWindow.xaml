@@ -24,7 +24,7 @@
                     </Style>
                 </DataGrid.CellStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="120"/>
+                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="140"/>
                     <DataGridTextColumn Header="Price" Binding="{Binding Property}" >
                         <DataGridTextColumn.CellStyle>
                             <Style TargetType="DataGridCell">
@@ -46,7 +46,7 @@
                     </Style>
                 </DataGrid.CellStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="120" />
+                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="140" />
                     <DataGridTextColumn Header="Price" Binding="{Binding Property}" />
                 </DataGrid.Columns>
             </DataGrid>
