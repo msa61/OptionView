@@ -910,17 +910,9 @@ namespace OptionView
             {
                 Position p = pos.Value;
                 string sym = string.Format(".{0}{1:yyMMdd}{2}{3}", p.Symbol, p.ExpDate, p.Type.Substring(0, 1), p.Strike);
-                if ((portfolio.dataCache != null) && (portfolio.dataCache.DxQuotes != null) && (portfolio.dataCache.DxQuotes.ContainsKey(sym)))
-                {
-                    decimal price = portfolio.dataCache.DxQuotes[sym].Price * p.Multiplier * p.Quantity / Math.Abs(p.Quantity);
-                    total += price;
-                    retlist.Add(new Detail { ItemName = sym, Property = price.ToString("N0") });
-                }
-                else
-                {
-                    missingValue = true;
-                    retlist.Add(new Detail { ItemName = sym, Property = "**" });
-                }
+                decimal price = p.Market * p.Multiplier * p.Quantity / Math.Abs(p.Quantity);
+                total += price;
+                retlist.Add(new Detail { ItemName = sym, Property = price.ToString("N0") });
             }
             if ((!missingValue) && (retlist.Count > 1)) retlist.Add(new Detail { ItemName = "Total", Property = total.ToString("N0") });
 
