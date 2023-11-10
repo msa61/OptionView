@@ -40,41 +40,38 @@ namespace OptionView.DataImport
         }
     }
 
-
-
-    public class GreekEventListener : IDxGreeksListener
-    {
-        public void OnGreeks<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxGreeks
-        {
-            foreach (TE item in buf)
-            {
-                //Debug.WriteLine($"Listening to {buf.Symbol}  IV: {item.Volatility}");
-
-                Greek grk = new Greek();
-                grk.Price = item.Price;
-                grk.Volatility = item.Volatility;
-                grk.Delta = item.Delta;
-                grk.Theta = item.Theta;
-                grk.Gamma = item.Gamma;
-                grk.Rho = item.Rho;
-                grk.Vega = item.Vega;
-
-                if (!DataFeed.ReturnList.ContainsKey(buf.Symbol))
-                {
-                    DataFeed.ReturnList.Add(buf.Symbol, grk);
-                    DataFeed.symbolCount -= 1;
-                }
-            }
-        }
-    }
-
     public class Quote
     {
         public decimal Price { set; get; }
         public decimal Change { set; get; }
     }
 
-    public class TradeEventListener : IDxTradeListener
+
+    public class Candle
+    {
+        public DateTime Day { set; get; }
+        public Decimal Price { set; get; }
+        public Decimal IV { set; get; }
+    }
+
+    public class Candles : SortedList<DateTime, Candle>
+    {
+        public Candles()
+        {
+
+        }
+        public Candles(Dictionary<string, Candle> list)
+        {
+            foreach (KeyValuePair<string, Candle> pair in list)
+            {
+                this.Add(pair.Value.Day, pair.Value);
+            }
+        }
+    }
+
+
+
+    public class EventListener : IDxTradeListener, IDxProfileListener, IDxUnderlyingListener, IDxGreeksListener, IDxCandleListener
     {
         public void OnTrade<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxTrade
         {
@@ -100,10 +97,7 @@ namespace OptionView.DataImport
                 }
             }
         }
-    }
 
-    public class ProfileEventListener : IDxProfileListener
-    {
         public void OnProfile<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxProfile
         {
             foreach (TE item in buf)
@@ -117,10 +111,7 @@ namespace OptionView.DataImport
                 }
             }
         }
-    }
 
-    public class UnderlyingEventListener : IDxUnderlyingListener
-    {
         public void OnUnderlying<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxUnderlying
         {
             foreach (TE item in buf)
@@ -135,6 +126,60 @@ namespace OptionView.DataImport
                 }
             }
         }
+
+        public void OnGreeks<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxGreeks
+        {
+            foreach (TE item in buf)
+            {
+                //Debug.WriteLine($"Listening to {buf.Symbol}  IV: {item.Volatility}");
+
+                Greek grk = new Greek();
+                grk.Price = item.Price;
+                grk.Volatility = item.Volatility;
+                grk.Delta = item.Delta;
+                grk.Theta = item.Theta;
+                grk.Gamma = item.Gamma;
+                grk.Rho = item.Rho;
+                grk.Vega = item.Vega;
+
+                if (!DataFeed.ReturnList.ContainsKey(buf.Symbol))
+                {
+                    DataFeed.ReturnList.Add(buf.Symbol, grk);
+                    DataFeed.symbolCount -= 1;
+                }
+            }
+        }
+
+        int x = 0;
+        public void OnCandle<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxCandle
+        {
+            foreach (TE item in buf)
+            {
+                Debug.WriteLine($"Listening to {buf.Symbol}  {++x}   date: {item.Time}   price: {item.Close}  {item.ImpVolatility}");
+
+                string sym = buf.Symbol.Replace("{=d}", "");
+
+                Candle cdl = new Candle();
+                cdl.Day = item.Time;
+                cdl.Price = Convert.ToDecimal(item.Close);
+                if (!Double.IsNaN(item.ImpVolatility)) cdl.IV = Convert.ToDecimal(item.ImpVolatility);
+
+                if (!DataFeed.ReturnCandleList.ContainsKey(sym))
+                {
+                    DataFeed.ReturnCandleList.Add(sym, new Candles());
+                }
+                if (DataFeed.ReturnCandleList[sym].ContainsKey(cdl.Day))
+                {
+                    DataFeed.symbolCount--;
+                }
+                else
+                {
+                    DataFeed.ReturnCandleList[sym].Add(cdl.Day, cdl);
+                }
+            }
+        }
+
+
     }
 
 
@@ -147,6 +192,7 @@ namespace OptionView.DataImport
         static internal Dictionary<string, Quote> ReturnPriceList = new Dictionary<string, Quote>();
         static internal Dictionary<string, string> ReturnProfileList = new Dictionary<string, string>();
         static internal Dictionary<string, double> ReturnOptionVolumeList = new Dictionary<string, double>();
+        static internal Dictionary<string, Candles> ReturnCandleList = new Dictionary<string, Candles>();
         static StreamingParams streaming = null;
 
 
@@ -156,7 +202,7 @@ namespace OptionView.DataImport
 
             App.UpdateStatusMessage("Greeks from Datafeed");
 
-            var listener = new GreekEventListener();
+            var listener = new EventListener();
             connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
 
             try
@@ -204,7 +250,7 @@ namespace OptionView.DataImport
 
             App.UpdateStatusMessage("Prices from Datafeed");
 
-            var listener = new TradeEventListener();
+            var listener = new EventListener();
             connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
 
             try
@@ -254,7 +300,7 @@ namespace OptionView.DataImport
 
             App.UpdateStatusMessage("Price from Datafeed");
 
-            var listener = new TradeEventListener();
+            var listener = new EventListener();
             connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
 
             try
@@ -297,7 +343,7 @@ namespace OptionView.DataImport
 
             App.UpdateStatusMessage("Profiles from Datafeed");
 
-            var listener = new ProfileEventListener();
+            var listener = new EventListener();
             connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
 
             try
@@ -344,12 +390,12 @@ namespace OptionView.DataImport
 
             App.UpdateStatusMessage("Volumes from Datafeed");
 
-            var listener = new UnderlyingEventListener();
+            var listener = new EventListener();
             connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
 
             try
             {
-                ReturnProfileList.Clear();
+                ReturnOptionVolumeList.Clear();
 
                 subsciption = connection.CreateSubscription(EventType.Underlying, listener);
                 symbolCount = symbols.Count;
@@ -382,6 +428,53 @@ namespace OptionView.DataImport
             }
 
             return new Dictionary<string, double>(ReturnOptionVolumeList);
+
+        }
+
+        static public Dictionary<string, Candles> GetHistory(List<string> symbols)
+        {
+            if (streaming == null) streaming = TastyWorks.StreamingInfo();
+
+            App.UpdateStatusMessage("Volumes from Datafeed");
+
+            var listener = new EventListener();
+            connection = new NativeConnection(streaming.Address, streaming.Token, connect => { });
+
+            try
+            {
+                ReturnCandleList.Clear();
+
+                subsciption = connection.CreateSubscription(DateTime.Today.AddDays(-60), listener);
+                symbolCount = symbols.Count;
+
+                foreach (string sym in symbols)
+                {
+                    subsciption.AddSymbol(sym + "{=1d}");
+                }
+
+                //Debug.WriteLine("waiting...");
+                int i = 100;
+                while ((symbolCount > 0) && (i > 0))
+                {
+                    Thread.Sleep(100);
+                    i--;
+                }
+                //Debug.WriteLine("done...");
+            }
+            catch (DxException dxException)
+            {
+                Debug.WriteLine($"Datafeed: Native exception occurred: {dxException.Message}");
+            }
+            catch (Exception exc)
+            {
+                Debug.WriteLine($"Datafeed: Exception occurred: {exc.Message}");
+            }
+            finally
+            {
+                subsciption?.Dispose();
+            }
+
+            return new Dictionary<string, Candles>(ReturnCandleList);
 
         }
 
