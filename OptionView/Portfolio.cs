@@ -297,6 +297,7 @@ namespace OptionView
                                 pos.Market = dataCache.DxQuotes[twpos.OptionStreamerSymbol].Price; // twpos.Market;  
                                 //Debug.Assert(twpos.Market == (dxQuotes[twpos.ShortOptionSymbol].Price * twpos.Multiplier), string.Format("{0} not equal {1} != {2}", pos.Symbol,twpos.Market, (dxQuotes[twpos.ShortOptionSymbol].Price * twpos.Multiplier)));
                                 pos.Multiplier = twpos.Multiplier;
+                                pos.StreamerSymbol = twpos.OptionStreamerSymbol;
 
                                 // just in case dx doesn't return a symbol
                                 if (dataCache.DxQuotes.ContainsKey(twpos.StreamerSymbol))
@@ -318,6 +319,7 @@ namespace OptionView
                                 if (pos.Type == "Stock")
                                 {
                                     grp.GreekData.Delta += Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);  // delta is 1 per share
+                                    pos.StreamerSymbol = twpos.StreamerSymbol;
                                 }
                                 else if ((dataCache.DxOptionGreeks != null) && (dataCache.DxOptionGreeks.ContainsKey(twpos.OptionStreamerSymbol)))
                                 {

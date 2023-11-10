@@ -15,6 +15,7 @@ namespace OptionView
         public decimal Market { get; set; }
         public decimal Multiplier { get; set; }
         public decimal InitialQuantity { get; set; }
+        public string StreamerSymbol { get; set; } // cache symbol for pulling up history data
 
         public Position ()
         {
