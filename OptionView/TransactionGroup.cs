@@ -55,6 +55,7 @@ namespace OptionView
         public decimal AnalysisYValue { get; set; }
         public bool OrderActive { get; set; }
         public Greek GreekData { get; set; }
+        public string StreamingSymbol { get; set; }
 
         public Positions Holdings { get; set; }
         public Transactions Transactions { get; set; }
