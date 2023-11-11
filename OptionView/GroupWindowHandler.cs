@@ -49,5 +49,9 @@ namespace OptionView
             GroupDetails= null;
             if (Window != null) Window.Clear();
         }
+        public bool IsClosed()
+        {
+            return Window != null && Window.IsVisible;
+        }
     }
 }

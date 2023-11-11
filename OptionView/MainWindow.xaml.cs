@@ -876,9 +876,12 @@ namespace OptionView
             // header
             App.GroupWindow.Symbol = grp.Symbol;
 
-            // graph
-            GroupHistory hist = BalanceHistory.GetGroup(portfolio[grp.GroupID]);
-            App.GroupWindow.GraphContents = new GroupGraph(hist);
+            if (App.GroupWindow.IsClosed())
+            {
+                // graph
+                GroupHistory hist = BalanceHistory.GetGroup(portfolio[grp.GroupID]);
+                App.GroupWindow.GraphContents = new GroupGraph(hist);
+            }
 
             // 2nd section
             App.GroupWindow.Prices = AddHoldingsPrice(grp);
