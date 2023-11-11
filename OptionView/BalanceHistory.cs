@@ -11,6 +11,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Windows.Controls;
 using System.Security.Principal;
 using System.Windows.Controls.Primitives;
+using OptionView.DataImport;
 
 namespace OptionView
 {
@@ -20,7 +21,6 @@ namespace OptionView
         public decimal Value { get; set; }
         public decimal Underlying { get; set; }
         public decimal IV { get; set; }
-        public decimal IVR { get; set; }
     }
 
     public class GroupHistory
@@ -237,47 +237,68 @@ namespace OptionView
             return (obj == DBNull.Value) ? DateTime.MinValue : Convert.ToDateTime(obj);
         }
 
+
         public static GroupHistory GetGroup(TransactionGroup grp)
         {
             GroupHistory retval = new GroupHistory();
             retval.Values = new List<GroupHistoryValue>();
 
-            OpenConnection();
 
-            // last record of the day (and only week days)
-            //string sql = "SELECT date, value, underlying FROM GroupHistory AS h ";
-            //sql += "INNER JOIN (SELECT DISTINCT strftime('%Y-%m-%d', date) AS day, rowid FROM ";
-            //sql += "(SELECT *, rowid, CAST(strftime('%w', date) AS Integer) as DoW FROM GroupHistory ";
-            //sql += "WHERE GroupID = @grp AND  DoW > 0 AND DoW < 6 AND date < datetime('now') ORDER BY date DESC) ";
-            //sql += "GROUP BY day HAVING max(rowid) ORDER BY day DESC) AS r ON h.rowid = r.rowid ";
-            //sql += "ORDER BY day";
-
-            // all records
-            string sql = "SELECT date, value, underlying, IV, IVR FROM GroupHistory WHERE GroupID = @grp ORDER BY date";
-
-            //string sql = "SELECT date, value, underlying, IV, IVR, CAST(strftime('%w', date) AS Integer) as DoW";
-            //sql += " FROM GroupHistory WHERE GroupID = @grp AND  DoW > 0 AND DoW < 6 ORDER BY date";
-
-
-            SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
-            cmd.Parameters.AddWithValue("grp", grp.GroupID);
-            SQLiteDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
+            List<string> symbols = new List<string>();
+            foreach (KeyValuePair<string, Position> p in grp.Holdings)
             {
-                GroupHistoryValue val = new GroupHistoryValue();
-                val.Time  = reader.GetDateTime(0);
-                if (reader["Value"] != DBNull.Value) val.Value = reader.GetDecimal(1);
-                if (reader["Underlying"] != DBNull.Value) val.Underlying = reader.GetDecimal(2);
-                if (reader["IV"] != DBNull.Value) val.IV = reader.GetDecimal(3);
-                if (reader["IVR"] != DBNull.Value) val.IVR = reader.GetDecimal(4);
-
-                retval.Values.Add(val);
+                Position pos = p.Value;
+                symbols.Add(pos.StreamingSymbol);
             }
+            if (!symbols.Any(s => s.Equals(grp.StreamingSymbol))) symbols.Add(grp.StreamingSymbol);
+            Dictionary<string, Candles> lst = DataFeed.GetHistory(symbols, grp.StartTime.Date);
+
+            if (lst.Count > 0)
+            {
+                DateTime today = DateTime.Today;
+                for (DateTime date = grp.StartTime.Date; date <= today; date = date.AddDays(1))
+                {
+                    decimal currentValue = 0;
+                    foreach (KeyValuePair<string, Position> p in grp.Holdings)
+                    {
+                        Position pos = p.Value;
+
+                        if (!lst[pos.StreamingSymbol].ContainsKey(date))
+                        {
+                            currentValue = 0;
+                            break;
+                        }
+
+                        //Debug.WriteLine($"   {pos.StreamingSymbol}  {lst[pos.StreamingSymbol][date].Price}");
+
+                        currentValue += pos.Quantity * lst[pos.StreamingSymbol][date].Price * pos.Multiplier;
+                    }
+                    //Debug.WriteLine($"  value: {currentValue}   cost: {grp.Cost}");
+
+                    if (currentValue != 0)
+                    {
+                        GroupHistoryValue val = new GroupHistoryValue();
+                        val.Time = date;
+                        val.Value = currentValue + grp.Cost;
+                        if (lst.ContainsKey(grp.StreamingSymbol))
+                        {
+                            Candles candles = lst[grp.StreamingSymbol];
+                            val.Underlying = candles[date].Price;
+                            val.IV = candles[date].IV * 100;
+                            //Debug.WriteLine($"  underlying: {val.Underlying}   iv: {val.IV}");
+                        }
+
+                        retval.Values.Add(val);
+                    }
+                }
+
+            }
+
+
 
             retval.Calls = grp.GetOptionHistoryList("Call");
             retval.Puts = grp.GetOptionHistoryList("Put");
 
-            CloseConnection();
 
             return retval;
         }
