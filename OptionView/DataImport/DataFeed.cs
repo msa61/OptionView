@@ -151,11 +151,12 @@ namespace OptionView.DataImport
         }
 
         int x = 0;
+        int firstSymbolLength = 0;
         public void OnCandle<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxCandle
         {
             foreach (TE item in buf)
             {
-                Debug.WriteLine($"Listening to {buf.Symbol}  {++x}   date: {item.Time}   price: {item.Close}  {item.ImpVolatility}");
+                //Debug.WriteLine($"Listening to {buf.Symbol}  {++x}   date: {item.Time}   price: {item.Close}  {item.ImpVolatility}");
 
                 string sym = buf.Symbol.Replace("{=d}", "");
 
@@ -168,17 +169,36 @@ namespace OptionView.DataImport
                 {
                     DataFeed.ReturnCandleList.Add(sym, new Candles());
                 }
-                if (DataFeed.ReturnCandleList[sym].ContainsKey(cdl.Day))
-                {
-                    DataFeed.symbolCount--;
-                }
-                else
-                {
+                if (!DataFeed.ReturnCandleList[sym].ContainsKey(cdl.Day))
+                { 
                     DataFeed.ReturnCandleList[sym].Add(cdl.Day, cdl);
+                }
+
+                if ((cdl.Day == DataFeed.FirstDate) && (firstSymbolLength == 0))
+                {
+                    firstSymbolLength = DataFeed.ReturnCandleList[sym].Count;
+                    //Debug.WriteLine($"  first date found: {DataFeed.FirstDate}   length = {firstSymbolLength}");
+                }
+
+                bool allSymbolsComplete = false;
+                if ((firstSymbolLength > 0) && (DataFeed.ReturnCandleList.Count == DataFeed.symbolCount))
+                {
+                    allSymbolsComplete = true;
+                    foreach (KeyValuePair<string, Candles> c in DataFeed.ReturnCandleList)
+                    {
+                        Candles cdls = c.Value;
+                        allSymbolsComplete &= (cdls.Count == firstSymbolLength);
+
+                        //Debug.WriteLine($"  checking length of: {c.Key, 16}   length = {cdls.Count}    status: {allSymbolsComplete}");
+                    }
+                }
+
+                if (allSymbolsComplete)
+                {
+                    DataFeed.symbolCount = 0;
                 }
             }
         }
-
 
     }
 
@@ -193,6 +213,7 @@ namespace OptionView.DataImport
         static internal Dictionary<string, string> ReturnProfileList = new Dictionary<string, string>();
         static internal Dictionary<string, double> ReturnOptionVolumeList = new Dictionary<string, double>();
         static internal Dictionary<string, Candles> ReturnCandleList = new Dictionary<string, Candles>();
+        static internal DateTime FirstDate = DateTime.MinValue;
         static StreamingParams streaming = null;
 
 
@@ -431,7 +452,7 @@ namespace OptionView.DataImport
 
         }
 
-        static public Dictionary<string, Candles> GetHistory(List<string> symbols)
+        static public Dictionary<string, Candles> GetHistory(List<string> symbols, DateTime startTime)
         {
             if (streaming == null) streaming = TastyWorks.StreamingInfo();
 
@@ -443,8 +464,9 @@ namespace OptionView.DataImport
             try
             {
                 ReturnCandleList.Clear();
+                FirstDate = startTime;
 
-                subsciption = connection.CreateSubscription(DateTime.Today.AddDays(-60), listener);
+                subsciption = connection.CreateSubscription(startTime, listener);
                 symbolCount = symbols.Count;
 
                 foreach (string sym in symbols)
