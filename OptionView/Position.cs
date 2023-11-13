@@ -80,7 +80,7 @@ namespace OptionView
             if (grpID > 0) groupID = grpID;
 
             // default value, doesn't work for futures
-            p.StreamingSymbol = string.Format(".{0}{1:yyMMdd}{2}{3}", p.Symbol, p.ExpDate, p.Type.Substring(0, 1), p.Strike);
+            p.StreamingSymbol = (p.Type == "Stock") ? p.Symbol : string.Format(".{0}{1:yyMMdd}{2}{3}", p.Symbol, p.ExpDate, p.Type.Substring(0, 1), p.Strike);
 
             return key;
         }
