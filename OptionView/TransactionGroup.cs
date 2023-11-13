@@ -584,6 +584,26 @@ namespace OptionView
             return retval;
         }
 
+        public decimal GetCostAtDate(DateTime date)
+        {
+            decimal retval = 0;
+
+            // step thru open transactions
+            string sql = "SELECT symbol, TransSubType, transgroupid, type, datetime(expiredate) AS ExpireDate, strike, sum(quantity) AS total, sum(amount) as amount, ";
+            sql += "datetime(Time) AS Time FROM transactions WHERE (transgroupid = @gr) AND date(Time) <= @dt GROUP BY symbol, TransSubType, type, expiredate, strike ORDER BY Time";
+
+            SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+            cmd.Parameters.AddWithValue("gr", this.GroupID);
+            cmd.Parameters.AddWithValue("dt", date);
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            DateTime prevTime = DateTime.MinValue;
+            while (reader.Read())
+            {
+                if (reader["Amount"] != DBNull.Value) retval += Convert.ToDecimal(reader["Amount"]);
+            }
+
+            return retval;
+        }
 
     }
 }
