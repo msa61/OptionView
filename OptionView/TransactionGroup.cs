@@ -542,7 +542,6 @@ namespace OptionView
 
             SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
             cmd.Parameters.AddWithValue("gr", this.GroupID);
-            int i = 0;
             SQLiteDataReader reader = cmd.ExecuteReader();
             DateTime prevTime = DateTime.MinValue;
             while (reader.Read())
@@ -561,7 +560,6 @@ namespace OptionView
                 DateTime expDate = DateTime.MinValue;
                 if (reader["ExpireDate"] != DBNull.Value) expDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
 
-                Debug.WriteLine($"{time} {type}  {reader["symbol"].ToString()}    {++i}");
                 if (!retval.ContainsKey(time))
                 {
                     if ((time > prevTime) && (prevTime > DateTime.MinValue))
