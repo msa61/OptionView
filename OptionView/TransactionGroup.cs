@@ -488,7 +488,7 @@ namespace OptionView
         }
 
 
-        public SortedList<DateTime, List<decimal>> GetOptionHistoryList(string typ)
+        public SortedList<DateTime, List<decimal>> GetOptionStrikeHistory(string typ)
         {
             SortedList<DateTime, List<decimal>> retval = new SortedList<DateTime, List<decimal>>();
 
@@ -519,6 +519,7 @@ namespace OptionView
                         retval.Add(time, new List<decimal>());
                         if (prevTime > DateTime.MinValue)
                         {
+                            // seed the next date with the previous date's positions
                             retval[time] = retval[time].Concat(retval[prevTime]).ToList();
                         }
                         prevTime = time;
@@ -529,6 +530,62 @@ namespace OptionView
             }
             return retval;
         }
+
+
+        public SortedList<DateTime, Positions> GetOptionPositionHistory()
+        {
+            SortedList<DateTime, Positions> retval = new SortedList<DateTime, Positions>();
+
+            // step thru open transactions
+            string sql = "SELECT symbol, TransSubType, transgroupid, type, datetime(expiredate) AS ExpireDate, strike, sum(quantity) AS total, sum(amount) as amount, ";
+            sql += "datetime(Time) AS Time FROM transactions WHERE (transgroupid = @gr) GROUP BY symbol, TransSubType, type, expiredate, strike ORDER BY Time";
+
+            SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+            cmd.Parameters.AddWithValue("gr", this.GroupID);
+            int i = 0;
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            DateTime prevTime = DateTime.MinValue;
+            while (reader.Read())
+            {
+                DateTime time = ((reader["Time"] != DBNull.Value) ? Convert.ToDateTime(reader["Time"].ToString()) : DateTime.MinValue);
+                time = DateTime.SpecifyKind(time, DateTimeKind.Utc);
+
+                string transType = reader["TransSubType"].ToString();
+                string type = reader["Type"].ToString();
+                decimal strike = 0m;
+                if (reader["Strike"] != DBNull.Value) strike = Convert.ToDecimal(reader["Strike"]);
+                decimal quantity = 0.0m;
+                if (reader["Total"] != DBNull.Value) quantity = Convert.ToDecimal(reader["Total"]);
+                decimal amount = 0.0m;
+                if (reader["Amount"] != DBNull.Value) amount = Convert.ToDecimal(reader["Amount"]);
+                DateTime expDate = DateTime.MinValue;
+                if (reader["ExpireDate"] != DBNull.Value) expDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
+
+                Debug.WriteLine($"{time} {type}  {reader["symbol"].ToString()}    {++i}");
+                if (!retval.ContainsKey(time))
+                {
+                    if ((time > prevTime) && (prevTime > DateTime.MinValue))
+                    {
+                        // clean up previous time of empty positions
+                        retval[prevTime].PurgeEmptyPositions();
+                    }
+
+                    retval.Add(time, new Positions());
+                    if (prevTime > DateTime.MinValue)
+                    {
+                        // seed the next date with the previous date's positions
+                        retval[time].Concat(retval[prevTime]);
+                    }
+                    prevTime = time;
+                }
+                retval[time].Add(reader["symbol"].ToString(), type, expDate, strike, quantity, amount, time, 0, "", 0, 0);
+
+            }
+            retval.ElementAt(retval.Count-1).Value.PurgeEmptyPositions();
+
+            return retval;
+        }
+
 
     }
 }
