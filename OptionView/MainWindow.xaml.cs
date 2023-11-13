@@ -686,7 +686,7 @@ namespace OptionView
                     };
                     sp.Children.Add(l);
 
-                    GroupHistory hist = BalanceHistory.GetGroup(portfolio[grp]);
+                    GroupHistory hist = BalanceHistory.GetGroupHistory(portfolio[grp]);
                     sp.Children.Add(new GroupGraph(hist));
 
 
@@ -879,7 +879,7 @@ namespace OptionView
             if (App.GroupWindow.IsClosed())
             {
                 // graph
-                GroupHistory hist = BalanceHistory.GetGroup(portfolio[grp.GroupID]);
+                GroupHistory hist = BalanceHistory.GetGroupHistory(portfolio[grp.GroupID]);
                 App.GroupWindow.GraphContents = new GroupGraph(hist);
             }
 
@@ -1402,7 +1402,7 @@ namespace OptionView
             if (row.Item.GetType() == typeof(TransactionGroup))
             {
                 TransactionGroup tg = (TransactionGroup)row.Item;
-                GroupHistory hist = BalanceHistory.GetGroup(tg);
+                GroupHistory hist = BalanceHistory.GetGroupHistory(tg);
                 App.GroupWindow.Clear();
                 App.GroupWindow.Update(tg.Symbol, new GroupGraph(hist), null, null);
 
