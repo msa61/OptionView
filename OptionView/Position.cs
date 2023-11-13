@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Windows;
 
 
 namespace OptionView
@@ -78,6 +79,9 @@ namespace OptionView
             p.TransType = openClose;
             if (grpID > 0) groupID = grpID;
 
+            // default value, doesn't work for futures
+            p.StreamingSymbol = string.Format(".{0}{1:yyMMdd}{2}{3}", p.Symbol, p.ExpDate, p.Type.Substring(0, 1), p.Strike);
+
             return key;
         }
 
@@ -85,6 +89,32 @@ namespace OptionView
         {
             return Add(symbol, type, expDate, strike, quant, 0.0m, null, row, openClose, grpID, 0);
         }
+
+        public Positions Concat(Positions other)
+        {
+            foreach (KeyValuePair<string, Position> item in other)
+            {
+                Position p = item.Value;
+                this.Add(p.Symbol, p.Type, p.ExpDate, p.Strike, p.Quantity, 0, p.TransType, p.GroupID);
+            }
+            return this;
+        }
+
+        public void PurgeEmptyPositions()
+        {
+            // clean up previous time of empty positions
+            restartScan:
+            foreach (KeyValuePair<string, Position> item in this)
+            {
+                Position p = item.Value;
+                if (p.Quantity == 0)
+                {
+                    this.Remove(item.Key);
+                    goto restartScan;
+                }
+            }
+        }
+
 
         public int GroupID()
         {
