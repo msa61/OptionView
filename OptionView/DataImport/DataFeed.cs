@@ -150,7 +150,7 @@ namespace OptionView.DataImport
             }
         }
 
-        int x = 0;
+        //int x = 0;
         int firstSymbolLength = 0;
         public void OnCandle<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxCandle
         {
