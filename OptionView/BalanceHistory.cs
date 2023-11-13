@@ -238,7 +238,7 @@ namespace OptionView
         }
 
 
-        public static GroupHistory GetGroup(TransactionGroup grp)
+        public static GroupHistory GetGroupHistory(TransactionGroup grp)
         {
             GroupHistory retval = new GroupHistory();
             retval.Values = new List<GroupHistoryValue>();
@@ -296,8 +296,8 @@ namespace OptionView
 
 
 
-            retval.Calls = grp.GetOptionHistoryList("Call");
-            retval.Puts = grp.GetOptionHistoryList("Put");
+            retval.Calls = grp.GetOptionStrikeHistory("Call");
+            retval.Puts = grp.GetOptionStrikeHistory("Put");
 
 
             return retval;
