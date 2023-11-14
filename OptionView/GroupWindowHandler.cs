@@ -49,7 +49,7 @@ namespace OptionView
             GroupDetails= null;
             if (Window != null) Window.Clear();
         }
-        public bool IsClosed()
+        public bool IsOpen()
         {
             return Window != null && Window.IsVisible;
         }
