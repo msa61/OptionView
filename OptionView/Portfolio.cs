@@ -21,11 +21,13 @@ namespace OptionView
         public TWMarketInfos TwMarketInfo { get; set; } = null;                              // IV and IVR data
         public Dictionary<string, Quote> DxQuotes { get; set; } = null;                      // current prices of options and underlyings
         public Greeks DxOptionGreeks { get; set; } = null;                                   // greek data for individual options
+        public Dictionary<int,GroupHistory> GroupHistory { get; set; }                       // cached historical streaming data
 
         public CurrentDataCache()
         {
             TwPositionList = new Dictionary<string, TWPositions>();
             TwReqCapital = new Dictionary<string, TWCapitalRequirements>();
+            GroupHistory = new Dictionary<int, GroupHistory>();
         }
 
         public bool IsCacheInitialized(string acct)
@@ -184,7 +186,7 @@ namespace OptionView
             return ret;
         }
 
-        public void GetCurrentData(Accounts acc)
+        public void GetCurrentData()
         {
             if (App.OfflineMode) 
                 return;
@@ -379,6 +381,23 @@ namespace OptionView
                 Debug.WriteLine("RetrieveCurrentData: " + ex.Message);
             }
 
+        }
+
+
+        public void CacheGroupHistoricalData()
+        {
+            foreach (KeyValuePair<int, TransactionGroup> grpItem in this)
+            {
+                TransactionGroup grp = grpItem.Value;
+                GroupHistory hist = grp.GetHistoryValues();
+                dataCache.GroupHistory.Add(grp.GroupID, hist);
+            }
+        }
+
+        public GroupHistory GetHistoryFromCache(int groupID)
+        {
+            if (dataCache.GroupHistory.ContainsKey(groupID))  return dataCache.GroupHistory[groupID];
+            return null;
         }
 
 
