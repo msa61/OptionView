@@ -192,7 +192,7 @@ namespace OptionView
             return retval;
         }
 
-        public string GetHistory()
+        public string GetHistoryText()
         {
             SortedList<DateTime, Positions> data = new SortedList<DateTime, Positions>();
 
@@ -605,5 +605,130 @@ namespace OptionView
             return retval;
         }
 
+
+        private static DateTime GetNextHistoricTime(SortedList<DateTime, Positions> lst, int ndx)
+        {
+            DateTime retval = DateTime.MinValue;
+
+            if ((ndx + 1) >= lst.Count)
+            {
+                // at the end of the list
+                retval = DateTime.MaxValue;
+            }
+            else
+            {
+                retval = lst.ElementAt(ndx + 1).Key.Date;
+            }
+            return retval;
+        }
+
+
+        public GroupHistory GetHistoryValues()
+        {
+            GroupHistory retval = new GroupHistory();
+            retval.Values = new List<GroupHistoryValue>();
+
+            // retrieve all positions over time grouped by dates of transactions
+            SortedList<DateTime, Positions> historicalPositions = this.GetOptionPositionHistory();
+
+            List<string> symbols = new List<string>();
+            foreach (KeyValuePair<DateTime, Positions> p in historicalPositions)
+            {
+                Positions positions = p.Value;
+                List<string> allSymbols = allSymbols = positions.Select(x => x.Value.StreamingSymbol).ToList();
+                foreach (string s in allSymbols)
+                {
+                    if (!symbols.Any(x => x.Equals(s))) symbols.Add(s);
+                }
+            }
+            // add underlying if not already included
+            if (!symbols.Any(s => s.Equals(this.StreamingSymbol))) symbols.Add(this.StreamingSymbol);
+
+            // get data
+            Dictionary<string, Candles> lst = DataFeed.GetHistory(symbols, this.StartTime.Date);
+
+            if (lst.Count > 0)
+            {
+                int currentPositionIndex = 0;
+
+                DateTime today = DateTime.Today;
+                for (DateTime date = this.StartTime.Date; date <= today; date = date.AddDays(1))
+                {
+                    DateTime nextDate = GetNextHistoricTime(historicalPositions, currentPositionIndex);
+                    if (date >= nextDate) currentPositionIndex++;
+
+                    KeyValuePair<DateTime, Positions> node = historicalPositions.ElementAt(currentPositionIndex);
+                    DateTime currentTime = node.Key;
+                    Positions currentPositions = node.Value;
+                    //Debug.WriteLine($"Today: {date}    index: {currentPositionIndex}    current: {currentTime}    next: {nextDate}");
+
+                    decimal? currentValue = null;
+                    foreach (KeyValuePair<string, Position> p in currentPositions)
+                    {
+                        Position pos = p.Value;
+
+                        if (!lst[pos.StreamingSymbol].ContainsKey(date))
+                        {
+                            currentValue = null;
+                            break;
+                        }
+
+                        decimal multipler = 1;
+                        if (pos.Type != "Stock")
+                        {
+                            multipler = 100;
+                            var x = this.Holdings.Where(y => y.Value.Type == pos.Type);
+                            if (x.Count() > 0) multipler = this.Holdings.Where(z => z.Value.Type == pos.Type).Select(z => z.Value.Multiplier).First();
+                        }
+
+                        //Debug.WriteLine($"     {pos.StreamingSymbol}  {lst[pos.StreamingSymbol][date].Price}    mult: {multipler}");
+                        if (currentValue == null) currentValue = 0;
+                        currentValue += pos.Quantity * lst[pos.StreamingSymbol][date].Price * multipler;
+                    }
+
+                    if (currentValue != null)
+                    {
+                        decimal accumlativeCost = this.GetCostAtDate(date);
+                        //Debug.WriteLine($"  date: {date}    value: {currentValue}   cost: {grp.Cost}    new cost: {accumlativeCost}");
+
+                        GroupHistoryValue val = new GroupHistoryValue();
+                        val.Time = date;
+                        val.Value = (currentValue ?? 0) + accumlativeCost;
+                        if ((this.StreamingSymbol != null) && (lst.ContainsKey(this.StreamingSymbol)))
+                        {
+                            Candles candles = lst[this.StreamingSymbol];
+                            val.Underlying = candles[date].Price;
+                            val.IV = candles[date].IV * 100;
+                            //Debug.WriteLine($"  underlying: {val.Underlying}   iv: {val.IV}");
+                        }
+
+                        retval.Values.Add(val);
+                    }
+                }
+
+            }
+
+            retval.Calls = this.GetOptionStrikeHistory("Call");
+            retval.Puts = this.GetOptionStrikeHistory("Put");
+
+            return retval;
+        }
+
     }
+
+    public class GroupHistoryValue
+    {
+        public DateTime Time { get; set; }
+        public decimal Value { get; set; }
+        public decimal Underlying { get; set; }
+        public decimal IV { get; set; }
+    }
+
+    public class GroupHistory
+    {
+        public List<GroupHistoryValue> Values { get; set; }
+        public SortedList<DateTime, List<decimal>> Puts { get; set; }
+        public SortedList<DateTime, List<decimal>> Calls { get; set; }
+    }
+
 }

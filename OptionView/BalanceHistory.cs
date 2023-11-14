@@ -12,23 +12,10 @@ using System.Windows.Controls;
 using System.Security.Principal;
 using System.Windows.Controls.Primitives;
 using OptionView.DataImport;
+using System.Diagnostics;
 
 namespace OptionView
 {
-    public class GroupHistoryValue
-    {
-        public DateTime Time { get; set; }
-        public decimal Value { get; set; }
-        public decimal Underlying { get; set; }
-        public decimal IV { get; set; }
-    }
-
-    public class GroupHistory
-    {
-        public List<GroupHistoryValue> Values { get; set; } 
-        public SortedList<DateTime, List<decimal>> Puts { get; set; }
-        public SortedList<DateTime, List<decimal>> Calls { get; set; }
-    }
 
     internal class BalanceHistory
     {
@@ -197,92 +184,80 @@ namespace OptionView
         }
 
 
-
-        public static void WriteGroups(Portfolio portfolio)
-        {
-            OpenConnection();
-            DateTime tm = GetLastGroupEntry();
-
-            if (tm.AddHours(2) < DateTime.Now)
-            {
-                foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
-                {
-                    TransactionGroup grp = entry.Value;
-
-                    // skip this if there isn't a current value
-                    if (grp.CurrentValue != null)
-                    {
-                        decimal value = (grp.CurrentValue ?? 0) + grp.Cost;
-
-                        string sql = "INSERT INTO GroupHistory(Date, GroupID, Value, Underlying, IV, IVR) Values (@dt,@id,@va,@ul,@iv,@ir)";
-                        SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
-                        cmd.Parameters.AddWithValue("dt", DateTime.UtcNow);
-                        cmd.Parameters.AddWithValue("id", grp.GroupID);
-                        cmd.Parameters.AddWithValue("va", value);
-                        cmd.Parameters.AddWithValue("ul", grp.UnderlyingPrice);
-                        cmd.Parameters.AddWithValue("iv", Math.Round(grp.ImpliedVolatility * 100, 1));
-                        cmd.Parameters.AddWithValue("ir", Math.Round(grp.ImpliedVolatilityRank * 100, 1));
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-            }
-
-            CloseConnection();
-        }
-
-        public static DateTime GetLastGroupEntry()
-        {
-            SQLiteCommand cmd = new SQLiteCommand("SELECT Max(Date) FROM GroupHistory", ConnStr);
-            var obj = cmd.ExecuteScalar();
-            return (obj == DBNull.Value) ? DateTime.MinValue : Convert.ToDateTime(obj);
-        }
-
-
-        public static GroupHistory GetGroupHistory(TransactionGroup grp)
+        public GroupHistory GetHistoryValues()
         {
             GroupHistory retval = new GroupHistory();
             retval.Values = new List<GroupHistoryValue>();
 
+            // retrieve all positions over time grouped by dates of transactions
+            SortedList<DateTime, Positions> historicalPositions = this.GetOptionPositionHistory();
 
             List<string> symbols = new List<string>();
-            foreach (KeyValuePair<string, Position> p in grp.Holdings)
+            foreach (KeyValuePair<DateTime, Positions> p in historicalPositions)
             {
-                Position pos = p.Value;
-                symbols.Add(pos.StreamingSymbol);
+                Positions positions = p.Value;
+                List<string> allSymbols = allSymbols = positions.Select(x => x.Value.StreamingSymbol).ToList();
+                foreach (string s in allSymbols)
+                {
+                    if (!symbols.Any(x => x.Equals(s))) symbols.Add(s);
+                }
             }
-            if (!symbols.Any(s => s.Equals(grp.StreamingSymbol))) symbols.Add(grp.StreamingSymbol);
-            Dictionary<string, Candles> lst = DataFeed.GetHistory(symbols, grp.StartTime.Date);
+            // add underlying if not already included
+            if (!symbols.Any(s => s.Equals(this.StreamingSymbol))) symbols.Add(this.StreamingSymbol);
+
+            // get data
+            Dictionary<string, Candles> lst = DataFeed.GetHistory(symbols, this.StartTime.Date);
 
             if (lst.Count > 0)
             {
+                int currentPositionIndex = 0;
+
                 DateTime today = DateTime.Today;
-                for (DateTime date = grp.StartTime.Date; date <= today; date = date.AddDays(1))
+                for (DateTime date = this.StartTime.Date; date <= today; date = date.AddDays(1))
                 {
-                    decimal currentValue = 0;
-                    foreach (KeyValuePair<string, Position> p in grp.Holdings)
+                    DateTime nextDate = GetNextHistoricTime(historicalPositions, currentPositionIndex);
+                    if (date >= nextDate) currentPositionIndex++;
+
+                    KeyValuePair<DateTime, Positions> node = historicalPositions.ElementAt(currentPositionIndex);
+                    DateTime currentTime = node.Key;
+                    Positions currentPositions = node.Value;
+                    //Debug.WriteLine($"Today: {date}    index: {currentPositionIndex}    current: {currentTime}    next: {nextDate}");
+
+                    decimal? currentValue = null;
+                    foreach (KeyValuePair<string, Position> p in currentPositions)
                     {
                         Position pos = p.Value;
 
                         if (!lst[pos.StreamingSymbol].ContainsKey(date))
                         {
-                            currentValue = 0;
+                            currentValue = null;
                             break;
                         }
 
-                        //Debug.WriteLine($"   {pos.StreamingSymbol}  {lst[pos.StreamingSymbol][date].Price}");
+                        decimal multipler = 1;
+                        if (pos.Type != "Stock")
+                        {
+                            multipler = 100;
+                            var x = this.Holdings.Where(y => y.Value.Type == pos.Type);
+                            if (x.Count() > 0) multipler = this.Holdings.Where(z => z.Value.Type == pos.Type).Select(z => z.Value.Multiplier).First();
+                        }
 
-                        currentValue += pos.Quantity * lst[pos.StreamingSymbol][date].Price * pos.Multiplier;
+                        //Debug.WriteLine($"     {pos.StreamingSymbol}  {lst[pos.StreamingSymbol][date].Price}    mult: {multipler}");
+                        if (currentValue == null) currentValue = 0;
+                        currentValue += pos.Quantity * lst[pos.StreamingSymbol][date].Price * multipler;
                     }
-                    //Debug.WriteLine($"  value: {currentValue}   cost: {grp.Cost}");
 
-                    if (currentValue != 0)
+                    if (currentValue != null)
                     {
+                        decimal accumlativeCost = this.GetCostAtDate(date);
+                        //Debug.WriteLine($"  date: {date}    value: {currentValue}   cost: {grp.Cost}    new cost: {accumlativeCost}");
+
                         GroupHistoryValue val = new GroupHistoryValue();
                         val.Time = date;
-                        val.Value = currentValue + grp.Cost;
-                        if (lst.ContainsKey(grp.StreamingSymbol))
+                        val.Value = (currentValue ?? 0) + accumlativeCost;
+                        if ((this.StreamingSymbol != null) && (lst.ContainsKey(this.StreamingSymbol)))
                         {
-                            Candles candles = lst[grp.StreamingSymbol];
+                            Candles candles = lst[this.StreamingSymbol];
                             val.Underlying = candles[date].Price;
                             val.IV = candles[date].IV * 100;
                             //Debug.WriteLine($"  underlying: {val.Underlying}   iv: {val.IV}");
@@ -294,11 +269,8 @@ namespace OptionView
 
             }
 
-
-
-            retval.Calls = grp.GetOptionStrikeHistory("Call");
-            retval.Puts = grp.GetOptionStrikeHistory("Put");
-
+            retval.Calls = this.GetOptionStrikeHistory("Call");
+            retval.Puts = this.GetOptionStrikeHistory("Put");
 
             return retval;
         }
