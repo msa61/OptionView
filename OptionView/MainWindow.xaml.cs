@@ -405,7 +405,6 @@ namespace OptionView
         {
             RefreshTilesSafe();
             UpdateFooterSafe();
-            BalanceHistory.WriteGroups(portfolio);
             //App.HideStatusMessagePanel();
             refreshActive = false;
         }
@@ -452,7 +451,6 @@ namespace OptionView
             App.UpdateStatusMessage("Update tiles");
 
             portfolio = new Portfolio(accounts);
-            BalanceHistory.WriteGroups(portfolio); /// TO DO
 
             DisplayTilesSafe();
         }
@@ -652,7 +650,7 @@ namespace OptionView
                 int grp = Convert.ToInt32(cc.Tag);
                 if ((portfolio.Count > 0) && (grp != 0))
                 {
-                    string ttText = portfolio[grp].GetHistory();
+                    string ttText = portfolio[grp].GetHistoryText();
                     decimal price = portfolio[grp].TargetClosePrice();
                     if (price != 0)
                     {
@@ -686,7 +684,7 @@ namespace OptionView
                     };
                     sp.Children.Add(l);
 
-                    GroupHistory hist = BalanceHistory.GetGroupHistory(portfolio[grp]);
+                    GroupHistory hist = portfolio[grp].GetHistoryValues();
                     sp.Children.Add(new GroupGraph(hist));
 
 
@@ -879,7 +877,7 @@ namespace OptionView
             if (App.GroupWindow.IsClosed())
             {
                 // graph
-                GroupHistory hist = BalanceHistory.GetGroupHistory(portfolio[grp.GroupID]);
+                GroupHistory hist = portfolio[grp.GroupID].GetHistoryValues();
                 App.GroupWindow.GraphContents = new GroupGraph(hist);
             }
 
@@ -1402,7 +1400,7 @@ namespace OptionView
             if (row.Item.GetType() == typeof(TransactionGroup))
             {
                 TransactionGroup tg = (TransactionGroup)row.Item;
-                GroupHistory hist = BalanceHistory.GetGroupHistory(tg);
+                GroupHistory hist = tg.GetHistoryValues();
                 App.GroupWindow.Clear();
                 App.GroupWindow.Update(tg.Symbol, new GroupGraph(hist), null, null);
 

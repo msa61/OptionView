@@ -206,8 +206,6 @@ namespace OptionView
 
                 RetrieveCurrentGroupData(grp);
             }
-
-            BalanceHistory.WriteGroups(this); /// TO DO
         }
 
         private void RetrieveCurrentGroupData(TransactionGroup grp)
