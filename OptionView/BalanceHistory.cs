@@ -183,6 +183,82 @@ namespace OptionView
             return retval;
         }
 
+
+
+        public static void WriteGroups(Portfolio portfolio)
+        {
+            OpenConnection();
+            DateTime tm = GetLastGroupEntry();
+
+            if (tm.AddHours(2) < DateTime.Now)
+            {
+                foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
+                {
+                    TransactionGroup grp = entry.Value;
+
+                    // skip this if there isn't a current value
+                    if (grp.CurrentValue != null)
+                    {
+                        decimal value = (grp.CurrentValue ?? 0) + grp.Cost;
+
+                        string sql = "INSERT INTO GroupHistory(Date, GroupID, Value, Underlying, IV, IVR) Values (@dt,@id,@va,@ul,@iv,@ir)";
+                        SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
+                        cmd.Parameters.AddWithValue("dt", DateTime.UtcNow);
+                        cmd.Parameters.AddWithValue("id", grp.GroupID);
+                        cmd.Parameters.AddWithValue("va", value);
+                        cmd.Parameters.AddWithValue("ul", grp.UnderlyingPrice);
+                        cmd.Parameters.AddWithValue("iv", Math.Round(grp.ImpliedVolatility * 100, 1));
+                        cmd.Parameters.AddWithValue("ir", Math.Round(grp.ImpliedVolatilityRank * 100, 1));
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+
+            CloseConnection();
+        }
+
+        public static DateTime GetLastGroupEntry()
+        {
+            SQLiteCommand cmd = new SQLiteCommand("SELECT Max(Date) FROM GroupHistory", ConnStr);
+            var obj = cmd.ExecuteScalar();
+            return (obj == DBNull.Value) ? DateTime.MinValue : Convert.ToDateTime(obj);
+        }
+
+
+        // this method is still used to save history data for groups so that something could be viewed in the results tab
+        public static GroupHistory GetGroup(TransactionGroup grp)
+        {
+            GroupHistory retval = new GroupHistory();
+            retval.Values = new List<GroupHistoryValue>();
+
+            OpenConnection();
+
+            // all records
+            string sql = "SELECT date, value, underlying, IV, IVR FROM GroupHistory WHERE GroupID = @grp ORDER BY date";
+
+
+            SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
+            cmd.Parameters.AddWithValue("grp", grp.GroupID);
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                GroupHistoryValue val = new GroupHistoryValue();
+                val.Time = reader.GetDateTime(0);
+                if (reader["Value"] != DBNull.Value) val.Value = reader.GetDecimal(1);
+                if (reader["Underlying"] != DBNull.Value) val.Underlying = reader.GetDecimal(2);
+                if (reader["IV"] != DBNull.Value) val.IV = reader.GetDecimal(3);
+
+                retval.Values.Add(val);
+            }
+
+            retval.Calls = grp.GetOptionStrikeHistory("Call");
+            retval.Puts = grp.GetOptionStrikeHistory("Put");
+
+            CloseConnection();
+
+            return retval;
+        }
+
     }
 
 }

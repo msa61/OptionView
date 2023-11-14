@@ -409,6 +409,7 @@ namespace OptionView
         {
             RefreshTilesSafe();
             UpdateFooterSafe();
+            BalanceHistory.WriteGroups(portfolio);
             //App.HideStatusMessagePanel();
             refreshActive = false;
         }
@@ -455,6 +456,7 @@ namespace OptionView
             App.UpdateStatusMessage("Update tiles");
 
             portfolio = new Portfolio(accounts);
+            BalanceHistory.WriteGroups(portfolio); 
 
             DisplayTilesSafe();
         }
@@ -1404,7 +1406,7 @@ namespace OptionView
             if ((row.Item.GetType() == typeof(TransactionGroup)) && App.GroupWindow.IsOpen())
             {
                 TransactionGroup tg = (TransactionGroup)row.Item;
-                GroupHistory hist = tg.GetHistoryValues();  // the results tab won't have cached data
+                GroupHistory hist = BalanceHistory.GetGroup(tg);  // the results tab won't have cached data, revert to database
                 App.GroupWindow.Clear();
                 App.GroupWindow.Update(tg.Symbol, new GroupGraph(hist), null, null);
 
