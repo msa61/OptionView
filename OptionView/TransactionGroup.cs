@@ -626,7 +626,7 @@ namespace OptionView
         public GroupHistory GetHistoryValues()
         {
             GroupHistory retval = new GroupHistory();
-            retval.Values = new List<GroupHistoryValue>();
+            retval.Values = new Dictionary<DateTime, GroupHistoryValue>();
 
             // retrieve all positions over time grouped by dates of transactions
             SortedList<DateTime, Positions> historicalPositions = this.GetOptionPositionHistory();
@@ -702,7 +702,7 @@ namespace OptionView
                             //Debug.WriteLine($"  underlying: {val.Underlying}   iv: {val.IV}");
                         }
 
-                        retval.Values.Add(val);
+                        retval.Values.Add(date, val);
                     }
                 }
 
@@ -726,7 +726,7 @@ namespace OptionView
 
     public class GroupHistory
     {
-        public List<GroupHistoryValue> Values { get; set; }
+        public Dictionary<DateTime, GroupHistoryValue> Values { get; set; }
         public SortedList<DateTime, List<decimal>> Puts { get; set; }
         public SortedList<DateTime, List<decimal>> Calls { get; set; }
     }

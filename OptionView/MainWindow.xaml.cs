@@ -99,6 +99,7 @@ namespace OptionView
             // wait to do these completely in the background
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Visible; }); 
             portfolio.CacheGroupHistoricalData();
+            BalanceHistory.WriteGroups(portfolio);  // record current values
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Fill = new SolidColorBrush(Colors.LightGreen); });
             UpdateScreenerGrid();
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Collapsed; });
@@ -409,7 +410,6 @@ namespace OptionView
         {
             RefreshTilesSafe();
             UpdateFooterSafe();
-            BalanceHistory.WriteGroups(portfolio);
             //App.HideStatusMessagePanel();
             refreshActive = false;
         }
@@ -449,17 +449,6 @@ namespace OptionView
             RefreshDisplay();
         }
 
-
-
-        private void UpdateHoldingsTiles()
-        {
-            App.UpdateStatusMessage("Update tiles");
-
-            portfolio = new Portfolio(accounts);
-            BalanceHistory.WriteGroups(portfolio); 
-
-            DisplayTilesSafe();
-        }
 
         private void DisplayTilesSafe()
         {

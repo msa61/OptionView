@@ -188,28 +188,44 @@ namespace OptionView
         public static void WriteGroups(Portfolio portfolio)
         {
             OpenConnection();
-            DateTime tm = GetLastGroupEntry();
 
-            if (tm.AddHours(2) < DateTime.Now)
+            foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
             {
-                foreach (KeyValuePair<int, TransactionGroup> entry in portfolio)
+                TransactionGroup grp = entry.Value;
+                DateTime tm = GetLastGroupEntry(grp);
+
+                if (portfolio.dataCache.GroupHistory.ContainsKey(grp.GroupID))
                 {
-                    TransactionGroup grp = entry.Value;
-
-                    // skip this if there isn't a current value
-                    if (grp.CurrentValue != null)
+                    GroupHistory gp = portfolio.dataCache.GroupHistory[grp.GroupID];
+                    if (tm == DateTime.MinValue)
                     {
-                        decimal value = (grp.CurrentValue ?? 0) + grp.Cost;
+                        // set start date with history if nothing in the database
+                        tm = gp.Values.Min(x => x.Key);
+                    }
+                    else
+                    {
+                        // move to first empty date
+                        tm = tm.AddDays(1);
+                    }
+                    if (gp != null)
+                    {
+                        for (DateTime day = tm; day <= DateTime.Today; day = day.AddDays(1))
+                        {
+                            Debug.WriteLine($"day: {day}");
+                            if (gp.Values.ContainsKey(day))
+                            {
+                                GroupHistoryValue hv = gp.Values[day];
 
-                        string sql = "INSERT INTO GroupHistory(Date, GroupID, Value, Underlying, IV, IVR) Values (@dt,@id,@va,@ul,@iv,@ir)";
-                        SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
-                        cmd.Parameters.AddWithValue("dt", DateTime.UtcNow);
-                        cmd.Parameters.AddWithValue("id", grp.GroupID);
-                        cmd.Parameters.AddWithValue("va", value);
-                        cmd.Parameters.AddWithValue("ul", grp.UnderlyingPrice);
-                        cmd.Parameters.AddWithValue("iv", Math.Round(grp.ImpliedVolatility * 100, 1));
-                        cmd.Parameters.AddWithValue("ir", Math.Round(grp.ImpliedVolatilityRank * 100, 1));
-                        cmd.ExecuteNonQuery();
+                                string sql = "INSERT INTO GroupHistory(Date, GroupID, Value, Underlying, IV) Values (@dt,@id,@va,@ul,@iv)";
+                                SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
+                                cmd.Parameters.AddWithValue("dt", day);
+                                cmd.Parameters.AddWithValue("id", grp.GroupID);
+                                cmd.Parameters.AddWithValue("va", hv.Value);
+                                cmd.Parameters.AddWithValue("ul", hv.Underlying);
+                                cmd.Parameters.AddWithValue("iv", Math.Round(hv.IV, 1));
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
                     }
                 }
             }
@@ -217,11 +233,12 @@ namespace OptionView
             CloseConnection();
         }
 
-        public static DateTime GetLastGroupEntry()
+        public static DateTime GetLastGroupEntry(TransactionGroup grp)
         {
-            SQLiteCommand cmd = new SQLiteCommand("SELECT Max(Date) FROM GroupHistory", ConnStr);
+            SQLiteCommand cmd = new SQLiteCommand("SELECT Max(Date) FROM GroupHistory WHERE GroupID = @grp", ConnStr);
+            cmd.Parameters.AddWithValue("grp", grp.GroupID);
             var obj = cmd.ExecuteScalar();
-            return (obj == DBNull.Value) ? DateTime.MinValue : Convert.ToDateTime(obj);
+            return (obj == DBNull.Value) ? DateTime.MinValue : Convert.ToDateTime(obj).Date;
         }
 
 
@@ -229,7 +246,7 @@ namespace OptionView
         public static GroupHistory GetGroup(TransactionGroup grp)
         {
             GroupHistory retval = new GroupHistory();
-            retval.Values = new List<GroupHistoryValue>();
+            retval.Values = new Dictionary<DateTime, GroupHistoryValue>();
 
             OpenConnection();
 
@@ -248,7 +265,7 @@ namespace OptionView
                 if (reader["Underlying"] != DBNull.Value) val.Underlying = reader.GetDecimal(2);
                 if (reader["IV"] != DBNull.Value) val.IV = reader.GetDecimal(3);
 
-                retval.Values.Add(val);
+                retval.Values.Add(val.Time, val);
             }
 
             retval.Calls = grp.GetOptionStrikeHistory("Call");

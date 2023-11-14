@@ -65,7 +65,7 @@ namespace OptionView
             CreateCanvas();
             DrawAxis();
 
-            List<GroupHistoryValue> values = hist.Values;
+            List<GroupHistoryValue> values = hist.Values.Select(x => x.Value).ToList();
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.IV).ToList(), ScaleType.Percent, Brushes.DarkGray);
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Underlying).ToList(), ScaleType.Right, Brushes.Blue);
             DrawGraphLine(values.Select(x => x.Time).ToList(), values.Select(x => x.Value).ToList(), ScaleType.Left, Brushes.Transparent); // 'transparent' lets the function figure out the color
@@ -439,7 +439,7 @@ namespace OptionView
         {
             if (hist == null) return false;
 
-            List<GroupHistoryValue> values = hist.Values;
+            List<GroupHistoryValue> values = hist.Values.Select(x => x.Value).ToList();
             if (values.Count < 2)
             {
                 scaleLeft = 0;
