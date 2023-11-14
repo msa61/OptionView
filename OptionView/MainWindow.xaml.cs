@@ -84,7 +84,7 @@ namespace OptionView
 
         private void InitializeDataAsync(object sender, DoWorkEventArgs e)
         {
-            portfolio.GetCurrentData(accounts);
+            portfolio.GetCurrentData();
             GetAccountData();
             UpdateFooterSafe();
 
@@ -96,8 +96,12 @@ namespace OptionView
                 AsyncLoadComplete();
             });
 
-            // wait to do this completely in the background
+            // wait to do these completely in the background
+            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Visible; }); 
+            portfolio.CacheGroupHistoricalData();
+            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Fill = new SolidColorBrush(Colors.LightGreen); });
             UpdateScreenerGrid();
+            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Collapsed; });
         }
 
         private void InitializeDataComplete(object sender, RunWorkerCompletedEventArgs e)
@@ -397,7 +401,7 @@ namespace OptionView
         {
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Visible; });  // for temporary diagnostics
 
-            portfolio.GetCurrentData(accounts);
+            portfolio.GetCurrentData();
 
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Collapsed; });
         }
@@ -684,7 +688,7 @@ namespace OptionView
                     };
                     sp.Children.Add(l);
 
-                    GroupHistory hist = portfolio[grp].GetHistoryValues();
+                    GroupHistory hist = portfolio.GetHistoryFromCache(grp);
                     sp.Children.Add(new GroupGraph(hist));
 
 
@@ -874,10 +878,10 @@ namespace OptionView
             // header
             App.GroupWindow.Symbol = grp.Symbol;
 
-            if (App.GroupWindow.IsClosed())
+            if (App.GroupWindow.IsOpen())
             {
                 // graph
-                GroupHistory hist = portfolio[grp.GroupID].GetHistoryValues();
+                GroupHistory hist = portfolio.GetHistoryFromCache(grp.GroupID);
                 App.GroupWindow.GraphContents = new GroupGraph(hist);
             }
 
@@ -1133,7 +1137,7 @@ namespace OptionView
         {
             DataLoader.Load(accounts);
             portfolio = new Portfolio(accounts);
-            portfolio.GetCurrentData(accounts);
+            portfolio.GetCurrentData();
         }
 
         private void SyncWithTastyTradeComplete(object sender, RunWorkerCompletedEventArgs e)
@@ -1199,7 +1203,7 @@ namespace OptionView
         private void CombineRefresh(object sender, DoWorkEventArgs e)
         {
             portfolio = new Portfolio(accounts);
-            portfolio.GetCurrentData(accounts);
+            portfolio.GetCurrentData();
         }
         private void CombineRefreshComplete(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -1397,10 +1401,10 @@ namespace OptionView
             DataGridRow row = ItemsControl.ContainerFromElement((DataGrid)sender, e.OriginalSource as DependencyObject) as DataGridRow;
             if (row == null) return;
 
-            if (row.Item.GetType() == typeof(TransactionGroup))
+            if ((row.Item.GetType() == typeof(TransactionGroup)) && App.GroupWindow.IsOpen())
             {
                 TransactionGroup tg = (TransactionGroup)row.Item;
-                GroupHistory hist = tg.GetHistoryValues();
+                GroupHistory hist = tg.GetHistoryValues();  // the results tab won't have cached data
                 App.GroupWindow.Clear();
                 App.GroupWindow.Update(tg.Symbol, new GroupGraph(hist), null, null);
 
