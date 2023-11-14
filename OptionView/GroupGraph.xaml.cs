@@ -437,6 +437,8 @@ namespace OptionView
 
         private bool InitializeScale(GroupHistory hist)
         {
+            if (hist == null) return false;
+
             List<GroupHistoryValue> values = hist.Values;
             if (values.Count < 2)
             {
