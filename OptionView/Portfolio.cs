@@ -624,6 +624,7 @@ namespace OptionView
                         if (reader["Strike"] != DBNull.Value) t.Strike = Convert.ToDecimal(reader["Strike"]);
                         if (reader["Quantity"] != DBNull.Value) t.Quantity = Convert.ToDecimal(reader["Quantity"]);
                         if (reader["Amount"] != DBNull.Value) t.Amount = Convert.ToDecimal(reader["Amount"]);
+                        if (reader["Fees"] != DBNull.Value) t.Fees = Convert.ToDecimal(reader["Fees"]);
                         if (reader["ExpireDate"] != DBNull.Value)
                         {
                             t.ExpDate = Convert.ToDateTime(reader["ExpireDate"].ToString());
