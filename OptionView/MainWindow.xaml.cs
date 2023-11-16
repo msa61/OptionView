@@ -1142,7 +1142,22 @@ namespace OptionView
             this.Cursor = null;
             App.HideStatusMessagePanel();
             if (MainTab.SelectedIndex == 1) UpdateAnalysisView();
+
+            // launch the long running tasks
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += RecacheHistoricalData;
+            worker.RunWorkerAsync();
         }
+        private void RecacheHistoricalData(object sender, DoWorkEventArgs e)
+        {
+            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Fill = new SolidColorBrush(Colors.LightCoral); });
+            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Visible; });
+            portfolio.CacheGroupHistoricalData();
+            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Fill = new SolidColorBrush(Colors.LightGreen); });
+            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Hidden; });
+        }
+
+
 
 
         private void ValidateButton(object sender, RoutedEventArgs e)
