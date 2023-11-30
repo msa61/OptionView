@@ -526,6 +526,7 @@ namespace OptionView
                     }
                     if (transType.Contains("Open")) retval[time].Add(strike);
                     if (transType.Contains("Close")) retval[time].Remove(strike);
+                    if (transType.Contains("Assignment")) retval[time].Remove(strike);
                 }
             }
             return retval;
@@ -654,6 +655,7 @@ namespace OptionView
                 DateTime today = DateTime.Today;
                 for (DateTime date = this.StartTime.Date; date <= today; date = date.AddDays(1))
                 {
+                    // step thru each day
                     DateTime nextDate = GetNextHistoricTime(historicalPositions, currentPositionIndex);
                     if (date >= nextDate) currentPositionIndex++;
 
@@ -662,6 +664,8 @@ namespace OptionView
                     Positions currentPositions = node.Value;
                     //Debug.WriteLine($"Today: {date}    index: {currentPositionIndex}    current: {currentTime}    next: {nextDate}");
 
+
+                    // determine aggregate value for current day
                     decimal? currentValue = null;
                     foreach (KeyValuePair<string, Position> p in currentPositions)
                     {
@@ -686,6 +690,7 @@ namespace OptionView
                         currentValue += pos.Quantity * lst[pos.StreamingSymbol][date].Price * multipler;
                     }
 
+                    // if value is non-zero, add to return list along with underlying and IV
                     if (currentValue != null)
                     {
                         decimal accumlativeCost = this.GetCostAtDate(date);
@@ -708,6 +713,7 @@ namespace OptionView
 
             }
 
+            // organize data for option bands of graph
             retval.Calls = this.GetOptionStrikeHistory("Call");
             retval.Puts = this.GetOptionStrikeHistory("Put");
 
