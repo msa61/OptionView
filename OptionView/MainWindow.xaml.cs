@@ -97,6 +97,7 @@ namespace OptionView
             });
 
             // wait to do these completely in the background
+            if (App.OfflineMode) return;
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Visible; }); 
             portfolio.CacheGroupHistoricalData();
             BalanceHistory.WriteGroups(portfolio);  // record current values
@@ -238,7 +239,7 @@ namespace OptionView
                         // 7th column
                         LineGraph lg = new LineGraph(BalanceHistory.Get(a.Name));
                         List<decimal> minMax = BalanceHistory.YTDMinMax(a.Name);
-                        lg.ToolTip = String.Format("YTD Min: {0:C2}\nYTD Max: {1:C2}", minMax[0], minMax[1]);
+                        if (minMax.Count > 1) lg.ToolTip = String.Format("YTD Min: {0:C2}\nYTD Max: {1:C2}", minMax[0], minMax[1]);
                         sp.Children.Add(lg);
 
                         // 8th column

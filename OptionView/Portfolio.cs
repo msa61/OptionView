@@ -188,10 +188,11 @@ namespace OptionView
 
         public void GetCurrentData()
         {
-            if (App.OfflineMode) 
-                return;
-            else
-                TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
+            // forced offline from command line
+            if (App.OfflineMode) return;
+
+            App.OfflineMode = ! TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
+            if (App.OfflineMode) return;  // no connection
 
             dataCache = null;  // clear any previous data
 
