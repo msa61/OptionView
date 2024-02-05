@@ -49,7 +49,7 @@ namespace OptionView
             string sql = "SELECT t.Account, t.Symbol, tg.Open, datetime(Time) AS TransTime, TransType, TransSubType, TransGroupID, datetime(ExpireDate) AS ExpireDate, Strike, Quantity, Type, Price, Fees, Amount, Description";
             sql += " FROM transactions AS t";
             sql += " LEFT JOIN transgroup AS tg ON transgroupid = tg.id";
-            sql += " WHERE time > date('now', '-30 day')";
+            sql += " WHERE time > date('now', '-60 day')";
             sql += " ORDER BY Time DESC";
             SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
 
