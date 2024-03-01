@@ -283,11 +283,11 @@ namespace OptionView
                 OverviewPanel.Children.Add(sp);
 
                 // now work on the right side of the footer
-                if (portfolio.SPY != null) DecoratedFooterLabel(SPYFooterText, portfolio.SPY.Price, portfolio.SPY.Change, true);
+                if (portfolio.SPY != null) DecoratedFooterLabel(SPYFooterText, portfolio.SPY.LastPrice, portfolio.SPY.Change, true);
 
                 if (portfolio.VIX != null)
                 {
-                    decimal vix = portfolio.VIX.Price;
+                    decimal vix = portfolio.VIX.LastPrice;
                     string vixText;
                     if (vix <= 15) vixText = "25%";
                     else if (vix <= 20) vixText = "30%";
@@ -295,7 +295,7 @@ namespace OptionView
                     else if (vix <= 40) vixText = "40%";
                     else vixText = "50%";
                     vixText += " allocation";
-                    DecoratedFooterLabel(VIXFooterText, portfolio.VIX.Price, portfolio.VIX.Change, false, vixText);
+                    DecoratedFooterLabel(VIXFooterText, portfolio.VIX.LastPrice, portfolio.VIX.Change, false, vixText);
                 }
             }
             catch (Exception e)
@@ -352,7 +352,8 @@ namespace OptionView
             lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.LightCoral;
             lb = OverviewLabel(subpanel, Math.Abs(change).ToString(currency ? "C2" : "N"), 0, fontSize - 4);
             lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.LightCoral;
-            decimal percent = change / val;
+            decimal percent = 0;
+            if (val != 0) percent = change / val;
             lb = OverviewLabel(subpanel, "(" + Math.Abs(percent).ToString("P1") + ")", 0, fontSize - 4);
             lb.Foreground = (change > 0) ? Brushes.PaleGreen : Brushes.LightCoral;
             if (suffix.Length > 0) OverviewLabel(subpanel, " ➜ " + suffix, 0, fontSize);

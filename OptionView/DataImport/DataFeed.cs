@@ -42,8 +42,12 @@ namespace OptionView.DataImport
 
     public class Quote
     {
+        [Flags] public enum State { None = 0, Trade = 1, Quote = 2, All = 3 };
+
         public decimal Price { set; get; }
+        public decimal LastPrice { set; get; }
         public decimal Change { set; get; }
+        public State Complete = State.None;
     }
 
 
@@ -71,7 +75,7 @@ namespace OptionView.DataImport
 
 
 
-    public class EventListener : IDxTradeListener, IDxProfileListener, IDxUnderlyingListener, IDxGreeksListener, IDxCandleListener
+    public class EventListener : IDxTradeListener, IDxProfileListener, IDxUnderlyingListener, IDxGreeksListener, IDxCandleListener, IDxQuoteListener
     {
         public void OnTrade<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxTrade
         {
@@ -79,22 +83,40 @@ namespace OptionView.DataImport
             {
                 Debug.WriteLine($"Listening to {buf.Symbol}  Price: {item.Price}");
 
-                if (!Double.IsNaN(item.Change))
+                Quote qt = null;
+                if (DataFeed.ReturnPriceList.ContainsKey(buf.Symbol))
                 {
-                    Quote qt = new Quote();
-                    qt.Price = Convert.ToDecimal(item.Price);
-                    qt.Change = Convert.ToDecimal(item.Change);
+                    qt = DataFeed.ReturnPriceList[buf.Symbol];
+                }
+                else
+                { 
+                    qt = new Quote();
+                    DataFeed.ReturnPriceList.Add(buf.Symbol, qt);
+                }
+                if (!Double.IsNaN(item.Price)) qt.LastPrice = Convert.ToDecimal(item.Price);
+                if (!Double.IsNaN(item.Change)) qt.Change = Convert.ToDecimal(item.Change);
+                qt.Complete |= Quote.State.Trade;
+            }
+        }
+        public void OnQuote<TB, TE>(TB buf) where TB : IDxEventBuf<TE> where TE : IDxQuote
+        { 
+            foreach (TE item in buf)
+            {
+                Debug.WriteLine($"Listening to {buf.Symbol}  AskPrice: {item.AskPrice}  BidPrice: {item.BidPrice}");
+                Debug.WriteLine("       Average: {0}", (item.AskPrice + item.BidPrice) / 2);
 
-                    if (!DataFeed.ReturnPriceList.ContainsKey(buf.Symbol))
-                    {
-                        DataFeed.ReturnPriceList.Add(buf.Symbol, qt);
-                        DataFeed.symbolCount -= 1;
-                    }
+                Quote qt = null;
+                if (DataFeed.ReturnPriceList.ContainsKey(buf.Symbol))
+                {
+                    qt = DataFeed.ReturnPriceList[buf.Symbol];
                 }
                 else
                 {
-                    Debug.WriteLine("X");
+                    qt = new Quote();
+                    DataFeed.ReturnPriceList.Add(buf.Symbol, qt);
                 }
+                if (!Double.IsNaN(item.AskPrice) && !Double.IsNaN(item.BidPrice)) qt.Price = Convert.ToDecimal((item.AskPrice + item.BidPrice) / 2);
+                qt.Complete |= Quote.State.Quote;
             }
         }
 
@@ -278,7 +300,7 @@ namespace OptionView.DataImport
             {
                 ReturnPriceList.Clear();
 
-                subsciption = connection.CreateSubscription(EventType.Trade, listener);
+                subsciption = connection.CreateSubscription(EventType.Trade | EventType.Quote, listener);
                 symbolCount = symbols.Count;
 
                 foreach (string sym in symbols)
@@ -288,8 +310,25 @@ namespace OptionView.DataImport
 
                 //Debug.WriteLine("waiting...");
                 int i = 100;
-                while ((symbolCount > 0) && (i > 0))
+                while (i > 0)
                 {
+                    bool done = true;
+                    foreach (string sym in symbols)
+                    {
+                        if (ReturnPriceList.ContainsKey(sym))
+                        {
+                            Quote qt = ReturnPriceList[sym];
+                            if (qt.Complete != Quote.State.All) done = false;
+                        }
+                        else
+                        {
+                            done = false;
+                        }
+                        if (!done) break;
+                    }
+                    if (done) break;
+
+
                     Thread.Sleep(100);
                     i--;
                 }
@@ -354,7 +393,7 @@ namespace OptionView.DataImport
                 subsciption?.Dispose();
             }
 
-            return ReturnPriceList.ContainsKey(symbol) ? Convert.ToDecimal(ReturnPriceList[symbol].Price) : 0;
+            return ReturnPriceList.ContainsKey(symbol) ? Convert.ToDecimal(ReturnPriceList[symbol].LastPrice) : 0;
         }
 
 

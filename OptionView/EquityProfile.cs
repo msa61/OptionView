@@ -65,9 +65,9 @@ namespace OptionView
                         if (prices.ContainsKey(sym.Symbol))
                         {
                             Quote qt = prices[sym.Symbol];
-                            equity.UnderlyingPrice = qt.Price;
+                            equity.UnderlyingPrice = qt.LastPrice;
                             equity.UnderlyingPriceChange = qt.Change;
-                            equity.UnderlyingPriceChangePercent = qt.Change / qt.Price;
+                            equity.UnderlyingPriceChangePercent = qt.Change / qt.LastPrice;
                         }
                         if (equity.EarningsDate < DateTime.Today)
                         {
