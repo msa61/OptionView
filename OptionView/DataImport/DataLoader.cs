@@ -10,7 +10,6 @@ using System.Data;
 using System.Data.SQLite;
 using System.Windows;
 using System.Security.Principal;
-using OptionView.DataImport;
 
 
 namespace OptionView

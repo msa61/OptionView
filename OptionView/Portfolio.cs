@@ -9,7 +9,6 @@ using System.Data.Common;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.Windows;
-using OptionView.DataImport;
 
 
 namespace OptionView

@@ -8,7 +8,6 @@ using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.Windows;
-using OptionView.DataImport;
 using System.Windows.Markup;
 
 namespace OptionView

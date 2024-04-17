@@ -10,8 +10,7 @@ using com.dxfeed.native;
 
 
 
-
-namespace OptionView.DataImport
+namespace OptionView
 {
     public class Greek
     {
@@ -541,9 +540,6 @@ namespace OptionView.DataImport
 
     }
 }
-
-
-
 
 
 
