@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using MathNet.Numerics.Distributions;
 using MathNet.Numerics.RootFinding;
 
@@ -148,7 +149,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-
+                Debug.WriteLine(ex);
             }
             return 0;
         }

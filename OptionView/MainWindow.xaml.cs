@@ -85,6 +85,7 @@ namespace OptionView
         private void InitializeDataAsync(object sender, DoWorkEventArgs e)
         {
             portfolio.GetCurrentData();
+
             GetAccountData();
             UpdateFooterSafe();
 
@@ -102,7 +103,7 @@ namespace OptionView
             portfolio.CacheGroupHistoricalData();
             BalanceHistory.WriteGroups(portfolio);  // record current values
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Fill = new SolidColorBrush(Colors.LightGreen); });
-            UpdateScreenerGrid();
+//            UpdateScreenerGrid();  //TODO
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Collapsed; });
         }
 
@@ -634,7 +635,7 @@ namespace OptionView
             Config.SetProp("GroupWindow", left.ToString() + "|" + top.ToString());
             App.GroupWindow.Close();
             
-            App.CloseConnection();
+            App.CloseConnections();
         }
 
         private void TileTooltip(object sender, ToolTipEventArgs e)

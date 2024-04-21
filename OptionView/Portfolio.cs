@@ -9,6 +9,7 @@ using System.Data.Common;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.Windows;
+using DxLink;
 
 
 namespace OptionView
@@ -193,11 +194,15 @@ namespace OptionView
             App.OfflineMode = ! TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
             if (App.OfflineMode) return;  // no connection
 
+            StreamingParams sp = TastyWorks.StreamingInfo();
+            App.OpenDxLink(sp.Address, sp.Token);
+
             dataCache = null;  // clear any previous data
 
             // retrieve global values
-            List<string> pSymbols = new List<string> { "SPY", "VIX" };
-            Dictionary<string, Quote> prices = DataFeed.GetPrices(pSymbols);
+            List<string> pSymbols = new List<string> { "SPY" };  // , "VIX" };  TODO
+            Dictionary<string, Quote> prices = App.DxHandler.GetQuotes(pSymbols).Result;
+            //Dictionary<string, Quote> prices = DataFeed.GetPrices(pSymbols);
             if (prices.ContainsKey("SPY")) SPY = prices["SPY"];
             if (prices.ContainsKey("VIX")) VIX = prices["VIX"];
 
@@ -263,11 +268,13 @@ namespace OptionView
 
                         // get the symbol-specific data
                         dataCache.TwMarketInfo = TastyWorks.MarketInfo(mrkInfoSymbols);  // get IV's
-                        dataCache.DxOptionGreeks = DataFeed.GetGreeks(optionSymbols);
-                        dataCache.DxQuotes = DataFeed.GetPrices(symbols.Concat(optionSymbols).ToList());
+                        //dataCache.DxOptionGreeks = DataFeed.GetGreeks(optionSymbols); //TODO
+                        dataCache.DxQuotes = App.DxHandler.GetQuotes(symbols.Concat(optionSymbols).ToList()).Result;
+                        Debug.Assert(dataCache.DxQuotes != null);
+                        //dataCache.DxQuotes = DataFeed.GetPrices(symbols.Concat(optionSymbols).ToList());
                     }
                 }
-
+                
                 // insure that positions got instanciated AND that the particular account isn't empty
                 if ((dataCache != null) && dataCache.IsCacheInitialized(grp.Account))
                 {
@@ -396,7 +403,7 @@ namespace OptionView
 
         public GroupHistory GetHistoryFromCache(int groupID)
         {
-            if (dataCache.GroupHistory.ContainsKey(groupID))  return dataCache.GroupHistory[groupID];
+            if ((dataCache != null) && (dataCache.GroupHistory != null) && (dataCache.GroupHistory.ContainsKey(groupID)))  return dataCache.GroupHistory[groupID];
             return null;
         }
 

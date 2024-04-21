@@ -40,9 +40,7 @@ namespace OptionView
                 if ((symbols != null) && (symbols.Count > 0))
                 {
                     TWMarketInfos symbolData = TastyWorks.MarketInfo(symbols);
-                    Dictionary<string, string> descriptions = DataFeed.GetProfiles(symbols);
-                    Dictionary<string, double> volumes = DataFeed.GetVolumes(symbols);
-                    Dictionary<string, Quote> prices = DataFeed.GetPrices(symbols);
+                    Dictionary<string, DxLink.Quote> quotes = App.DxHandler.GetQuotes(symbols).Result;
 
                     App.UpdateStatusMessage("Reconciling data");
                     foreach (KeyValuePair<string, TWMarketInfo> item in symbolData)
@@ -59,14 +57,15 @@ namespace OptionView
                             MarketCap = sym.MarketCap
                         };
 
-                        if (descriptions.ContainsKey(sym.Symbol)) equity.Name = descriptions[sym.Symbol];
-                        if (volumes.ContainsKey(sym.Symbol)) equity.OptionVolume = volumes[sym.Symbol] / 1000;
-                        if (prices.ContainsKey(sym.Symbol))
+                        if (quotes.ContainsKey(sym.Symbol))
                         {
-                            Quote qt = prices[sym.Symbol];
+                            DxLink.Quote qt = quotes[sym.Symbol];
                             equity.UnderlyingPrice = qt.LastPrice;
                             equity.UnderlyingPriceChange = qt.Change;
-                            equity.UnderlyingPriceChangePercent = qt.Change / qt.LastPrice;
+                            if (qt.LastPrice > 0) equity.UnderlyingPriceChangePercent = qt.Change / qt.LastPrice;
+
+                            equity.Name = qt.Description;
+                            equity.OptionVolume = -1; //TODO
                         }
                         if (equity.EarningsDate < DateTime.Today)
                         {

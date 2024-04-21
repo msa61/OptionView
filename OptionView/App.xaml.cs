@@ -8,6 +8,8 @@ using System.Windows;
 using System.Data.SQLite;
 using System.IO;
 using System.Windows.Threading;
+using DxLink;
+using System.Diagnostics;
 
 namespace OptionView
 {
@@ -21,6 +23,7 @@ namespace OptionView
         public static GroupWindowHandler GroupWindow = new GroupWindowHandler();
         public static bool OfflineMode { get; set; } = false;
         public static bool DataRefreshMode { get; set; } = false;
+        public static DxHandler DxHandler { get; set; } = null;
 
 
         private void OnStartup(object sender, StartupEventArgs e)
@@ -134,9 +137,10 @@ namespace OptionView
             }
         }
 
-        public static void CloseConnection()
+        public static void CloseConnections()
         {
             if ((ConnStr != null) && ConnStr.State == ConnectionState.Open) ConnStr.Close();
+            DxHandler.Close();
         }
 
         public static void UpdateToDos()
@@ -154,5 +158,36 @@ namespace OptionView
                 });
             }
         }
+
+
+        private static MessageWindow dxDebugWnd = null;
+        public static void OpenDxLink(string url, string token)
+        {
+            if (DxHandler == null)
+            {
+                //mainWindow.Dispatcher.Invoke(() =>
+                //{
+                //    dxDebugWnd = new DxLink.MessageWindow();
+                //    dxDebugWnd.Show();
+                //});
+                DxHandler = new DxHandler(url, token, dxDebugWnd, DxHandler.DxDebugLevel.Verbose);
+                //DxHandler.dxHandlerEvent += DxHandlerEventHandler;
+                DxHandler.DebugLevel = DxHandler.DxDebugLevel.Verbose;
+            }
+        }
+
+        //optional handler at top level
+        private static void DxHandlerEventHandler(object sender, DxHandlerEventType e, Quote quote)
+        {
+            try
+            {
+                Debug.WriteLine(">>>event: " + e.ToString());
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+        }
+
     }
 }

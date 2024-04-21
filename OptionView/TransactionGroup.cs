@@ -8,6 +8,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.Windows;
+using DxLink;
 using System.Windows.Markup;
 
 namespace OptionView
@@ -645,9 +646,11 @@ namespace OptionView
             if (!symbols.Any(s => s.Equals(this.StreamingSymbol))) symbols.Add(this.StreamingSymbol);
 
             // get data
-            Dictionary<string, Candles> lst = DataFeed.GetHistory(symbols, this.StartTime.Date);
+            Subscriptions lst = App.DxHandler.GetTimeSeries(symbols, DxHandler.TimeSeriesType.Day, this.StartTime.Date).Result;
 
-            if (lst.Count > 0)
+
+
+            if ((lst != null) && (lst.Count > 0))
             {
                 int currentPositionIndex = 0;
 
@@ -670,7 +673,7 @@ namespace OptionView
                     {
                         Position pos = p.Value;
 
-                        if (!lst[pos.StreamingSymbol].ContainsKey(date))
+                        if (!lst[pos.StreamingSymbol].Candles.ContainsKey(date))
                         {
                             currentValue = null;
                             break;
@@ -686,7 +689,7 @@ namespace OptionView
 
                         //Debug.WriteLine($"     {pos.StreamingSymbol}  {lst[pos.StreamingSymbol][date].Price}    mult: {multipler}");
                         if (currentValue == null) currentValue = 0;
-                        currentValue += pos.Quantity * lst[pos.StreamingSymbol][date].Price * multipler;
+                        currentValue += pos.Quantity * lst[pos.StreamingSymbol].Candles[date].Price * multipler;
                     }
 
                     // if value is non-zero, add to return list along with underlying and IV
@@ -700,7 +703,7 @@ namespace OptionView
                         val.Value = (currentValue ?? 0) + accumlativeCost;
                         if ((this.StreamingSymbol != null) && (lst.ContainsKey(this.StreamingSymbol)))
                         {
-                            Candles candles = lst[this.StreamingSymbol];
+                            Candles candles = lst[this.StreamingSymbol].Candles;
                             val.Underlying = candles[date].Price;
                             val.IV = candles[date].IV * 100;
                             //Debug.WriteLine($"  underlying: {val.Underlying}   iv: {val.IV}");
