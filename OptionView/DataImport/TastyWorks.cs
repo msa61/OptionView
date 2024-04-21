@@ -677,7 +677,7 @@ namespace OptionView
                 StreamingParams strmParams = new StreamingParams();
 
                 JToken data = package["data"];
-                strmParams.Address = data["streamer-url"].ToString();
+                strmParams.Address = data["dxlink-url"].ToString();
                 strmParams.Token = data["token"].ToString();
 
                 return strmParams;

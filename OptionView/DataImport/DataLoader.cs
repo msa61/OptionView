@@ -10,6 +10,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.Windows;
 using System.Security.Principal;
+using DxLink;
 
 
 namespace OptionView
@@ -130,7 +131,8 @@ namespace OptionView
                         decimal underlyingPrice = 0;
                         if (record.Symbol != null)  // need to skip for non-security transactions
                         {
-                            underlyingPrice = DataFeed.GetPrice(record.Symbol);  
+                            Quote q = App.DxHandler.GetQuote(record.Symbol).Result;
+                            underlyingPrice = q.Price;
                         }
                         cmd.Parameters.AddWithValue("up", underlyingPrice);
 
