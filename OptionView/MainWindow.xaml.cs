@@ -103,7 +103,7 @@ namespace OptionView
             portfolio.CacheGroupHistoricalData();
             BalanceHistory.WriteGroups(portfolio);  // record current values
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Fill = new SolidColorBrush(Colors.LightGreen); });
-//            UpdateScreenerGrid();  //TODO
+            UpdateScreenerGrid();  //TODO
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Collapsed; });
         }
 
