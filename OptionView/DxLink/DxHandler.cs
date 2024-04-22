@@ -277,7 +277,9 @@ namespace DxLink
                                         curQuote = ManageSubscription(args.Symbol, SubscriptionType.Trade);
 
                                         curQuote.LastPrice = Convert.ToDecimal(args.Price);
+                                        curQuote.Change = Convert.ToDecimal(args.Change);
                                         curQuote.LastTrade = args.Time;
+                                        curQuote.Volume = args.Volume;
                                     }
                                     break;
                                 case DxMessageType.Quote:

@@ -48,7 +48,7 @@ namespace DxLink
         {
             Subscription retval =null;
             if ((symbol.Length < 6) && (type == SubscriptionType.All)) type = SubscriptionType.AllEquity;
-            type &= ~SubscriptionType.Greek;  // TEMPORARY TODO
+            type &= ~SubscriptionType.Greek;  // TEMPORARY TODO - REMOVE LINE ONCE GREEKS ARE AVAILABLE
             if (this.ContainsKey(symbol))
             {
                 retval = this[symbol];

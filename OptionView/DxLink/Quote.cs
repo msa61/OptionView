@@ -25,6 +25,7 @@ namespace DxLink
         public decimal Change { get; set; }
         public decimal LastPrice { get; set; }
         public DateTime LastTrade { get; set; }
+        public double Volume { get; set; }
 
         public decimal AskPrice { get; set; }
         public decimal BidPrice { get; set; }

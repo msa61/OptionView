@@ -200,7 +200,7 @@ namespace OptionView
             dataCache = null;  // clear any previous data
 
             // retrieve global values
-            List<string> pSymbols = new List<string> { "SPY" };  // , "VIX" };  TODO
+            List<string> pSymbols = new List<string> { "SPY" };  // , "VIX" };  TODO - NEED TO UNDERSTAND WHY INDICES DON'T SHOW UP
             Dictionary<string, Quote> prices = App.DxHandler.GetQuotes(pSymbols).Result;
             //Dictionary<string, Quote> prices = DataFeed.GetPrices(pSymbols);
             if (prices.ContainsKey("SPY")) SPY = prices["SPY"];
@@ -268,7 +268,7 @@ namespace OptionView
 
                         // get the symbol-specific data
                         dataCache.TwMarketInfo = TastyWorks.MarketInfo(mrkInfoSymbols);  // get IV's
-                        //dataCache.DxOptionGreeks = DataFeed.GetGreeks(optionSymbols); //TODO
+                        //dataCache.DxOptionGreeks = DataFeed.GetGreeks(optionSymbols); //TODO  COMPETE ONCE GREEKS ARE AVAILABLE
                         dataCache.DxQuotes = App.DxHandler.GetQuotes(symbols.Concat(optionSymbols).ToList()).Result;
                         Debug.Assert(dataCache.DxQuotes != null);
                         //dataCache.DxQuotes = DataFeed.GetPrices(symbols.Concat(optionSymbols).ToList());

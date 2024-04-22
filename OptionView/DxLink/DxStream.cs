@@ -232,6 +232,7 @@ namespace DxLink
                             tArgs.Symbol = json["eventSymbol"].ToString();
                             tArgs.Price = Convert.ToDouble(json["price"]);
                             tArgs.Change = Convert.ToDouble(json["change"]);
+                            tArgs.Volume = Convert.ToDouble(json["dayVolume"]);
                             Int64 unixTime = Convert.ToInt64(json["time"]);
                             tArgs.Time = DateTimeOffset.FromUnixTimeMilliseconds(unixTime).UtcDateTime;
 
@@ -823,6 +824,7 @@ namespace DxLink
     {
         public double Price { get; set; }
         public double Change { get; set; }
+        public double Volume { get; set; }
         public DateTime Time { get; set; }
     }
 

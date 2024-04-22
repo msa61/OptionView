@@ -65,7 +65,7 @@ namespace OptionView
                             if (qt.LastPrice > 0) equity.UnderlyingPriceChangePercent = qt.Change / qt.LastPrice;
 
                             equity.Name = qt.Description;
-                            equity.OptionVolume = -1; //TODO
+                            equity.OptionVolume = qt.Volume / 1000; //this is underlying volume, would prefer option volume
                         }
                         if (equity.EarningsDate < DateTime.Today)
                         {
