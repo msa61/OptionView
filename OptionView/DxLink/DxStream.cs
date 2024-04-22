@@ -345,12 +345,6 @@ namespace DxLink
         Dictionary<string, List<string>> fieldCache = null;
         private void CacheFormat(JToken json)
         {
-            if (json["dataFormat"].ToString() == "FULL")
-            {
-                fieldCache = null;
-                return;
-            }
-
             if (fieldCache == null) fieldCache = new Dictionary<string, List<string>>();
 
             json = json["eventFields"];
@@ -568,9 +562,6 @@ namespace DxLink
 
         public void Subscribe(string symbol, SubscriptionType type)
         {
-            // temporary until indexes figured out
-            if (ignoreList.Contains(symbol)) return;
-
             string message = GetSubscribeMessage("subscribe", symbol, type, 1);
             _ = SendMessage(message);
         }
@@ -588,11 +579,11 @@ namespace DxLink
             string message = null;
             if (type == SubscriptionType.TimeSeries)
             {
-                GetSubscribeMessage("removeTimeSeries", symbol, type, channel);
+                message = GetSubscribeMessage("removeTimeSeries", symbol, type, channel);
             }
             else
             {
-                GetSubscribeMessage("remove", symbol, type, 1);
+                message = GetSubscribeMessage("remove", symbol, type, 1);
             }
             _ = SendMessage(message);
         }
@@ -600,8 +591,6 @@ namespace DxLink
         public async void Subscribe(string symbol, SubscriptionType sType, DxHandler.TimeSeriesType tsType, DateTime startTime, int channel = 0)
         {
             Debug.Assert(sType == SubscriptionType.TimeSeries);
-            // temporary until indexes figured out
-            if (ignoreList.Contains(symbol)) return;
 
             if (channel == 0) channel = await OpenChannel();
 
@@ -619,18 +608,11 @@ namespace DxLink
         }
 
 
-
-
-
-        public void AddTimeSeries(string symbol, string type = "Day")
+        public void CloseChannel(int channel = -1)
         {
-            //_ = TimeSeriesAsync(symbol, tsType: type);
+            string message = GetGenericMessage("closeChannel", channel);
+            _ = SendMessage(message);
         }
-        public void AddTimeSeries(List<string> symbols, string type = "Day")
-        {
-            //_ = TimeSeriesAsync(symbols, tsType: type);
-        }
-
 
 
         public async Task Close()
@@ -774,7 +756,7 @@ namespace DxLink
         }
 
 
-        private List<string> ignoreList = new List<string>() { "NDX", "XSP", "RUT", "VIX", "SPX" };
+        private List<string> tradeOnlyList = new List<string>() { "NDX", "XSP", "RUT", "VIX", "SPX" };
         private JArray BuildSymbolList(string symbol, SubscriptionType? type)
         {
             JArray retlist = new JArray();
@@ -786,14 +768,14 @@ namespace DxLink
                 rSym.Add("type", "Trade");
                 retlist.Add(rSym);
             }
-            if (((type & SubscriptionType.Quote) == SubscriptionType.Quote) && (!ignoreList.Contains(symbol)))
+            if (((type & SubscriptionType.Quote) == SubscriptionType.Quote) && (!tradeOnlyList.Contains(symbol)))
             {
                 JObject rSym = new JObject();
                 rSym.Add("symbol", symbol);
                 rSym.Add("type", "Quote");
                 retlist.Add(rSym);
             }
-            if (((type & SubscriptionType.Profile) == SubscriptionType.Profile) && (!ignoreList.Contains(symbol)))
+            if (((type & SubscriptionType.Profile) == SubscriptionType.Profile) && (!tradeOnlyList.Contains(symbol)))
             {
                 JObject rSym = new JObject();
                 rSym.Add("symbol", symbol);

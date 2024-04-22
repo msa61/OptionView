@@ -30,7 +30,9 @@ namespace DxLink
         private DxStream dxStream;
         private Subscriptions subscriptions = new Subscriptions();  // list of all quotes being managed by the handler
         private MessageWindow dxWindow = null;
+        private int lastTSChannel = -1;
 
+        private List<string> ignoreList = new List<string>() { "NDX", "XSP", "RUT", "VIX", "SPX" };
 
         public DxHandler(string webSocketUrl, string token, MessageWindow msgWindow, DxDebugLevel dbgLevel = DxDebugLevel.None)
         {
@@ -82,6 +84,8 @@ namespace DxLink
 
         public void Subscribe (string symbol, SubscriptionType type = SubscriptionType.All)
         {
+            if (ignoreList.Contains(symbol)) return;
+
             Subscription sub = subscriptions.Add(symbol, type);
             sub.Stream = true;
             dxStream.Subscribe(symbol, SubscriptionType.All);
@@ -89,8 +93,10 @@ namespace DxLink
 
         public async Task<Quote> GetQuote(string symbol)
         {
+            if (ignoreList.Contains(symbol)) return new Quote();
+
             Subscription retval = subscriptions.Add(symbol);
-            //if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
+            if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
 
             dxStream.Subscribe(symbol, SubscriptionType.All);
             await WaitForJobComplete();
@@ -102,8 +108,10 @@ namespace DxLink
 
         public async Task<Dictionary<string,Quote>> GetQuotes(List<string> symbols)
         {
+            symbols = RemoveIgnoredSymbols(symbols);
+
             Subscriptions list = subscriptions.Add(symbols);
-            //if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
+            if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
 
             foreach (string symbol in symbols)
             {
@@ -121,6 +129,15 @@ namespace DxLink
             return retval;
         }
 
+        List<string> RemoveIgnoredSymbols(List<string> symbols)
+        {
+            List<string> retval = new List<string>();
+            foreach (string s in symbols)
+            {
+                if (!ignoreList.Contains(s)) retval.Add(s);
+            }
+            return retval;
+        }
         public async Task<bool> WaitForJobComplete()
         {
             int abortCount = 50;
@@ -137,26 +154,32 @@ namespace DxLink
 
         public async Task<Candles> GetTimeSeries(string symbol, TimeSeriesType type, DateTime startTime)
         {
+            if (ignoreList.Contains(symbol)) return null;
+
             Subscription tmpSub = subscriptions.Add(symbol, SubscriptionType.TimeSeries);
-            //if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
+            if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
 
             dxStream.Subscribe(symbol, SubscriptionType.TimeSeries, type, startTime);
             await WaitForJobComplete();
 
             subscriptions.Remove(symbol);
+            if (lastTSChannel > 0) dxStream.CloseChannel(lastTSChannel);  // remove doesn't seem to work
 
             return tmpSub.Candles;
         }
 
         public async Task<Subscriptions> GetTimeSeries(List<string> symbols, TimeSeriesType type, DateTime startTime)
         {
+            symbols = RemoveIgnoredSymbols(symbols);
+
             Subscriptions list = subscriptions.Add(symbols, SubscriptionType.TimeSeries);
-            //if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
+            if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
 
             dxStream.Subscribe(symbols, SubscriptionType.TimeSeries, type, startTime);
             await WaitForJobComplete();
 
             subscriptions.Remove(symbols);
+            if (lastTSChannel > 0) dxStream.CloseChannel(lastTSChannel);
 
             return list;
         }
@@ -181,6 +204,7 @@ namespace DxLink
                         List<DateTime> times = list.Select(x => ((DxCandleMessageEventArgs)x).Time).ToList();
                         MessageWindow(String.Format($"\nCandle: mintime: {times.Min()}  maxtime: {times.Max()}"));
 
+                        lastTSChannel = channel;
                         Dictionary<string,string> symbolsProcessed = new Dictionary<string,string>();
 
                         // process message list
@@ -195,15 +219,20 @@ namespace DxLink
                                 symbol = candleData.Symbol.Substring(0, i);
                                 if (!symbolsProcessed.ContainsKey(symbol)) symbolsProcessed.Add(symbol, candleData.Symbol);
 
-                                Subscription sub = subscriptions[symbol];
-
-                                Candle candle = new Candle()
+                                if (subscriptions.ContainsKey(symbol))
                                 {
-                                    Day = candleData.Time,
-                                    Price = Convert.ToDecimal(candleData.Price),
-                                    IV = Convert.ToDecimal(candleData.IV)
-                                };
-                                sub.Candles.Add(candle.Day, candle);
+                                    Subscription sub = subscriptions[symbol];
+                                    if (sub != null)
+                                    {
+                                        Candle candle = new Candle()
+                                        {
+                                            Day = candleData.Time,
+                                            Price = Convert.ToDecimal(candleData.Price),
+                                            IV = Convert.ToDecimal(candleData.IV)
+                                        };
+                                        if (!sub.Candles.ContainsKey(candle.Day)) sub.Candles.Add(candle.Day, candle);
+                                    }
+                                }
                             }
                         }
 
@@ -211,13 +240,16 @@ namespace DxLink
                         {
                             dxStream.Unsubscribe(item.Value, SubscriptionType.TimeSeries, channel);
 
-                            Subscription sub = subscriptions[item.Key];
-                            if (sub != null)
+                            if (subscriptions.ContainsKey(item.Key))
                             {
-                                sub.Status &= ~SubscriptionType.TimeSeries;
-                                if (sub.Candles.Count > 0)
+                                Subscription sub = subscriptions[item.Key];
+                                if (sub != null)
                                 {
-                                    dxHandlerEvent?.Invoke(this, DxHandlerEventType.TimeSeries, null);
+                                    sub.Status &= ~SubscriptionType.TimeSeries;
+                                    if (sub.Candles.Count > 0)
+                                    {
+                                        dxHandlerEvent?.Invoke(this, DxHandlerEventType.TimeSeries, null);
+                                    }
                                 }
                             }
                         }
@@ -343,6 +375,7 @@ namespace DxLink
 
         private Quote ManageSubscription(string symbol, SubscriptionType type)
         {
+            if (!subscriptions.ContainsKey(symbol)) return null;
             Subscription sub = subscriptions[symbol];
             sub.Status &= ~type;
             if (!sub.Stream) dxStream.Unsubscribe(symbol, type);
