@@ -188,6 +188,9 @@ namespace DxLink
                 abortCount--;
             }
 
+            message = GetGenericMessage("feedSetup", channel: lastChannel);
+            await SendMessage(message);
+
             Debug.WriteLine($"last channel: {lastChannel}");
             return lastChannel;
         }
@@ -257,10 +260,11 @@ namespace DxLink
                             DxSummaryMessageEventArgs sArgs = new DxSummaryMessageEventArgs();
                             sArgs.Type = DxMessageType.Summary;
                             sArgs.Symbol = json["eventSymbol"].ToString();
-                            sArgs.OpenPrice = Convert.ToDouble(json["dayOpenPrice"]);
-                            sArgs.LowPrice = Convert.ToDouble(json["dayLowPrice"]);
-                            sArgs.HighPrice = Convert.ToDouble(json["dayHighPrice"]);
-                            sArgs.ClosePrice = Convert.ToDouble(json["dayClosePrice"]);
+                            //sArgs.OpenPrice = Convert.ToDouble(json["dayOpenPrice"]);
+                            //sArgs.LowPrice = Convert.ToDouble(json["dayLowPrice"]);
+                            //sArgs.HighPrice = Convert.ToDouble(json["dayHighPrice"]);
+                            //sArgs.ClosePrice = Convert.ToDouble(json["dayClosePrice"]);
+                            sArgs.PrevDayClosePrice = Convert.ToDouble(json["prevDayClosePrice"]);
                             sArgs.OpenInterest = Convert.ToInt32(json["openInterest"]);
 
                             //sArgs.Debug = json;
@@ -349,6 +353,7 @@ namespace DxLink
             if (fieldCache == null) fieldCache = new Dictionary<string, List<string>>();
 
             json = json["eventFields"];
+            if(json == null) return; // sometimes FEED_CONFIG received without any field info
             foreach (JProperty t in json) //for (int i = 0; i < json.Count(); i++)
             {
                 try
@@ -673,6 +678,22 @@ namespace DxLink
                     main.Add("type", "FEED_SETUP");
                     main.Add("acceptAggregationPeriod", 1);
                     main.Add("acceptDataFormat", "COMPACT");
+
+                    JObject lst = new JObject();
+                    if (channel == 1)
+                    {
+                        lst.Add("Trade", new JArray(new string[] { "eventType", "eventSymbol", "price", "change", "dayVolume", "time" }));
+                        lst.Add("Quote", new JArray(new string[] { "eventType", "eventSymbol", "bidPrice", "askPrice" }));
+                        lst.Add("Summary", new JArray(new string[] { "eventType", "eventSymbol", "openInterest", "prevDayClosePrice" }));
+                        lst.Add("Greeks", new JArray(new string[] { "eventType", "eventSymbol", "price", "volatility", "delta" }));
+                        lst.Add("Profile", new JArray(new string[] { "eventType", "eventSymbol", "description" }));
+                    }
+                    else
+                    {
+                        lst.Add("Candle", new JArray(new string[] { "eventType", "eventSymbol", "close", "time", "impVolatility" }));
+                    }
+                    main.Add("acceptEventFields", lst);
+
                     break;
 
                 case "closeChannel":
@@ -757,40 +778,57 @@ namespace DxLink
         }
 
 
-        private List<string> tradeOnlyList = new List<string>() { "NDX", "XSP", "RUT", "VIX", "SPX" };
         private JArray BuildSymbolList(string symbol, SubscriptionType? type)
         {
             JArray retlist = new JArray();
 
             if ((type & SubscriptionType.Trade) == SubscriptionType.Trade)
             {
-                JObject rSym = new JObject();
-                rSym.Add("symbol", symbol);
-                rSym.Add("type", "Trade");
-                retlist.Add(rSym);
+                AddSub(retlist, "Trade", symbol);
             }
-            if (((type & SubscriptionType.Quote) == SubscriptionType.Quote) && (!tradeOnlyList.Contains(symbol)))
+            if ((type & SubscriptionType.Quote) == SubscriptionType.Quote) 
             {
-                JObject rSym = new JObject();
-                rSym.Add("symbol", symbol);
-                rSym.Add("type", "Quote");
-                retlist.Add(rSym);
+                AddSub(retlist, "Quote", symbol);
             }
-            if (((type & SubscriptionType.Profile) == SubscriptionType.Profile) && (!tradeOnlyList.Contains(symbol)))
+            if ((type & SubscriptionType.Summary) == SubscriptionType.Summary)
             {
-                JObject rSym = new JObject();
-                rSym.Add("symbol", symbol);
-                rSym.Add("type", "Profile");
-                retlist.Add(rSym);
+                AddSub(retlist, "Summary", symbol);  //temp test
             }
-            if ((symbol.Length > 5) && ((type & SubscriptionType.Greek) == SubscriptionType.Greek))  // ask for options only
+
+            if (symbol.Length < 6)
             {
-                JObject rSym = new JObject();
-                rSym.Add("symbol", symbol);
-                rSym.Add("type", "Greeks");
-                retlist.Add(rSym);
+                // for equities
+                if ((type & SubscriptionType.Profile) == SubscriptionType.Profile)
+                {
+                    AddSub(retlist, "Profile", symbol);
+                }
+                //if ((type & SubscriptionType.TradeETH) == SubscriptionType.TradeETH)
+                //{ 
+                //    AddSub(retlist, "TradeETH", symbol);  //temp test
+                //}
+            }
+            else
+            {
+                // for options
+                //if ((type & SubscriptionType.Greek) == SubscriptionType.Greek)
+                //{
+                //    AddSub(retlist, "Greeks", symbol);
+                //}
+                //if ((type & SubscriptionType.TheoPrice) == SubscriptionType.TheoPrice)
+                //{
+                //    AddSub(retlist, "TheoPrice", symbol);  //temp test
+                //}
             }
             return retlist;
+        }
+
+        private JArray AddSub(JArray list, string type, string sym)
+        {
+            JObject jObj = new JObject();
+            jObj.Add("type", type);
+            jObj.Add("symbol", sym);
+            list.Add(jObj);
+            return list;
         }
     }
 
@@ -836,10 +874,11 @@ namespace DxLink
 
     public class DxSummaryMessageEventArgs : DxMessageReceivedEventArgs
     {
-        public double OpenPrice { get; set; }
-        public double LowPrice { get; set; }
-        public double HighPrice { get; set; }
-        public double ClosePrice { get; set; }
+        //public double OpenPrice { get; set; }
+        //public double LowPrice { get; set; }
+        //public double HighPrice { get; set; }
+        //public double ClosePrice { get; set; }
+        public double PrevDayClosePrice { get; set; }
         public int OpenInterest { get; set; }
     }
 

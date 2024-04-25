@@ -16,7 +16,8 @@ namespace DxLink
         Summary = 32,
         TimeSeries = 64,
         AllEquity = Trade | Quote | Profile,
-        All = Trade | Quote | Greek | Profile
+        AllOption = Trade | Quote | Greek,
+        All = AllEquity | AllOption
     }
 
     public class Subscription
@@ -47,7 +48,14 @@ namespace DxLink
         public Subscription Add(string symbol, SubscriptionType type = SubscriptionType.All)
         {
             Subscription retval =null;
-            if ((symbol.Length < 6) && (type == SubscriptionType.All)) type = SubscriptionType.AllEquity;
+            if (type == SubscriptionType.All)
+            {
+                if (symbol.Length < 6) 
+                    type = SubscriptionType.AllEquity;
+                else
+                    type = SubscriptionType.AllOption;
+            }
+
             type &= ~SubscriptionType.Greek;  // TEMPORARY TODO - REMOVE LINE ONCE GREEKS ARE AVAILABLE
             if (this.ContainsKey(symbol))
             {
