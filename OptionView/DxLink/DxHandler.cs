@@ -315,7 +315,7 @@ namespace DxLink
                                 case DxMessageType.Summary:
                                     DxSummaryMessageEventArgs sArgs = (DxSummaryMessageEventArgs)e;
 
-                                    MessageWindow(String.Format($"\nSummary: {sArgs.Symbol}   openPrice: {sArgs.OpenPrice}   openInterest: {sArgs.OpenInterest} "));
+                                    MessageWindow(String.Format($"\nSummary: {sArgs.Symbol}   PrevDayClosePrice: {sArgs.PrevDayClosePrice}   openInterest: {sArgs.OpenInterest} "));
                                     break;
                                 case DxMessageType.Profile:
                                     DxProfileMessageEventArgs pArgs = (DxProfileMessageEventArgs)e;
