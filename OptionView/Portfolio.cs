@@ -295,9 +295,13 @@ namespace OptionView
                                 && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate) 
                                 && dataCache.DxQuotes.ContainsKey(twpos.OptionStreamerSymbol))  // if dx returns nothing
                             {
+                                //select price based on market status - the average bid/ask method doesn't work well when market is closed
+                                decimal price = dataCache.DxQuotes[twpos.OptionStreamerSymbol].Price;
+                                if (!((App)Application.Current).IsMarketOpen()) price = dataCache.DxQuotes[twpos.OptionStreamerSymbol].LastPrice;
+
                                 //Debug.WriteLine(twpos.Market);
                                 if (currentValue == null) currentValue = 0;  // initialize now that we've found a match
-                                currentValue += pos.Quantity * (dataCache.DxQuotes[twpos.OptionStreamerSymbol].Price * twpos.Multiplier); // twpos.Market;
+                                currentValue += pos.Quantity * (price * twpos.Multiplier); // twpos.Market;
                                 previousCloseValue += pos.Quantity * twpos.PreviousClose * twpos.Multiplier;
 
                                 // capture current details while we have it

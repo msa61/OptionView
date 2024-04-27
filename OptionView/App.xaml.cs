@@ -189,5 +189,17 @@ namespace OptionView
             }
         }
 
+        public bool IsMarketOpen()
+        {
+            DayOfWeek dow = DateTime.UtcNow.DayOfWeek;
+            if ((dow == DayOfWeek.Saturday) || (dow == DayOfWeek.Sunday)) return false;
+
+            TimeZoneInfo estZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+            DateTime easternTime = TimeZoneInfo.ConvertTime(DateTime.UtcNow, estZone);
+            DateTime open = easternTime.Date + new TimeSpan(9, 30, 0);
+            DateTime close = easternTime.Date + new TimeSpan(16, 0, 0);
+            if ((easternTime >= open) && (easternTime <= close)) return true;
+            return false;
+        }
     }
 }
