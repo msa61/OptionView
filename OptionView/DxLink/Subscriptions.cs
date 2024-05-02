@@ -14,8 +14,9 @@ namespace DxLink
         Greek = 8,
         TheoPrice = 16,
         Summary = 32,
-        TimeSeries = 64,
-        AllEquity = Trade | Quote | Profile,
+        TradeETH = 64,
+        TimeSeries = 128,
+        AllEquity = Trade | Quote | Profile | Summary,
         AllOption = Trade | Quote | Greek,
         All = AllEquity | AllOption
     }
@@ -55,8 +56,6 @@ namespace DxLink
                 else
                     type = SubscriptionType.AllOption;
             }
-
-            type &= ~SubscriptionType.Greek;  // TEMPORARY TODO - REMOVE LINE ONCE GREEKS ARE AVAILABLE
             if (this.ContainsKey(symbol))
             {
                 retval = this[symbol];
@@ -110,8 +109,12 @@ namespace DxLink
             retval.RemainingTrade = this.Count(x => (x.Value.Status & SubscriptionType.Trade) == SubscriptionType.Trade);
             retval.RemainingQuote = this.Count(x => (x.Value.Status & SubscriptionType.Quote) == SubscriptionType.Quote);
             retval.RemainingProfile = this.Count(x => (x.Value.Status & SubscriptionType.Profile) == SubscriptionType.Profile);
+            retval.RemainingSummary = this.Count(x => (x.Value.Status & SubscriptionType.Summary) == SubscriptionType.Summary);
             retval.RemainingGreek = this.Count(x => (x.Value.Status & SubscriptionType.Greek) == SubscriptionType.Greek);
             retval.RemainingTimeSeries = this.Count(x => (x.Value.Status & SubscriptionType.TimeSeries) == SubscriptionType.TimeSeries);
+
+            retval.RemainingOverall = this.Count(x => (x.Value.Status != SubscriptionType.None));
+
 
             return retval;
         }
@@ -120,7 +123,7 @@ namespace DxLink
         {
             DxStatusParams stats = GetStatus();
 
-            string retval = string.Format($"Total: {stats.Count}  trade: {stats.RemainingTrade}  quote: {stats.RemainingQuote} profile: {stats.RemainingProfile} greek: {stats.RemainingGreek} timeseries: {stats.RemainingTimeSeries}");
+            string retval = string.Format($"Total: {stats.Count}  overall: {stats.RemainingOverall}  trade: {stats.RemainingTrade}  quote: {stats.RemainingQuote} profile: {stats.RemainingProfile} summary: {stats.RemainingSummary}  greek: {stats.RemainingGreek} timeseries: {stats.RemainingTimeSeries}");
             string missingTrade = "";
             //foreach (KeyValuePair<string, DxQuote> pair in this)
             //{

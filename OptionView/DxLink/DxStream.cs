@@ -140,7 +140,7 @@ namespace DxLink
                     switch (dxHandler.DebugLevel)
                     {
                         case DxHandler.DxDebugLevel.Primary:
-                            dxHandler.MessageWindow("\n\t\tReceived: " + DebugParse(fullResponse));
+                            dxHandler.MessageWindow("\n\tReceived: " + DebugParse(fullResponse));
                             break;
                         case DxHandler.DxDebugLevel.Verbose:
                             dxHandler.MessageWindow("\nReceived:\n" + JsonConvert.SerializeObject(debug, Formatting.Indented));
@@ -279,6 +279,7 @@ namespace DxLink
                             gArgs.Price = Convert.ToDouble(json["price"]);
                             gArgs.IV = Convert.ToDouble(json["volatility"]);
                             gArgs.Delta = Convert.ToDouble(json["delta"]);
+                            gArgs.Theta = Convert.ToDouble(json["theta"]);
 
                             //gArgs.Debug = json;
                             //gArgs.DebugText = JsonConvert.SerializeObject(json, Formatting.Indented);
@@ -303,11 +304,11 @@ namespace DxLink
                             Int64 uTime = Convert.ToInt64(json["time"]);
                             tpArgs.Time = DateTimeOffset.FromUnixTimeMilliseconds(uTime).UtcDateTime;
                             tpArgs.Price = Convert.ToDouble(json["price"]);
-                            tpArgs.UnderlyingPrice = Convert.ToDouble(json["underlyingPrice"]);
-                            tpArgs.Delta = Convert.ToDouble(json["delta"]);
-                            tpArgs.Gamma = Convert.ToDouble(json["gamma"]);
-                            tpArgs.Dividend = Convert.ToDouble(json["dividend"]);
-                            tpArgs.Interest = Convert.ToDouble(json["interest"]);
+                            //tpArgs.UnderlyingPrice = Convert.ToDouble(json["underlyingPrice"]);
+                            //tpArgs.Delta = Convert.ToDouble(json["delta"]);
+                            //tpArgs.Gamma = Convert.ToDouble(json["gamma"]);
+                            //tpArgs.Dividend = Convert.ToDouble(json["dividend"]);
+                            //tpArgs.Interest = Convert.ToDouble(json["interest"]);
 
                             //tpArgs.Debug = json;
                             //tpArgs.DebugText = JsonConvert.SerializeObject(json, Formatting.Indented);
@@ -504,7 +505,7 @@ namespace DxLink
                     switch (dxHandler.DebugLevel)
                     {
                         case DxHandler.DxDebugLevel.Primary:
-                            dxHandler.MessageWindow("\n\t\tReceived (command): " + DebugParse(fullResponse));
+                            dxHandler.MessageWindow("\n\tReceived (command): " + DebugParse(fullResponse));
                             break;
                         case DxHandler.DxDebugLevel.Verbose:
                             dxHandler.MessageWindow("\nReceived (command):\n" + JsonConvert.SerializeObject(json, Formatting.Indented));
@@ -685,8 +686,9 @@ namespace DxLink
                         lst.Add("Trade", new JArray(new string[] { "eventType", "eventSymbol", "price", "change", "dayVolume", "time" }));
                         lst.Add("Quote", new JArray(new string[] { "eventType", "eventSymbol", "bidPrice", "askPrice" }));
                         lst.Add("Summary", new JArray(new string[] { "eventType", "eventSymbol", "openInterest", "prevDayClosePrice" }));
-                        lst.Add("Greeks", new JArray(new string[] { "eventType", "eventSymbol", "price", "volatility", "delta" }));
+                        lst.Add("Greeks", new JArray(new string[] { "eventType", "eventSymbol", "price", "volatility", "delta", "theta" }));
                         lst.Add("Profile", new JArray(new string[] { "eventType", "eventSymbol", "description" }));
+                        //lst.Add("TheoPrice", new JArray(new string[] { "eventType", "eventSymbol", "price", "time" }));
                     }
                     else
                     {
@@ -767,7 +769,7 @@ namespace DxLink
             switch (dxHandler.DebugLevel)
             {
                 case DxHandler.DxDebugLevel.Primary:
-                    string msg = "\n\tSent: " + msgType + "   " + notes;
+                    string msg = "\nSent: " + msgType + "   " + notes;
                     dxHandler.MessageWindow(msg);
                     break;
                 case DxHandler.DxDebugLevel.Verbose:
@@ -810,10 +812,10 @@ namespace DxLink
             else
             {
                 // for options
-                //if ((type & SubscriptionType.Greek) == SubscriptionType.Greek)
-                //{
-                //    AddSub(retlist, "Greeks", symbol);
-                //}
+                if ((type & SubscriptionType.Greek) == SubscriptionType.Greek)
+                {
+                    AddSub(retlist, "Greeks", symbol);
+                }
                 //if ((type & SubscriptionType.TheoPrice) == SubscriptionType.TheoPrice)
                 //{
                 //    AddSub(retlist, "TheoPrice", symbol);  //temp test
@@ -887,6 +889,7 @@ namespace DxLink
         public double Price { get; set; }
         public double IV { get; set; }
         public double Delta { get; set; }
+        public double Theta { get; set; }
     }
 
     public class DxProfileMessageEventArgs : DxMessageReceivedEventArgs

@@ -32,11 +32,10 @@ namespace DxLink
         private MessageWindow dxWindow = null;
         private int lastTSChannel = -1;
 
-        private List<string> ignoreList = new List<string>() { "NDX", "XSP", "RUT", "VIX", "SPX" };
 
-        public DxHandler(string webSocketUrl, string token, MessageWindow msgWindow, DxDebugLevel dbgLevel = DxDebugLevel.None)
+        public DxHandler(string webSocketUrl, string token, MessageWindow dbgWindow, DxDebugLevel dbgLevel = DxDebugLevel.None)
         {
-            dxWindow = msgWindow;
+            dxWindow = dbgWindow;
             DebugLevel = dbgLevel;
 
             // initial websocket layer
@@ -84,8 +83,6 @@ namespace DxLink
 
         public void Subscribe (string symbol, SubscriptionType type = SubscriptionType.All)
         {
-            if (ignoreList.Contains(symbol)) return;
-
             Subscription sub = subscriptions.Add(symbol, type);
             sub.Stream = true;
             dxStream.Subscribe(symbol, SubscriptionType.All);
@@ -93,8 +90,6 @@ namespace DxLink
 
         public async Task<Quote> GetQuote(string symbol)
         {
-            if (ignoreList.Contains(symbol)) return new Quote();
-
             Subscription retval = subscriptions.Add(symbol);
             if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
 
@@ -108,8 +103,6 @@ namespace DxLink
 
         public async Task<Dictionary<string,Quote>> GetQuotes(List<string> symbols)
         {
-            symbols = RemoveIgnoredSymbols(symbols);
-
             Subscriptions list = subscriptions.Add(symbols);
             if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
 
@@ -129,15 +122,6 @@ namespace DxLink
             return retval;
         }
 
-        List<string> RemoveIgnoredSymbols(List<string> symbols)
-        {
-            List<string> retval = new List<string>();
-            foreach (string s in symbols)
-            {
-                if (!ignoreList.Contains(s)) retval.Add(s);
-            }
-            return retval;
-        }
         public async Task<bool> WaitForJobComplete()
         {
             int abortCount = 50;
@@ -154,8 +138,6 @@ namespace DxLink
 
         public async Task<Candles> GetTimeSeries(string symbol, TimeSeriesType type, DateTime startTime)
         {
-            if (ignoreList.Contains(symbol)) return null;
-
             Subscription tmpSub = subscriptions.Add(symbol, SubscriptionType.TimeSeries);
             if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
 
@@ -170,8 +152,6 @@ namespace DxLink
 
         public async Task<Subscriptions> GetTimeSeries(List<string> symbols, TimeSeriesType type, DateTime startTime)
         {
-            symbols = RemoveIgnoredSymbols(symbols);
-
             Subscriptions list = subscriptions.Add(symbols, SubscriptionType.TimeSeries);
             if (dxWindow != null) dxWindow.WriteStatus(subscriptions.GetStatusText());
 
@@ -306,16 +286,21 @@ namespace DxLink
                                         curQuote.Delta = gArgs.Delta;
                                         curQuote.IV = gArgs.IV;
                                         curQuote.GreekPrice = gArgs.Price;
+                                        curQuote.Theta = gArgs.Theta;
                                     }
 
                                     // remove fringe options
-                                    if ((curQuote != null) && (curQuote.Delta < 0.10 || curQuote.Delta > 0.9))
-                                        dxStream.Unsubscribe(gArgs.Symbol, SubscriptionType.All);
+                                    //if ((curQuote != null) && (curQuote.Delta < 0.10 || curQuote.Delta > 0.9))
+                                    //    dxStream.Unsubscribe(gArgs.Symbol, SubscriptionType.All);
                                     break;
                                 case DxMessageType.Summary:
                                     DxSummaryMessageEventArgs sArgs = (DxSummaryMessageEventArgs)e;
 
                                     MessageWindow(String.Format($"\nSummary: {sArgs.Symbol}   PrevDayClosePrice: {sArgs.PrevDayClosePrice}   openInterest: {sArgs.OpenInterest} "));
+                                    if (subscriptions.Subscribed(sArgs.Symbol))
+                                    {
+                                        curQuote = ManageSubscription(sArgs.Symbol, SubscriptionType.Summary);
+                                    }
                                     break;
                                 case DxMessageType.Profile:
                                     DxProfileMessageEventArgs pArgs = (DxProfileMessageEventArgs)e;
@@ -333,6 +318,11 @@ namespace DxLink
                                     DxTheoPriceMessageEventArgs tpArgs = (DxTheoPriceMessageEventArgs)e;
 
                                     MessageWindow(String.Format($"\nTheoPrice: {tpArgs.Symbol}   price: {tpArgs.Price:N2}  int: {tpArgs.Interest:P2}  div: {tpArgs.Dividend}"));
+                                    if (subscriptions.Subscribed(tpArgs.Symbol))
+                                    {
+                                        curQuote = ManageSubscription(tpArgs.Symbol, SubscriptionType.TheoPrice);
+                                        curQuote.TheoPrice = tpArgs.Price;
+                                    }
                                     break;
                                 default:
                                     MessageWindow("\n" + e.Message);
@@ -424,7 +414,9 @@ namespace DxLink
         public int RemainingQuote { get; set; } = 0;
         public int RemainingProfile { get; set; } = 0;
         public int RemainingGreek { get; set; } = 0;
+        public int RemainingSummary { get; set; } = 0;
         public int RemainingTimeSeries { get; set; } = 0;
+        public int RemainingOverall { get; set; } = 0;
     }
 
 

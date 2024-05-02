@@ -643,7 +643,8 @@ namespace OptionView
                 }
             }
             // add underlying if not already included
-            if (!symbols.Any(s => s.Equals(this.StreamingSymbol))) symbols.Add(this.StreamingSymbol);
+            string sym = (this.StreamingSymbol != null) ? this.StreamingSymbol : this.Symbol;  // if grp has already been closed, the streamsymbol is null
+            if (!symbols.Any(s => s.Equals(sym))) symbols.Add(sym);
 
             // get data
             Subscriptions lst = App.DxHandler.GetTimeSeries(symbols, DxHandler.TimeSeriesType.Day, this.StartTime.Date).Result;

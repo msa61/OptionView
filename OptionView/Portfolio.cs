@@ -20,7 +20,6 @@ namespace OptionView
         public Dictionary<string, TWCapitalRequirements> TwReqCapital { get; set; } = null;  // maintenance requirement values from tw
         public TWMarketInfos TwMarketInfo { get; set; } = null;                              // IV and IVR data
         public Dictionary<string, Quote> DxQuotes { get; set; } = null;                      // current prices of options and underlyings
-        public Greeks DxOptionGreeks { get; set; } = null;                                   // greek data for individual options
         public Dictionary<int,GroupHistory> GroupHistory { get; set; }                       // cached historical streaming data
 
         public CurrentDataCache()
@@ -200,7 +199,7 @@ namespace OptionView
             dataCache = null;  // clear any previous data
 
             // retrieve global values
-            List<string> pSymbols = new List<string> { "SPY" };  // , "VIX" };  TODO - NEED TO UNDERSTAND WHY INDICES DON'T SHOW UP
+            List<string> pSymbols = new List<string> { "SPY", "VIX" };
             Dictionary<string, Quote> prices = App.DxHandler.GetQuotes(pSymbols).Result;
             //Dictionary<string, Quote> prices = DataFeed.GetPrices(pSymbols);
             if (prices.ContainsKey("SPY")) SPY = prices["SPY"];
@@ -268,10 +267,8 @@ namespace OptionView
 
                         // get the symbol-specific data
                         dataCache.TwMarketInfo = TastyWorks.MarketInfo(mrkInfoSymbols);  // get IV's
-                        //dataCache.DxOptionGreeks = DataFeed.GetGreeks(optionSymbols); //TODO  COMPETE ONCE GREEKS ARE AVAILABLE
                         dataCache.DxQuotes = App.DxHandler.GetQuotes(symbols.Concat(optionSymbols).ToList()).Result;
                         Debug.Assert(dataCache.DxQuotes != null);
-                        //dataCache.DxQuotes = DataFeed.GetPrices(symbols.Concat(optionSymbols).ToList());
                     }
                 }
                 
@@ -310,35 +307,40 @@ namespace OptionView
                                 pos.Multiplier = twpos.Multiplier;
                                 pos.StreamingSymbol = twpos.OptionStreamerSymbol;
 
-                                // just in case dx doesn't return a symbol
+                                // handle greek data - only for options
+                                if (dataCache.DxQuotes.ContainsKey(twpos.OptionStreamerSymbol) && (twpos.OptionStreamerSymbol.Length > 5))
+                                {
+                                    Quote q = dataCache.DxQuotes[twpos.OptionStreamerSymbol];
+                                    grp.GreekData.Delta += q.Delta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
+                                    grp.GreekData.Theta += q.Theta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
+                                }
+
+
+                                // store the underlying values in the position and group for reference
                                 if (dataCache.DxQuotes.ContainsKey(twpos.StreamerSymbol))
                                 {
-                                    pos.UnderlyingPrice = dataCache.DxQuotes[twpos.StreamerSymbol].Price; // twpos.UnderlyingPrice;
+                                    Quote q = dataCache.DxQuotes[twpos.StreamerSymbol];
+                                    pos.UnderlyingPrice = q.Price; // twpos.UnderlyingPrice;
                                     //Debug.Assert(twpos.UnderlyingPrice == dxQuotes[twpos.Symbol].Price, string.Format("{0} not equal {1} != {2}", pos.Symbol, twpos.UnderlyingPrice, dxQuotes[twpos.Symbol].Price));
 
                                     // capture the underlying price on the first pass thru for the overall group
                                     if (grp.UnderlyingPrice == 0)
                                     {
-                                        grp.UnderlyingPrice = dataCache.DxQuotes[twpos.StreamerSymbol].Price;
-                                        grp.UnderlyingPriceChange = dataCache.DxQuotes[twpos.StreamerSymbol].Change;
+                                        grp.UnderlyingPrice = q.Price;
+                                        grp.UnderlyingPriceChange = q.Change;
                                     }
+                                    // save this for retrieving the underlying history later
                                     grp.StreamingSymbol = twpos.StreamerSymbol;
                                 }
 
                                 // update groups order status based on any of items constituent holdings
                                 grp.OrderActive = twpos.OrderActive;
 
+                                // handle spec cases for stocks
                                 if (pos.Type == "Stock")
                                 {
                                     grp.GreekData.Delta += Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);  // delta is 1 per share
                                     pos.StreamingSymbol = twpos.StreamerSymbol;
-                                }
-                                else if ((dataCache.DxOptionGreeks != null) && (dataCache.DxOptionGreeks.ContainsKey(twpos.OptionStreamerSymbol)))
-                                {
-                                    pos.GreekData = dataCache.DxOptionGreeks[twpos.OptionStreamerSymbol];
-
-                                    grp.GreekData.Delta += pos.GreekData.Delta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
-                                    grp.GreekData.Theta += pos.GreekData.Theta * Decimal.ToDouble(pos.Quantity) * Decimal.ToDouble(pos.Multiplier);
                                 }
 
                                 break;

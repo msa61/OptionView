@@ -16,7 +16,6 @@ namespace OptionView
         public string Type { get; set; }
         public decimal Quantity { get; set; }
         public decimal Amount { get; set; }
-        public Greek GreekData { get; set; }
 
         // the following properties are only for display of raw transaction data
         public string TransSubType { get; set; }

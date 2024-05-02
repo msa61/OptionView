@@ -35,6 +35,8 @@ namespace DxLink
         public double RawDelta;
         public double IV { get; set; }
         public double GreekPrice { get; set; }
+        public double Theta { get; set; }
+        public double TheoPrice { get; set; }
 
 
         public Quote()
