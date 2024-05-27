@@ -199,14 +199,14 @@ namespace OptionView
                     if (tm == DateTime.MinValue)
                     {
                         // set start date with history if nothing in the database
-                        tm = gp.Values.Min(x => x.Key);
+                        if (gp.Values.Count > 0) tm = gp.Values.Min(x => x.Key);
                     }
                     else
                     {
                         // move to first empty date
                         tm = tm.AddDays(1);
                     }
-                    if (gp != null)
+                    if ((gp != null) && (tm != DateTime.MinValue))
                     {
                         for (DateTime day = tm; day <= DateTime.Today; day = day.AddDays(1))
                         {
