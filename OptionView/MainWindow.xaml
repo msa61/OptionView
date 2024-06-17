@@ -454,7 +454,7 @@
                                         <DataGridTextColumn Header="Strike" Binding="{Binding Path=Strike, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
                                         <DataGridTextColumn Header="Quantity" Binding="{Binding Path=Quantity}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
                                         <DataGridTextColumn Header="Amount" Binding="{Binding Path=Amount, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
-                                        <DataGridTextColumn Header="Underlying" Binding="{Binding Path=UnderlyingPrice, StringFormat=C0}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
+                                        <DataGridTextColumn Header="Underlying" Binding="{Binding Path=UnderlyingPrice, StringFormat=C2}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" />
                                         <DataGridTextColumn Header="Fees" Binding="{Binding Path=Fees, StringFormat=C2}" Width="80" CellStyle="{StaticResource RightJustifiedCell}" HeaderStyle="{StaticResource CenterHeader}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
