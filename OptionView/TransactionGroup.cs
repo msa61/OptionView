@@ -30,6 +30,10 @@ namespace OptionView
         public decimal CapitalRequired { get; set; }
         public decimal OriginalCapitalRequired { get; set; }
         public decimal Return { get; set; }
+        public decimal Net
+        {
+            get { return Cost - Fees; }
+        }
         public decimal AnnualReturn { get; set; }
         public bool EarningsTrade { get; set; }
         public bool NeutralStrategy { get; set; }
