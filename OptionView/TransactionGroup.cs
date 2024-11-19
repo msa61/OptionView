@@ -647,7 +647,7 @@ namespace OptionView
             if (!symbols.Any(s => s.Equals(sym))) symbols.Add(sym);
 
             // get data
-            Subscriptions lst = App.DxHandler.GetTimeSeries(symbols, DxHandler.TimeSeriesType.Day, this.StartTime.Date).Result;
+            Subscriptions lst = App.DxHandler.GetTimeSeries(symbols, DxHandler.TimeSeriesType.Day, this.StartTime.Date.AddDays(-1)).Result;
 
 
 
