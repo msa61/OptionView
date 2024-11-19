@@ -270,10 +270,10 @@ namespace DxLink
                                     {
                                         curQuote = ManageSubscription(qArgs.Symbol, SubscriptionType.Quote);
 
-                                        curQuote.AskPrice = Convert.ToDecimal(qArgs.AskPrice);
-                                        curQuote.BidPrice = Convert.ToDecimal(qArgs.BidPrice);
+                                        if(!double.IsNaN(qArgs.AskPrice)) curQuote.AskPrice = Convert.ToDecimal(qArgs.AskPrice);
+                                        if (!double.IsNaN(qArgs.BidPrice)) curQuote.BidPrice = Convert.ToDecimal(qArgs.BidPrice);
                                         curQuote.Price = (curQuote.AskPrice + curQuote.BidPrice) / 2;
-                                        curQuote.Spread = Convert.ToDecimal(qArgs.AskPrice - qArgs.BidPrice);
+                                        curQuote.Spread = curQuote.AskPrice - curQuote.BidPrice;
                                     }
                                     break;
                                 case DxMessageType.Greeks:
