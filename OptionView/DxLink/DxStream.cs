@@ -797,7 +797,10 @@ namespace DxLink
                 AddSub(retlist, "Summary", symbol);  //temp test
             }
 
-            if (symbol.Length < 6)
+            // look for exchange code (on futures)
+            int i = symbol.IndexOf(':');
+            //                         exh found but not long enough to be an option
+            if ((symbol.Length < 6) || ((i>0) & (i<=6)))
             {
                 // for equities
                 if ((type & SubscriptionType.Profile) == SubscriptionType.Profile)

@@ -51,7 +51,8 @@ namespace DxLink
             Subscription retval =null;
             if (type == SubscriptionType.All)
             {
-                if (symbol.Length < 6) 
+                int i = symbol.IndexOf(':');
+                if ((symbol.Length < 6) || ((i > 0) & (i <= 6))) 
                     type = SubscriptionType.AllEquity;
                 else
                     type = SubscriptionType.AllOption;
@@ -125,10 +126,11 @@ namespace DxLink
 
             string retval = string.Format($"Total: {stats.Count}  overall: {stats.RemainingOverall}  trade: {stats.RemainingTrade}  quote: {stats.RemainingQuote} profile: {stats.RemainingProfile} summary: {stats.RemainingSummary}  greek: {stats.RemainingGreek} timeseries: {stats.RemainingTimeSeries}");
             string missingTrade = "";
-            //foreach (KeyValuePair<string, DxQuote> pair in this)
+
+            //foreach (KeyValuePair<string, Subscription> pair in this)
             //{
-            //    QuoteStatus status = ((DxQuote)pair.Value).Status;
-            //    if ((status & QuoteStatus.Trade) != QuoteStatus.Trade) missingTrade += pair.Key + ", ";
+            //    SubscriptionType status = pair.Value.Status;
+            //    if ((status & SubscriptionType.TimeSeries) == SubscriptionType.TimeSeries) missingTrade += pair.Key + ", ";
             //}
 
             return retval + "\n" + missingTrade;
