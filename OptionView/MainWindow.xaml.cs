@@ -102,7 +102,7 @@ namespace OptionView
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Visible; this.Sync.IsEnabled = false; }); 
             portfolio.CacheGroupHistoricalData();
             BalanceHistory.WriteGroups(portfolio);  // record current values
-            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Fill = new SolidColorBrush(Colors.LightGreen); });
+            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Fill = new SolidColorBrush(Colors.LightGreen); this.Sync.IsEnabled = true; });
             UpdateScreenerGrid(); 
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Collapsed; });
         }
