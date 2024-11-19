@@ -917,7 +917,7 @@
 
             <Button DockPanel.Dock="Right" Width="59" Height="30" Content="Config" Margin="6,0,6,0" Click="ConfigButton" FontFamily="Trebuchet MS" />
             <Button DockPanel.Dock="Right" x:Name="Validate"  Width="59"  Height="30" Content="Validate" Margin="6,0,0,0" Click="ValidateButton" FontFamily="Trebuchet MS"/>
-            <Button DockPanel.Dock="Right" x:Name="Sync"  Width="59"  Height="30" Content="Sync"  Click="SyncButton" FontFamily="Trebuchet MS"/>
+            <Button DockPanel.Dock="Right" x:Name="Sync" IsEnabled="False"  Width="59"  Height="30" Content="Sync"  Click="SyncButton" FontFamily="Trebuchet MS"/>
 
             <Ellipse x:Name="refreshModeSignal" Visibility="Collapsed" DockPanel.Dock="Right" Height="10" Width="10" Margin="20" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="LightCoral"/>
 

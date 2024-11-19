@@ -99,7 +99,7 @@ namespace OptionView
 
             // wait to do these completely in the background
             if (App.OfflineMode) return;
-            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Visible; }); 
+            this.Dispatcher.Invoke(() => { this.refreshModeSignal.Visibility = Visibility.Visible; this.Sync.IsEnabled = false; }); 
             portfolio.CacheGroupHistoricalData();
             BalanceHistory.WriteGroups(portfolio);  // record current values
             this.Dispatcher.Invoke(() => { this.refreshModeSignal.Fill = new SolidColorBrush(Colors.LightGreen); });
