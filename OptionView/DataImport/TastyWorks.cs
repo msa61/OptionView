@@ -294,17 +294,20 @@ namespace OptionView
                 App.UpdateStatusMessage("TW MarginData : " + accountNumber);
 
                 SetHeaders(Token);
-                string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber);
+                string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber + "/requirements");
 
                 JObject package = JObject.Parse(reply);
 
-                List<JToken> list = package["data"]["underlyings"].Children().ToList();
+                List<JToken> list = package["data"]["groups"].Children().ToList();
 
                 TWCapitalRequirements retval = new TWCapitalRequirements();
 
                 foreach (JToken item in list)
                 {
-                    retval.Add(item["underlying-symbol"].ToString(), Convert.ToDecimal(item["maintenance-requirement"]));
+                    string key = item.Value<string>("underlying-symbol");
+                    if (key == null) key = item["description"].ToString();
+                    
+                    retval.Add(key, Convert.ToDecimal(item["maintenance-requirement"]));
                 }
 
                 return retval;
