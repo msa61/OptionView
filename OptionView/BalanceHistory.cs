@@ -196,33 +196,36 @@ namespace OptionView
                 if (portfolio.dataCache.GroupHistory.ContainsKey(grp.GroupID))
                 {
                     GroupHistory gp = portfolio.dataCache.GroupHistory[grp.GroupID];
-                    if (tm == DateTime.MinValue)
+                    if (gp.Values.Count > 0)
                     {
-                        // set start date with history if nothing in the database
-                        tm = gp.Values.Min(x => x.Key);
-                    }
-                    else
-                    {
-                        // move to first empty date
-                        tm = tm.AddDays(1);
-                    }
-                    if (gp != null)
-                    {
-                        for (DateTime day = tm; day <= DateTime.Today; day = day.AddDays(1))
+                        if (tm == DateTime.MinValue)
                         {
-                            Debug.WriteLine($"day: {day}");
-                            if (gp.Values.ContainsKey(day))
+                            // set start date with history if nothing in the database
+                            tm = gp.Values.Min(x => x.Key);
+                        }
+                        else
+                        {
+                            // move to first empty date
+                            tm = tm.AddDays(1);
+                        }
+                        if (gp != null)
+                        {
+                            for (DateTime day = tm; day <= DateTime.Today; day = day.AddDays(1))
                             {
-                                GroupHistoryValue hv = gp.Values[day];
+                                Debug.WriteLine($"day: {day}");
+                                if (gp.Values.ContainsKey(day))
+                                {
+                                    GroupHistoryValue hv = gp.Values[day];
 
-                                string sql = "INSERT INTO GroupHistory(Date, GroupID, Value, Underlying, IV) Values (@dt,@id,@va,@ul,@iv)";
-                                SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
-                                cmd.Parameters.AddWithValue("dt", day);
-                                cmd.Parameters.AddWithValue("id", grp.GroupID);
-                                cmd.Parameters.AddWithValue("va", hv.Value);
-                                cmd.Parameters.AddWithValue("ul", hv.Underlying);
-                                cmd.Parameters.AddWithValue("iv", Math.Round(hv.IV, 1));
-                                cmd.ExecuteNonQuery();
+                                    string sql = "INSERT INTO GroupHistory(Date, GroupID, Value, Underlying, IV) Values (@dt,@id,@va,@ul,@iv)";
+                                    SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
+                                    cmd.Parameters.AddWithValue("dt", day);
+                                    cmd.Parameters.AddWithValue("id", grp.GroupID);
+                                    cmd.Parameters.AddWithValue("va", hv.Value);
+                                    cmd.Parameters.AddWithValue("ul", hv.Underlying);
+                                    cmd.Parameters.AddWithValue("iv", Math.Round(hv.IV, 1));
+                                    cmd.ExecuteNonQuery();
+                                }
                             }
                         }
                     }
