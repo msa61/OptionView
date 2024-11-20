@@ -403,8 +403,8 @@ namespace OptionView
                     }
                     else if (item["instrument-type"].ToString() == "Future Option")
                     {
-                        inst.StreamerSymbol = TastyWorks.GetFutureOptionSymbol(inst.Symbol);
-                        inst.OptionStreamerSymbol = GetFutureOptionSymbol(inst.OptionSymbol);
+                        inst.StreamerSymbol = TastyWorks.GetStreamingSymbol(inst.Symbol);
+                        inst.OptionStreamerSymbol = GetStreamingSymbol(inst.OptionSymbol);
                     }
                     else
                     {
@@ -425,7 +425,7 @@ namespace OptionView
             }
         }
 
-        public static string GetFutureOptionSymbol(string symbol)
+        public static string GetStreamingSymbol(string symbol)
         {
             string retval = "";
             try
@@ -436,10 +436,22 @@ namespace OptionView
                 SetHeaders(Token); // reset, lost after previous call
 
                 string url = "https://api.tastyworks.com/instruments/";
-                if (symbol.Substring(0, 1) == ".")
-                    url += "future-options/" + symbol.Replace("/", "%2F");
+                if (symbol.Substring(0,2).IndexOf("/") > -1)
+                {
+                    /// this is a future
+                    if (symbol.Substring(0, 1) == ".")
+                        url += "future-options/" + symbol.Replace("/", "%2F");
+                    else
+                        url += "futures" + symbol;
+                }
                 else
-                    url += "futures" + symbol;
+                {
+                    // equity
+                    if (symbol.Length > 4)
+                        url += "equity-options/" + symbol;
+                    else
+                        url += "equities/" + symbol;
+                }
 
                 string reply = Web.DownloadString(url);
 
@@ -451,8 +463,8 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "TW GetFutureOptionSymbol");
-                throw new Exception("Error in Tastyworks.GetFutureOptionSymbol", ex);
+                MessageBox.Show(ex.Message, "TW GetStreamingSymbol");
+                throw new Exception("Error in Tastyworks.GetStreamingSymbol", ex);
             }
         }
 
