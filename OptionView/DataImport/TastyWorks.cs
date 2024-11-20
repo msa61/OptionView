@@ -106,6 +106,7 @@ namespace OptionView
         public decimal? Amount { get; set; }
         public string Description { get; set; }
         public string AccountRef { get; set; }
+        public string TwSymbol { get; set; }
 
         public override string ToString()
         {
@@ -550,6 +551,7 @@ namespace OptionView
                         if ((inst.TransactionCode == "Trade") || (inst.TransactionCode == "Receive Deliver"))
                         {
                             inst.Symbol = item["underlying-symbol"].ToString();
+                            inst.TwSymbol = item["symbol"].ToString();
                             inst.Quantity = Convert.ToDecimal(item["quantity"]);
 
                             SymbolDecoder symbol = new SymbolDecoder(item["symbol"].ToString(), item["instrument-type"].ToString());

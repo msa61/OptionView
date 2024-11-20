@@ -101,8 +101,8 @@ namespace OptionView
 
                 //(new SQLiteCommand("DELETE FROM transactions WHERE 1=1", conn)).ExecuteNonQuery();
 
-                string sql = "INSERT INTO transactions(Time, LoadGroupID, TransType, TransSubType, TransID, Symbol, 'Buy-Sell', 'Open-Close', Quantity, ExpireDate, Strike, Type, Price, Fees, Amount, Description, Account, UnderlyingPrice)"
-                        + " Values(@tm,@lg,@tt,@tst,@tid,@sym,@buy,@op,@qu,@exp,@str,@ty,@pr,@fe,@am,@des,@acc,@up)";
+                string sql = "INSERT INTO transactions(Time, LoadGroupID, TransType, TransSubType, TransID, Symbol, 'Buy-Sell', 'Open-Close', Quantity, ExpireDate, Strike, Type, Price, Fees, Amount, Description, Account, UnderlyingPrice, TwSymbol)"
+                        + " Values(@tm,@lg,@tt,@tst,@tid,@sym,@buy,@op,@qu,@exp,@str,@ty,@pr,@fe,@am,@des,@acc,@up,@tw)";
 
                 SQLiteTransaction sqlTransaction = App.ConnStr.BeginTransaction();
 
@@ -128,6 +128,7 @@ namespace OptionView
                         cmd.Parameters.AddWithValue("am", record.Amount);
                         cmd.Parameters.AddWithValue("des", record.Description);
                         cmd.Parameters.AddWithValue("acc", record.AccountRef);
+                        cmd.Parameters.AddWithValue("tw", record.TwSymbol);
                         decimal underlyingPrice = 0;
                         if (record.Symbol != null)  // need to skip for non-security transactions
                         {
