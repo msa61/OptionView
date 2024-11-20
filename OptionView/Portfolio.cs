@@ -290,7 +290,7 @@ namespace OptionView
                             TWPosition twpos = p.Value;
                             if ((pos.Symbol == twpos.Symbol) && (pos.Type == twpos.Type) 
                                 && (pos.Strike == twpos.Strike) && (pos.ExpDate == twpos.ExpDate) 
-                                && dataCache.DxQuotes.ContainsKey(twpos.OptionStreamerSymbol))  // if dx returns nothing
+                                && dataCache.DxQuotes.ContainsKey(twpos.OptionStreamerSymbol))  // if dx returns something
                             {
                                 //select price based on market status - the average bid/ask method doesn't work well when market is closed
                                 decimal price = dataCache.DxQuotes[twpos.OptionStreamerSymbol].Price;
