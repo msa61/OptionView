@@ -46,7 +46,7 @@ namespace OptionView
             return key;
         }
 
-        public string Add(string symbol, string type, DateTime expDate, decimal strike, decimal quant, decimal amount, DateTime? transTime, int row, string openClose, int grpID, decimal underlyingPrice)
+        public string Add(string symbol, string type, DateTime expDate, decimal strike, decimal quant, decimal amount, DateTime? transTime, int row, string openClose, int grpID, decimal underlyingPrice, string streaming = "undef2")
         {
             string key = (type == "Stock") ? symbol : symbol + expDate.ToString("yyMMdd") + strike.ToString("0000.0") + type;
 
@@ -79,8 +79,7 @@ namespace OptionView
             p.TransType = openClose;
             if (grpID > 0) groupID = grpID;
 
-            // default value, doesn't work for futures
-            p.StreamingSymbol = (p.Type == "Stock") ? p.Symbol : string.Format(".{0}{1:yyMMdd}{2}{3}", p.Symbol, p.ExpDate, p.Type.Substring(0, 1), p.Strike);
+            p.StreamingSymbol = streaming;
 
             return key;
         }
@@ -95,7 +94,7 @@ namespace OptionView
             foreach (KeyValuePair<string, Position> item in other)
             {
                 Position p = item.Value;
-                this.Add(p.Symbol, p.Type, p.ExpDate, p.Strike, p.Quantity, 0, p.TransType, p.GroupID);
+                this.Add(p.Symbol, p.Type, p.ExpDate, p.Strike, p.Quantity, 0.0m, null, 0, p.TransType, p.GroupID, 0, p.StreamingSymbol);
             }
             return this;
         }

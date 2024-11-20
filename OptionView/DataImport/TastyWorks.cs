@@ -396,20 +396,25 @@ namespace OptionView
                     inst.ExpDate = symbol.Expiration;
                     inst.Strike = symbol.Strike;
 
-                    if (inst.Type == "Stock")
+                    switch (item["instrument-type"].ToString())
                     {
-                        inst.StreamerSymbol = inst.Symbol;
-                        inst.OptionStreamerSymbol = inst.Symbol;
-                    }
-                    else if (item["instrument-type"].ToString() == "Future Option")
-                    {
-                        inst.StreamerSymbol = TastyWorks.GetStreamingSymbol(inst.Symbol);
-                        inst.OptionStreamerSymbol = GetStreamingSymbol(inst.OptionSymbol);
-                    }
-                    else
-                    {
-                        inst.StreamerSymbol = inst.Symbol;
-                        inst.OptionStreamerSymbol = string.Format(".{0}{1:yyMMdd}{2}{3}", inst.Symbol, inst.ExpDate, inst.Type.Substring(0, 1), inst.Strike);
+                        case "Equity":
+                            inst.StreamerSymbol = inst.Symbol;
+                            inst.OptionStreamerSymbol = inst.Symbol;
+                            break;
+                        case "Equity Option":
+                            inst.StreamerSymbol = inst.Symbol;
+                            inst.OptionStreamerSymbol = GetStreamingSymbol(inst.OptionSymbol); 
+                            break;
+                        //case "Future":
+                        //    break;
+                        case "Future Option":
+                            inst.StreamerSymbol = GetStreamingSymbol(inst.Symbol);
+                            inst.OptionStreamerSymbol = GetStreamingSymbol(inst.OptionSymbol);
+                            break;
+                        default:
+                            MessageBox.Show("Unknown type: " + item["instrument-type"].ToString() + "TW Positions", "TW Positions");
+                            break;
                     }
 
                     returnList.Add(inst.OptionSymbol.Length > 0 ? inst.OptionSymbol : inst.Symbol, inst);

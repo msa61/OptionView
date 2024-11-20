@@ -542,7 +542,7 @@ namespace OptionView
             SortedList<DateTime, Positions> retval = new SortedList<DateTime, Positions>();
 
             // step thru open transactions
-            string sql = "SELECT symbol, TransSubType, transgroupid, type, datetime(expiredate) AS ExpireDate, strike, sum(quantity) AS total, sum(amount) as amount, ";
+            string sql = "SELECT symbol, TransSubType, transgroupid, type, datetime(expiredate) AS ExpireDate, strike, twSymbol, sum(quantity) AS total, sum(amount) as amount, ";
             sql += "datetime(Time) AS Time FROM transactions WHERE (transgroupid = @gr) GROUP BY symbol, TransSubType, type, expiredate, strike ORDER BY Time";
 
             SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
@@ -581,8 +581,19 @@ namespace OptionView
                     }
                     prevTime = time;
                 }
-                retval[time].Add(reader["symbol"].ToString(), type, expDate, strike, quantity, amount, time, 0, "", 0, 0);
 
+                string symbol = reader["symbol"].ToString();
+                string twSymbol = reader["twSymbol"].ToString();
+                string streamingSymbol = "undef";
+                if (twSymbol != "")
+                    streamingSymbol = TastyWorks.GetStreamingSymbol(twSymbol);
+                else if (type == "Stock")
+                    // legacy condition
+                    streamingSymbol = symbol;
+                else if ((type == "Put") || (type == "Call"))
+                    streamingSymbol = string.Format(".{0}{1:yyMMdd}{2}{3}", symbol, expDate, type.Substring(0, 1), strike);
+
+                retval[time].Add(symbol, type, expDate, strike, quantity, amount, time, 0, "", 0, 0, streamingSymbol);
             }
             retval.ElementAt(retval.Count-1).Value.PurgeEmptyPositions();
 
