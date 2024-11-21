@@ -654,12 +654,12 @@ namespace OptionView
                 List<string> allSymbols = allSymbols = positions.Select(x => x.Value.StreamingSymbol).ToList();
                 foreach (string s in allSymbols)
                 {
-                    if (!symbols.Any(x => x.Equals(s))) symbols.Add(s);
+                    if (!symbols.Any(x => x.Equals(s))) symbols.Add(s);  // add previously unseen symbols
                 }
             }
             // add underlying if not already included
-            string sym = (this.StreamingSymbol != null) ? this.StreamingSymbol : this.Symbol;  // if grp has already been closed, the streamsymbol is null
-            if (!symbols.Any(s => s.Equals(sym))) symbols.Add(sym);
+            if (this.StreamingSymbol == null) this.StreamingSymbol = TastyWorks.GetStreamingSymbol(this.Symbol);  // if grp has already been closed, the streamsymbol is null
+            if (!symbols.Any(s => s.Equals(this.StreamingSymbol))) symbols.Add(this.StreamingSymbol);
 
             // get data
             Subscriptions lst = App.DxHandler.GetTimeSeries(symbols, DxHandler.TimeSeriesType.Day, this.StartTime.AddDays(-1).Date).Result;
