@@ -132,7 +132,9 @@ namespace OptionView
                         decimal underlyingPrice = 0;
                         if (record.Symbol != null)  // need to skip for non-security transactions
                         {
-                            Quote q = App.DxHandler.GetQuote(record.Symbol).Result;
+                            string symbol = record.Symbol;
+                            if (symbol.Substring(0,1) == "/") symbol = TastyWorks.GetStreamingSymbol(symbol);
+                            Quote q = App.DxHandler.GetQuote(symbol).Result;
                             underlyingPrice = q.Price;
                         }
                         cmd.Parameters.AddWithValue("up", underlyingPrice);
