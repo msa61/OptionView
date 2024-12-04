@@ -10,6 +10,9 @@ using System.IO;
 using System.Windows.Threading;
 using DxLink;
 using System.Diagnostics;
+using log4net;
+using log4net.Config;
+using System.Reflection;
 
 namespace OptionView
 {
@@ -24,16 +27,21 @@ namespace OptionView
         public static bool OfflineMode { get; set; } = false;
         public static bool DataRefreshMode { get; set; } = false;
         public static DxHandler DxHandler { get; set; } = null;
+        public static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
         private void OnStartup(object sender, StartupEventArgs e)
         {
+            var logRepository = log4net.LogManager.GetRepository(Assembly.GetEntryAssembly());
+            log4net.Config.XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
+
             if ((e.Args.Count() > 0) && (e.Args[0].ToLower() == "offline")) OfflineMode = true;
             if ((e.Args.Count() > 0) && (e.Args[0].ToLower() == "refresh")) DataRefreshMode = true;
 
-
             mainWindow = new MainWindow();
             mainWindow.Show();
+
+            Logger.Info("App started");
         }
 
         public static void UpdateStatusMessage(string txt)
