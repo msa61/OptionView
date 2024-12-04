@@ -130,7 +130,8 @@ namespace DxLink
             //foreach (KeyValuePair<string, Subscription> pair in this)
             //{
             //    SubscriptionType status = pair.Value.Status;
-            //    if ((status & SubscriptionType.TimeSeries) == SubscriptionType.TimeSeries) missingTrade += pair.Key + ", ";
+            //    if ((status & SubscriptionType.TimeSeries) == SubscriptionType.TimeSeries) missingTrade += "TS:" + pair.Key + ", ";
+            //    if ((status & SubscriptionType.Quote) == SubscriptionType.Quote) missingTrade += "Qt:" + pair.Key + ", ";
             //}
 
             return retval + "\n" + missingTrade;
