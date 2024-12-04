@@ -9,8 +9,10 @@ using FileHelpers;
 using System.Data;
 using System.Data.SQLite;
 using System.Windows;
+using System.IO;
 using System.Security.Principal;
 using DxLink;
+using System.Web.Util;
 
 
 namespace OptionView
@@ -24,6 +26,9 @@ namespace OptionView
         {
             try
             {
+                // backup transaction db for debugging purposes
+                File.Copy("transactions.sqlite", "transactions-backup.sqlite", true);
+
                 // establish db connection
                 App.OpenConnection();
 
@@ -51,12 +56,14 @@ namespace OptionView
                     {
                         if (a.Active)
                         {
-                            Debug.WriteLine(a.ID);
+                            App.Logger.Debug("Load account: " + a.ID.ToString());
 
                             // retrieve Tastyworks transactions for the past month
                             TWTransactions transactions = TastyWorks.Transactions(a.ID, DateTime.Today.AddDays(-30), null);
 
-                            SaveTransactions(transactions);  // transfer transaction array to database
+                            int addCnt = SaveTransactions(transactions);  // transfer transaction array to database
+
+                            App.Logger.Info(addCnt.ToString() + " transactions added to the database");
 
                             // save latest transaction for next upload
                             SQLiteCommand cmd = new SQLiteCommand("SELECT max(time) FROM transactions WHERE Account = @ac", App.ConnStr);
@@ -77,7 +84,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ERROR DataLoader: " + ex.Message);
+                App.Logger.Error("ERROR Load method: " + ex.Message);
                 MessageBox.Show(ex.Message, "Sync Error");
             }
         }
@@ -85,13 +92,15 @@ namespace OptionView
 
         // write transactions loaded from webservice into the database
         //
-        private static void SaveTransactions(TWTransactions transactions)
+        private static int SaveTransactions(TWTransactions transactions)
         {
+            int returnCount = 0;
+
             try
             {
                 SQLiteCommand cmd;
 
-                if (transactions.Count() == 0) return;
+                if (transactions.Count() == 0) return 0;
 
                 string propName = "LastDate-" + transactions[0].AccountRef;
                 DateTime lastDate = Config.GetDateProp(propName);
@@ -140,6 +149,7 @@ namespace OptionView
                         cmd.Parameters.AddWithValue("up", underlyingPrice);
 
                         cmd.ExecuteNonQuery();
+                        returnCount++;
                     }
                 }
 
@@ -148,10 +158,10 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("ERROR: Save Transaction: " + ex.Message);
+                App.Logger.Error("Save Transaction: " + ex.Message);
             }
 
-            return;
+            return returnCount;
         }
 
 
@@ -165,7 +175,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("ERROR UpdateNewRecords: " + ex.Message);
+                App.Logger.Error("UpdateNewTransactions: " + ex.Message);
             }
         }
 
@@ -205,7 +215,7 @@ namespace OptionView
                 if (stk.Read())
                 {
                     string buySell = stk["Buy-Sell"].ToString();
-                    Debug.WriteLine("MatchExpirations: found " + buySell + " related to the " + symbol + " " + type + " " + strike.ToString() + " " + expDate.ToString("MMM-d"));
+                    App.Logger.Debug("MatchExpirations: found " + buySell + " related to the " + symbol + " " + type + " " + strike.ToString() + " " + expDate.ToString("MMM-d"));
 
                     if (buySell == "Buy")
                     {
@@ -248,7 +258,7 @@ namespace OptionView
                     // save props of controlling record
                     account = reader["Account"].ToString();
                     symbol = reader["Symbol"].ToString();
-                    Debug.WriteLine("UpdateTransactionGroups: Found -> " + account + "/" + symbol);
+                    App.Logger.Debug("UpdateTransactionGroups: Found -> " + account + "/" + symbol);
 
 
                     // query all of the transactions in this account, for given symbol that are either part of an open chain or not part of chain yet
@@ -281,7 +291,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("UpdateTransactionGroups: " + ex.Message + "(" + symbol + ")");
+                App.Logger.Error("UpdateTransactionGroups: " + ex.Message + "(" + symbol + ")");
             }
 
         }
@@ -315,12 +325,12 @@ namespace OptionView
 
             // start recursion
             ProcessTransactionGroup(account, symbol, dt, time, holdings, times);
-            Debug.WriteLine("First pass of chain completed.  Retrieving manually matched transactions...");
+            App.Logger.Debug("First pass of chain completed.  Retrieving manually matched transactions...");
 
 
             // retrieve existing group id
             int groupID = holdings.GroupID();
-            Debug.WriteLine("GroupID: " + groupID.ToString());
+            App.Logger.Debug("GroupID: " + groupID.ToString());
 
             // Collect remaining transactions that have been manually merged as they won't be processed in main path (skip altogether then groupID is 0 as this indicates new group)
             if (groupID > 0)
@@ -335,7 +345,7 @@ namespace OptionView
                     remainingRows = dt.Select("TransGroupID = " + groupID.ToString());
                 }
             }
-            Debug.WriteLine("Chain completed for GroupID: " + groupID.ToString());
+            App.Logger.Debug("Chain completed for GroupID: " + groupID.ToString());
 
             try
             {
@@ -405,7 +415,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("ProcessTransactionChain (Update/insert TransGroup): " + ex.Message + "(groupID: " + groupID.ToString() + ")");
+                App.Logger.Error("ProcessTransactionChain (Update/insert TransGroup): " + ex.Message + "(groupID: " + groupID.ToString() + ")");
             }
 
 
@@ -424,7 +434,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("ProcessTransactionChain (Updating transactions): " + ex.Message );
+                App.Logger.Error("ProcessTransactionChain (Updating transactions): " + ex.Message );
             }
         }
 
@@ -590,7 +600,7 @@ namespace OptionView
 
         private static void ProcessTransactionGroup(string account, string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
         {
-            Debug.WriteLine("Entering ProcessTransactionGroup (" + symbol + "   " + time.ToString() + ")");
+            App.Logger.Debug("Entering ProcessTransactionGroup (" + symbol + "   " + time.ToString() + ")");
 
             // Collect all 'opens' for the selected time
             DataRow[] rows = dt.Select("TransTime = '" + time + "'");
@@ -631,7 +641,7 @@ namespace OptionView
                     {
                         // add transaction to the chain
                         string key = holdings.Add(symbol, type, expDate, strike, quantity, amount, null, row, openClose, grpID, 0);
-                        Debug.WriteLine("    Opening transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString() + "   row: " + r.Field<Int64>("id").ToString());
+                        App.Logger.Debug("    Opening transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString() + "   row: " + r.Field<Int64>("id").ToString());
 
                         // add the associated time to the hierarchy for chain
                         if (!times.ContainsKey(time)) times.Add(time, time);
@@ -711,7 +721,7 @@ namespace OptionView
                             if ((r["TransGroupID"] != DBNull.Value) && (Convert.ToInt64(r["TransGroupID"]) != 0)) grpID = (int)r.Field<Int64>("TransGroupID");
 
                             string key = holdings.Add(p.Symbol, p.Type, p.ExpDate, p.Strike, (Int32)r.Field<Int64>("Quantity"), (Int32)r.Field<Int64>("ID"), r.Field<string>("Open-Close").ToString(), grpID);
-                            Debug.WriteLine("    Closing transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString() + "   row: " + r.Field<Int64>("id").ToString());
+                            App.Logger.Debug("    Closing transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString() + "   row: " + r.Field<Int64>("id").ToString());
 
                             if (r.Field<String>("TransSubType") == "Assignment")
                             {
@@ -747,7 +757,7 @@ namespace OptionView
                     ProcessTransactionGroup(account, symbol, dt, t, holdings, times);
             }
 
-            Debug.WriteLine("Exiting ProcessTransactionGroup (" + symbol + "     rows left: " + dt.Rows.Count + ")");
+            App.Logger.Debug("Exiting ProcessTransactionGroup (" + symbol + "     rows left: " + dt.Rows.Count + ")");
 
         }
     }
