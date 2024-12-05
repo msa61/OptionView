@@ -579,6 +579,16 @@ namespace OptionView
             }
             return false;
         }
+
+        public void RemoveIfEmpty(int groupID)
+        {
+            if (this[groupID].Holdings.IsAllClosed())
+            {
+                this[groupID].Close();
+                this.Remove(groupID);
+            }
+
+        }
     }
 
 

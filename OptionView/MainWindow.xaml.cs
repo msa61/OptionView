@@ -74,6 +74,8 @@ namespace OptionView
 
             worker.RunWorkerAsync();
 
+            if (Debugger.IsAttached) return;  // disable timed refresh while debugging, causes weird behavior if app sits a breakpoint too long
+
             // setup timer
             refreshTimer = new Timer();
             refreshTimer.Interval = 5 * 60 * 1000;
@@ -1213,6 +1215,8 @@ namespace OptionView
         {
             portfolio = new Portfolio(accounts);
             portfolio.GetCurrentData();
+
+            portfolio.RemoveIfEmpty(selectedTag);
         }
         private void CombineRefreshComplete(object sender, RunWorkerCompletedEventArgs e)
         {

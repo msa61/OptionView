@@ -152,6 +152,15 @@ namespace OptionView
             return 1; // combine completed
         }
 
+        public void Close()
+        {
+            string sql = "UPDATE TransGroup SET Open = @op WHERE ID=@row";
+            SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+            cmdUpd.Parameters.AddWithValue("op", 0);
+            cmdUpd.Parameters.AddWithValue("row", this.GroupID);
+            cmdUpd.ExecuteNonQuery();
+        }
+
         public string GetPerLotCost()
         {
             decimal defaultAmount = 0;
