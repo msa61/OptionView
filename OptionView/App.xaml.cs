@@ -25,7 +25,7 @@ namespace OptionView
         private static MainWindow mainWindow = null;
         public static GroupWindowHandler GroupWindow = new GroupWindowHandler();
         public static bool OfflineMode { get; set; } = false;
-        public static bool DataRefreshMode { get; set; } = false;
+        public static bool DataRefreshMode { get; set; } = false;  // updates databases and immediately exits the app
         public static DxHandler DxHandler { get; set; } = null;
         public static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
