@@ -171,7 +171,7 @@ namespace OptionView
             try
             {
                 MatchExpirations();
-                UpdateTransactionGroups();
+                UpdateUngroupedTransactions();
             }
             catch (Exception ex)
             {
@@ -235,18 +235,21 @@ namespace OptionView
         // searches database for transactions without groupID (which only exists on new records
         // for these new records, other transactions are searched to determine if they are part of a roll or a new position
         // 
-        private static void UpdateTransactionGroups()
+        private static void UpdateUngroupedTransactions()
         {
             string symbol = "";
             string account = "";
 
             try
             {
+                App.Logger.Debug("Entering UpdateUngroupedTransactions...");
+                int i = 0;
+
                 // establish connection
                 App.OpenConnection();
 
                 // get list of symbols that aren't in a group yet
-                string sql = "SELECT DISTINCT account, symbol, transSubType from Transactions ";
+                string sql = "SELECT DISTINCT account, symbol from Transactions ";
                 sql += "WHERE ((TransGroupID is NULL) OR (TransGroupID = 0)) AND symbol != '' AND TransType != 'Money Movement' ";
                 sql += "ORDER BY symbol";
                 //string sql = "SELECT DISTINCT symbol from Transactions WHERE TransGroupID is NULL AND symbol = 'AMD' ORDER BY symbol";
@@ -254,11 +257,12 @@ namespace OptionView
                 SQLiteDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
+                    App.Logger.Debug("Ungroupd record# " + ++i);
 
                     // save props of controlling record
                     account = reader["Account"].ToString();
                     symbol = reader["Symbol"].ToString();
-                    App.Logger.Debug("UpdateTransactionGroups: Found -> " + account + "/" + symbol);
+                    App.Logger.Debug("UpdateUngroupedTransactions: Found -> " + account + "/" + symbol);
 
 
                     // query all of the transactions in this account, for given symbol that are either part of an open chain or not part of chain yet
@@ -280,9 +284,11 @@ namespace OptionView
 
                     while (dt.Rows.Count > 0)
                     {
+                        App.Logger.Debug("UpdateUngroupedTransactions: Num of rows found: " + dt.Rows.Count.ToString());
+
                         int numOfRows = dt.Rows.Count;
                         string t = dt.Rows[0]["TransTime"].ToString(); // maintain sqlite date format as a string, initiate process with the earliest time
-                        ProcessTransactionChain(account, symbol, dt, t);
+                        UpdateTransactionChain(account, symbol, dt, t);
 
                         if (dt.Rows.Count == numOfRows) break;  // nothing happened, so avoid endless loop
                     }
@@ -291,7 +297,7 @@ namespace OptionView
             }
             catch (Exception ex)
             {
-                App.Logger.Error("UpdateTransactionGroups: " + ex.Message + "(" + symbol + ")");
+                App.Logger.Error("UpdateUngroupedTransactions: " + ex.Message + "(" + symbol + ")");
             }
 
         }
@@ -318,111 +324,119 @@ namespace OptionView
         // starts with data table of all possible transaction, account/symbol and a particular transaction time
         // chain is built from there
         //
-        private static void ProcessTransactionChain(string account, string symbol, DataTable dt, string time)
+        private static void UpdateTransactionChain(string account, string symbol, DataTable dt, string time)
         {
             Positions holdings = new Positions();
             SortedList<string, string> times = new SortedList<string, string>();
 
             // start recursion
-            ProcessTransactionGroup(account, symbol, dt, time, holdings, times);
-            App.Logger.Debug("First pass of chain completed.  Retrieving manually matched transactions...");
+            App.Logger.Debug("UpdateTransactionChain: start recursions for " + account + "/" + symbol);
+            UpdateTransactionsInGroup(account, symbol, dt, time, holdings, times);
+            App.Logger.Debug("UpdateTransactionChain: First pass of chain completed.  Retrieving manually combined or dividend transactions...");
 
 
             // retrieve existing group id
             int groupID = holdings.GroupID();
-            App.Logger.Debug("GroupID: " + groupID.ToString());
+            App.Logger.Debug("Current chain GroupID: " + groupID.ToString());
 
-            // Collect remaining transactions that have been manually merged as they won't be processed in main path (skip altogether then groupID is 0 as this indicates new group)
+            // Collect remaining transactions that have been manually combined (or dividends) as they won't be processed in main path (skip altogether then groupID is 0 as this indicates new group)
             if (groupID > 0)
             {
                 DataRow[] remainingRows = dt.Select("TransGroupID = " + groupID.ToString());
                 while (remainingRows.Length > 0)
                 {
                     string t = remainingRows[0]["TransTime"].ToString(); // maintain sqlite date format as a string 
-                    ProcessTransactionGroup(account, symbol, dt, t, holdings, times);
+                    UpdateTransactionsInGroup(account, symbol, dt, t, holdings, times);
 
                     //refresh
                     remainingRows = dt.Select("TransGroupID = " + groupID.ToString());
                 }
             }
-            App.Logger.Debug("Chain completed for GroupID: " + groupID.ToString());
+            App.Logger.Debug("UpdateTransactionChain: Chain completed for GroupID: " + groupID.ToString());
 
             try
             {
-                if (groupID > 0)  // existing group
+                if (holdings.Count > 0)  // abort this, there was nothing left in the rowset after the dividends were separately processed
                 {
-                    // update chain status
-
-                    if (holdings.hasAssignment)
+                    if (groupID > 0)  // existing group
                     {
-                        // Add comment and todo when assigned
+                        // update chain status
 
-                        string newComments = "";
-                        //get current comment
-                        string sqlSel = "SELECT comments FROM TransGroup WHERE ID = @id";
-                        SQLiteCommand cmd = new SQLiteCommand(sqlSel, App.ConnStr);
-                        cmd.Parameters.AddWithValue("id", groupID);
-                        SQLiteDataReader reader = cmd.ExecuteReader();
-                        if (reader.Read())
+                        if (holdings.hasAssignment)
                         {
-                            string stamp = "Assigned " + holdings.AssignmentDate.ToString("M/d");
-                            newComments = reader["Comments"].ToString();
-                            if (newComments.IndexOf(stamp) == -1)
-                            {
-                                if (newComments.Length > 0) newComments += "\n";
-                                newComments += stamp;
+                            // Add comment and todo when assigned
 
-                                sqlSel = "UPDATE TransGroup SET ActionDate = @dt, Comments = @cm WHERE ID=@row";
-                                cmd = new SQLiteCommand(sqlSel, App.ConnStr);
-                                cmd.Parameters.AddWithValue("dt", DateTime.Today);
-                                cmd.Parameters.AddWithValue("cm", newComments);
-                                cmd.Parameters.AddWithValue("row", groupID);
-                                cmd.ExecuteNonQuery();
+                            string newComments = "";
+                            //get current comment
+                            string sqlSel = "SELECT comments FROM TransGroup WHERE ID = @id";
+                            SQLiteCommand cmd = new SQLiteCommand(sqlSel, App.ConnStr);
+                            cmd.Parameters.AddWithValue("id", groupID);
+                            SQLiteDataReader reader = cmd.ExecuteReader();
+                            if (reader.Read())
+                            {
+                                string stamp = "Assigned " + holdings.AssignmentDate.ToString("M/d");
+                                newComments = reader["Comments"].ToString();
+                                if (newComments.IndexOf(stamp) == -1)
+                                {
+                                    if (newComments.Length > 0) newComments += "\n";
+                                    newComments += stamp;
+
+                                    sqlSel = "UPDATE TransGroup SET ActionDate = @dt, Comments = @cm WHERE ID=@row";
+                                    cmd = new SQLiteCommand(sqlSel, App.ConnStr);
+                                    cmd.Parameters.AddWithValue("dt", DateTime.Today);
+                                    cmd.Parameters.AddWithValue("cm", newComments);
+                                    cmd.Parameters.AddWithValue("row", groupID);
+                                    cmd.ExecuteNonQuery();
+                                }
                             }
                         }
+
+                        // update regardless of assignments
+                        string sql = "UPDATE TransGroup SET Open = @op WHERE ID=@row";
+                        SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
+                        cmdUpd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
+                        cmdUpd.Parameters.AddWithValue("row", groupID);
+                        cmdUpd.ExecuteNonQuery();
                     }
+                    else  // new group
+                    {
+                        string sql = "INSERT INTO TransGroup(Account, Symbol, Open, Strategy, DefinedRisk, NeutralStrategy, CapitalRequired, OriginalCapRequired, Risk) Values(@ac,@sym,@op,@str,@dr,@ns,@cap,@cap2,@rsk)";
+                        SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
+                        cmd.Parameters.AddWithValue("ac", account);
+                        cmd.Parameters.AddWithValue("sym", symbol);
+                        cmd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
+                        string strat = GuessStrategy(holdings);
+                        cmd.Parameters.AddWithValue("str", strat);
+                        cmd.Parameters.AddWithValue("dr", DefaultDefinedRisk(strat));
+                        cmd.Parameters.AddWithValue("ns", DefaultNeutralStrategy(strat));
+                        decimal risk = DefaultRisk(account, strat, holdings);
+                        cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, risk, holdings));
 
-                    // update regardless of assignments
-                    string sql = "UPDATE TransGroup SET Open = @op WHERE ID=@row";
-                    SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
-                    cmdUpd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
-                    cmdUpd.Parameters.AddWithValue("row", groupID);
-                    cmdUpd.ExecuteNonQuery();
+                        // there might not be in entry for positions that have opened and closed between syncs
+                        decimal capReq = 0;
+                        if (twMarginData[account].ContainsKey(symbol)) capReq = twMarginData[account][symbol];
+                        cmd.Parameters.AddWithValue("cap", capReq);
+                        cmd.Parameters.AddWithValue("cap2", capReq);
+                        cmd.ExecuteNonQuery();
+
+                        groupID = DBUtilities.GetMax("SELECT max(id) FROM TransGroup");
+                    }
                 }
-                else  // new group
+                else
                 {
-                    string sql = "INSERT INTO TransGroup(Account, Symbol, Open, Strategy, DefinedRisk, NeutralStrategy, CapitalRequired, OriginalCapRequired, Risk) Values(@ac,@sym,@op,@str,@dr,@ns,@cap,@cap2,@rsk)";
-                    SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
-                    cmd.Parameters.AddWithValue("ac", account);
-                    cmd.Parameters.AddWithValue("sym", symbol);
-                    cmd.Parameters.AddWithValue("op", !holdings.IsAllClosed());
-                    string strat = GuessStrategy(holdings);
-                    cmd.Parameters.AddWithValue("str", strat);
-                    cmd.Parameters.AddWithValue("dr", DefaultDefinedRisk(strat));
-                    cmd.Parameters.AddWithValue("ns", DefaultNeutralStrategy(strat));
-                    decimal risk = DefaultRisk(account, strat, holdings);
-                    cmd.Parameters.AddWithValue("rsk", DefaultRisk(strat, risk, holdings));
-
-                    // there might not be in entry for positions that have opened and closed between syncs
-                    decimal capReq = 0;
-                    if (twMarginData[account].ContainsKey(symbol)) capReq = twMarginData[account][symbol];
-                    cmd.Parameters.AddWithValue("cap", capReq);
-                    cmd.Parameters.AddWithValue("cap2", capReq);
-                    cmd.ExecuteNonQuery();
-
-                    groupID = DBUtilities.GetMax("SELECT max(id) FROM TransGroup");
+                    App.Logger.Debug("UpdateTransactionChain: empty pass (only dividends)");
                 }
             }
             catch (Exception ex)
             {
-                App.Logger.Error("ProcessTransactionChain (Update/insert TransGroup): " + ex.Message + "(groupID: " + groupID.ToString() + ")");
+                App.Logger.Error("UpdateTransactionChain: " + ex.Message + "(groupID: " + groupID.ToString() + ")");
             }
 
 
             try
             {
                 List<int> rows = holdings.GetRowNumbers();
-                foreach (int r in rows)
+                foreach (int r in rows)  // assign all identified transactions to the the current group
                 {
                     // update all of the rows in the chain
                     string sql = "UPDATE transactions SET TransGroupID = @id WHERE ID=@row";
@@ -533,36 +547,50 @@ namespace OptionView
 
         private static decimal DefaultRisk(string account, string strat, Positions positions)
         {
-            decimal multiplier = 100;
-
-            TWPosition twpos = FindTWPosition(account, positions.ElementAt(0).Value);
-            if (twpos != null) multiplier = twpos.Multiplier;
-
-
-            if (strat.Length >= 8)
+            try
             {
-                strat = strat.Substring(0, 8);
-                if ((strat == "Iron Con") || (strat == "Vertical"))
+                if ((strat == "") || positions.Count == 0)
                 {
-                    Dictionary<string, decimal> strikeRange = new Dictionary<string, decimal> { { "Call", 0 }, { "Put", 0 } };
+                    App.Logger.Warn("DefaultRisk called without required parameters");
+                    return 0;
+                }
 
-                    foreach (KeyValuePair<string, Position> item in positions)
+                decimal multiplier = 100;
+
+                TWPosition twpos = FindTWPosition(account, positions.ElementAt(0).Value);
+                if (twpos != null) multiplier = twpos.Multiplier;
+
+
+                if (strat.Length >= 8)
+                {
+                    strat = strat.Substring(0, 8);
+                    if ((strat == "Iron Con") || (strat == "Vertical"))
                     {
-                        Position p = item.Value;
-                        strikeRange[p.Type] += (p.Strike * p.Quantity);
-                    }
-                    if (Math.Abs(strikeRange["Put"]) > Math.Abs(strikeRange["Call"]))
-                    {
-                        return Math.Abs(strikeRange["Put"]) * multiplier;
-                    }
-                    else
-                    {
-                        return Math.Abs(strikeRange["Call"]) * multiplier;
+                        Dictionary<string, decimal> strikeRange = new Dictionary<string, decimal> { { "Call", 0 }, { "Put", 0 } };
+
+                        foreach (KeyValuePair<string, Position> item in positions)
+                        {
+                            Position p = item.Value;
+                            strikeRange[p.Type] += (p.Strike * p.Quantity);
+                        }
+                        if (Math.Abs(strikeRange["Put"]) > Math.Abs(strikeRange["Call"]))
+                        {
+                            return Math.Abs(strikeRange["Put"]) * multiplier;
+                        }
+                        else
+                        {
+                            return Math.Abs(strikeRange["Call"]) * multiplier;
+                        }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                App.Logger.Error("DefaultRisk: " + ex.Message);
+            }
             return 0;
         }
+
         private static decimal DefaultRisk(string strat, decimal capital, Positions positions)
         {
             if (strat.Length >= 8)
@@ -598,9 +626,9 @@ namespace OptionView
         }
 
 
-        private static void ProcessTransactionGroup(string account, string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
+        private static void UpdateTransactionsInGroup(string account, string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
         {
-            App.Logger.Debug("Entering ProcessTransactionGroup (" + symbol + "   " + time.ToString() + ")");
+            App.Logger.Debug("Entering UpdateTransactionsInGroup (" + symbol + "   " + time.ToString() + ")");
 
             // Collect all 'opens' for the selected time
             DataRow[] rows = dt.Select("TransTime = '" + time + "'");
@@ -650,6 +678,8 @@ namespace OptionView
                 }
                 else if (type == "Dividend")
                 {
+                    App.Logger.Debug("UpdateTransactionsInGroup: Dividend found (" + time.ToString() + ")");
+
                     // find stock of same symbol in an open position
                     string sql = "SELECT t.TransGroupID FROM transactions AS t LEFT JOIN transgroup AS tg ON transgroupid = tg.id WHERE tg.Open = 1 AND t.Account = @ac AND t.Symbol = @sym AND t.Type = 'Stock'";
                     SQLiteCommand cmd = new SQLiteCommand(sql, App.ConnStr);
@@ -661,7 +691,7 @@ namespace OptionView
                     {
                         int groupID = Convert.ToInt32(obj);
 
-                        // update row with dividend with matching transaction group
+                        // update row with dividend with matching transaction group (this needs to be updated here because this does get attached to a 'holdings' transaction)
                         sql = "UPDATE transactions SET TransGroupID = @id WHERE ID=@row";
                         SQLiteCommand cmdUpd = new SQLiteCommand(sql, App.ConnStr);
                         cmdUpd.Parameters.AddWithValue("id", groupID);
@@ -754,10 +784,10 @@ namespace OptionView
             {
                 string t = times[times.Keys[i]];
                 if (Convert.ToDateTime(t) > Convert.ToDateTime(time))
-                    ProcessTransactionGroup(account, symbol, dt, t, holdings, times);
+                    UpdateTransactionsInGroup(account, symbol, dt, t, holdings, times);
             }
 
-            App.Logger.Debug("Exiting ProcessTransactionGroup (" + symbol + "     rows left: " + dt.Rows.Count + ")");
+            App.Logger.Debug("Exiting UpdateTransactionsInGroup (" + symbol + "     rows left: " + dt.Rows.Count + ")");
 
         }
     }
