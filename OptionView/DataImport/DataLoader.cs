@@ -291,6 +291,7 @@ namespace OptionView
                         UpdateTransactionChain(account, symbol, dt, t);
 
                         if (dt.Rows.Count == numOfRows) break;  // nothing happened, so avoid endless loop
+                        // conintue with remaining rows to create additional groups
                     }
 
                 }  // end of symbol loop
@@ -625,13 +626,25 @@ namespace OptionView
             return null;
         }
 
+        private static DataRow[] SelectTimeSpan(DataTable dt, string time, int seconds = 15)
+        {
+            List<DataRow> retset = new List<DataRow>();
+            DateTime cTime = DateTime.Parse(time);
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                DateTime rTime = DateTime.Parse(dt.Rows[i]["TransTime"].ToString());
+                if ((rTime >= cTime) && (rTime <= cTime.AddSeconds(15))) retset.Add(dt.Rows[i]);
+            }
+            return retset.ToArray();
+        }
+
 
         private static void UpdateTransactionsInGroup(string account, string symbol, DataTable dt, string time, Positions holdings, SortedList<string, string> times)
         {
             App.Logger.Debug("Entering UpdateTransactionsInGroup (" + symbol + "   " + time.ToString() + ")");
 
             // Collect all 'opens' for the selected time
-            DataRow[] rows = dt.Select("TransTime = '" + time + "'");
+            DataRow[] rows = SelectTimeSpan(dt, time);  // DataRow[] rows = dt.Select("TransTime = '" + time + "'");
 
             if (rows.Count() == 0) return;  // nothing found
             bool somethingAdded = false;
@@ -652,6 +665,8 @@ namespace OptionView
                 if (r["Open-Close"] != DBNull.Value) openClose = r.Field<string>("Open-Close").ToString();
                 int grpID = 0;
                 if (r["TransGroupID"] != DBNull.Value) grpID = (int)r.Field<Int64>("TransGroupID");
+                string recTime = "";
+                if (r["TransTime"] != DBNull.Value) recTime = r.Field<string>("TransTime");
 
                 if (openClose == "Open")
                 {
@@ -672,7 +687,8 @@ namespace OptionView
                         App.Logger.Debug("    Opening transaction added to holdings: " + key + "    " + r.Field<Int64>("Quantity").ToString() + "   " + time.ToString() + "   row: " + r.Field<Int64>("id").ToString());
 
                         // add the associated time to the hierarchy for chain
-                        if (!times.ContainsKey(time)) times.Add(time, time);
+                        if (recTime != time) App.Logger.Warn("Record time doesn't match primary query time: " + recTime + " != " + time);
+                        if (!times.ContainsKey(recTime)) times.Add(recTime, recTime);
                         somethingAdded = true;
                     }
                 }
@@ -779,7 +795,7 @@ namespace OptionView
                 dt.AcceptChanges();
             }
 
-            // recurse for anything else in the transaction that might open new positions
+            // recurse for anything else (after the start) in the transaction table that might open new positions
             for (int i = 0; i < times.Count(); i++)
             {
                 string t = times[times.Keys[i]];
