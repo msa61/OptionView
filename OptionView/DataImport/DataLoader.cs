@@ -148,11 +148,13 @@ namespace OptionView
                         }
                         cmd.Parameters.AddWithValue("up", underlyingPrice);
 
+                        App.Logger.Debug(String.Format("Adding record: {0} {1} {2}", record.Time.Trim(TimeSpan.TicksPerSecond), record.TransID, record.Description));
                         cmd.ExecuteNonQuery();
                         returnCount++;
                     }
                 }
 
+                App.Logger.Debug("Save Transaction: committing new records");
                 sqlTransaction.Commit();
 
             }
