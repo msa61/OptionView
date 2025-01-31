@@ -65,8 +65,8 @@ namespace DxLink
             else
             {
                 retval = new Subscription(symbol, type);
+                base.Add(symbol, retval);
             }
-            base.Add(symbol, retval);
             return retval;
         }
         public Subscriptions Add(List<string> symbols, SubscriptionType type = SubscriptionType.All)
