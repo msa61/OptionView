@@ -161,6 +161,15 @@ namespace OptionView
             catch (Exception ex)
             {
                 App.Logger.Error("Save Transaction: " + ex.Message);
+                if (ex.GetType() == typeof(AggregateException))
+                {
+                    AggregateException exs = (AggregateException)ex;
+                    for (int i = 0; i < exs.InnerExceptions.Count; i++)
+                    {
+                        App.Logger.Error("      cont: " + exs.InnerExceptions[i].Message);
+                    }
+                    App.Logger.Error("      stack:" + exs.StackTrace);
+                }
             }
 
             return returnCount;
