@@ -51,5 +51,15 @@ namespace OptionView
             }
         }
 
+        public List<Account> Active()
+        {
+            List<Account> retval = new List<Account>();
+            foreach (Account a in this)
+            {
+                if (a.Active) retval.Add(a);
+            }
+            return retval;
+        }
+
     }
 }

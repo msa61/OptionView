@@ -242,7 +242,7 @@ namespace OptionView
                         // 7th column
                         LineGraph lg = new LineGraph(BalanceHistory.Get(a.Name));
                         List<decimal> minMax = BalanceHistory.YTDMinMax(a.Name);
-                        if (minMax.Count > 1) lg.ToolTip = String.Format("YTD Min: {0:C2}\nYTD Max: {1:C2}", minMax[0], minMax[1]);
+                        if (minMax.Count > 3) lg.ToolTip = String.Format("YTD Min: {0:C2}\nYTD Max: {1:C2}\nLifetime Min: {2:C2}\nLifetime Max: {3:C2}", minMax[0], minMax[1], minMax[2], minMax[3]);
                         sp.Children.Add(lg);
 
                         // 8th column
@@ -278,7 +278,10 @@ namespace OptionView
                 OverviewLabel(sp, portfolio.GetTheta().ToString("C0"), 60);
 
                 // 7th column
-                sp.Children.Add(new LineGraph(BalanceHistory.Get(accounts)));
+                LineGraph oLg = new LineGraph(BalanceHistory.Get(accounts));
+                List<decimal> oMinMax = BalanceHistory.YTDMinMax(accounts.Active().Count);
+                if (oMinMax.Count > 3) oLg.ToolTip = String.Format("YTD Min: {0:C2}\nYTD Max: {1:C2}\nLifetime Min: {2:C2}\nLifetime Max: {3:C2}", oMinMax[0], oMinMax[1], oMinMax[2], oMinMax[3]);
+                sp.Children.Add(oLg);
 
                 // 8th column
                 sp.Children.Add(new WinLossGraph(BalanceHistory.GetChange(accounts)));

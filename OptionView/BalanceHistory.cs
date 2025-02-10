@@ -12,6 +12,7 @@ using System.Windows.Controls;
 using System.Security.Principal;
 using System.Windows.Controls.Primitives;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace OptionView
 {
@@ -177,11 +178,57 @@ namespace OptionView
                 if (reader["MinBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(0));
                 if (reader["MaxBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(1));
             }
+
+            // get lifetime values
+            sql = "SELECT Min(balance) as MinBalance, Max(balance) as MaxBalance FROM AccountHistory ";
+            sql += "WHERE account = @ac";
+            cmd = new SQLiteCommand(sql, ConnStr);
+            cmd.Parameters.AddWithValue("ac", account);
+            reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                if (reader["MinBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(0));
+                if (reader["MaxBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(1));
+            }
             CloseConnection();
 
             return retval;
         }
 
+        public static List<decimal> YTDMinMax(int numofaccounts)
+        {
+            List<decimal> retval = new List<decimal>();
+
+            OpenConnection();
+
+            string sql = "SELECT Min(B) as MinBalance, Max(B) as MaxBalance FROM ";
+            sql += "(SELECT Date, Count(Date) as cnt, strftime('%Y-%m-%d %H:%M', date) as D, Sum(Balance) AS B  FROM AccountHistory Group by D) ";
+            sql += "WHERE cnt = @ct AND strftime('%Y',date) = strftime('%Y', date('now'))";
+            SQLiteCommand cmd = new SQLiteCommand(sql, ConnStr);
+            cmd.Parameters.AddWithValue("ct", numofaccounts);
+            SQLiteDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                if (reader["MinBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(0));
+                if (reader["MaxBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(1));
+            }
+
+            // get lifetime values
+            sql = "SELECT Min(B) as MinBalance, Max(B) as MaxBalance FROM ";
+            sql += "(SELECT Date, Count(Date) as cnt, strftime('%Y-%m-%d %H:%M', date) as D, Sum(Balance) AS B  FROM AccountHistory Group by D) ";
+            sql += "WHERE cnt = @ct";
+            cmd = new SQLiteCommand(sql, ConnStr);
+            cmd.Parameters.AddWithValue("ct", numofaccounts);
+            reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                if (reader["MinBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(0));
+                if (reader["MaxBalance"] != DBNull.Value) retval.Add(reader.GetDecimal(1));
+            }
+            CloseConnection();
+
+            return retval;
+        }
 
 
         public static void WriteGroups(Portfolio portfolio)
