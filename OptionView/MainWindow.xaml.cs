@@ -2239,7 +2239,7 @@ namespace OptionView
 
             foreach (TransactionGroup tg in grp)
             {
-                total += tg.Cost;
+                total += tg.Cost - tg.Fees;
                 count += 1;
                 if (tg.Cost > 0) winners += 1;
             }
