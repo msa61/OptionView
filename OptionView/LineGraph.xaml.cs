@@ -38,7 +38,8 @@ namespace OptionView
             {
                 Height = CtlHeight,
                 Width = CtlWidth,
-                Margin = new Thickness(0, 0, 20, 0)
+                Margin = new Thickness(0, 0, 20, 0),
+                Background = new SolidColorBrush(Color.FromArgb(0xff, 0x45, 0x45, 0x45))
             };
             ((Grid)(this.Content)).Children.Add(c);
 
