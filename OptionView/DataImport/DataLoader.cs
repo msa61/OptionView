@@ -32,7 +32,7 @@ namespace OptionView
                 // establish db connection
                 App.OpenConnection();
 
-                if (TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password")))
+                if (TastyWorks.InitiateSession(Config.GetEncryptedProp("ClientSecret"), Config.GetEncryptedProp("GrantToken")))
                 {
                     // cache the current positions for details required to establish default risk and capreq
                     twpositions = new Dictionary<string, TWPositions>();

@@ -5,18 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OptionView"
         mc:Ignorable="d"
-        Title="Login Info" Height="184.667" Width="247.999">
-    <Grid Background="LightGray" HorizontalAlignment="Left" Width="255" Height="160" VerticalAlignment="Top">
+        Title="OAuth Credentials" Height="370" Width="438">
+    <Grid Background="LightGray" >
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="25*"/>
             <ColumnDefinition Width="371*"/>
         </Grid.ColumnDefinitions>
-        <Label Content="Username" HorizontalAlignment="Left" Height="28" Margin="18,26,0,0" VerticalAlignment="Top" Width="81" RenderTransformOrigin="-0.066,0.01" Grid.ColumnSpan="2"/>
-        <Label Content="Password" HorizontalAlignment="Left" Height="28" Margin="18,54,0,0" VerticalAlignment="Top" Width="93" Grid.ColumnSpan="2"/>
-        <TextBox Name="txtUser" HorizontalAlignment="Left" Height="24" Margin="82,28,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="116" Grid.Column="1"/>
-        <TextBox Name="txtPW" HorizontalAlignment="Left" Height="24" Margin="82,59,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="116" Grid.Column="1"/>
-        <Button Content="OK" HorizontalAlignment="Left" Height="26" Margin="17,105,0,0" VerticalAlignment="Top" Width="82" Grid.ColumnSpan="2" Click="OKButton_Click"/>
-        <Button Content="Cancel" HorizontalAlignment="Left" Height="26" Margin="116,105,0,0" VerticalAlignment="Top" Width="82" Grid.Column="1" Click="CancelButton_Click"/>
+        <Label Content="Client Secret" HorizontalAlignment="Left" Height="28" Margin="18,15,0,0" VerticalAlignment="Top" Width="81" RenderTransformOrigin="-0.066,0.01" Grid.ColumnSpan="2"/>
+        <Label Content="Grant Token" HorizontalAlignment="Left" Height="28" Margin="18,50,0,0" VerticalAlignment="Top" Width="93" Grid.ColumnSpan="2"/>
+        <TextBox Name="txtClientSecret" HorizontalAlignment="Left" Height="24" Margin="82,17,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="296" Grid.Column="1" FontFamily="Cascadia Mono SemiLight" />
+        <TextBox Name="txtGrantToken" HorizontalAlignment="Left" Height="222" Margin="82,-15,0,0" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="" VerticalAlignment="Center" Width="296" Grid.Column="1" FontFamily="Cascadia Mono SemiLight"/>
+        <Button Content="OK" HorizontalAlignment="Left" Height="26" Margin="1,290,0,0" VerticalAlignment="Top" Width="82" Click="OKButton_Click" RenderTransformOrigin="0.503,3.464" Grid.Column="1"/>
+        <Button Content="Cancel" HorizontalAlignment="Left" Height="26" Margin="111,290,0,0" VerticalAlignment="Top" Width="82" Grid.Column="1" Click="CancelButton_Click" RenderTransformOrigin="0.482,1.927"/>
 
     </Grid>
 </Window>

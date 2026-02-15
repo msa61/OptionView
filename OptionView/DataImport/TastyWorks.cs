@@ -1,28 +1,15 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using RestSharp;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Net;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using TtTokenService;
 
 namespace OptionView
 {
-    // override required to decrypt replies
-    class EncodedWebClient : WebClient
-    {
-        protected override WebRequest GetWebRequest(Uri address)
-        {
-            HttpWebRequest request = base.GetWebRequest(address) as HttpWebRequest;
-            request.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
-            return request;
-        }
-    }
 
     public class TWMarketInfo
     {
@@ -143,8 +130,9 @@ namespace OptionView
 
     public class TastyWorks
     {
-        static private string Token = "";
-        static EncodedWebClient Web = null;
+        static TokenService TokenService= null;
+        //static private string Token = "";
+        //static EncodedWebClient Web = null;
         static bool alreadyFailedOnce = false;
 
         public TastyWorks()
@@ -153,28 +141,21 @@ namespace OptionView
 
         public static void ResetToken()
         {
-            Token = "";
+            TokenService.GetAccessToken();
             alreadyFailedOnce = false;
         }
 
-        public static bool InitiateSession( string user, string password )
+        public static bool InitiateSession( string clientSecret, string grantToken )
         {
             try
             {
                 App.UpdateStatusMessage("InitiateSession");
 
                 if (alreadyFailedOnce) return false;
-                if (Token.Length > 0) return true;  // no need to login again
 
-                Web = new EncodedWebClient();
-                SetHeaders(null);
+                TokenService = new TokenService("https://api.tastyworks.com/", clientSecret, grantToken);
 
-                string reply = Web.UploadString("https://api.tastyworks.com/sessions", "{ \"login\": \"" + user + "\", \"password\": \"" + password + "\" }");
-                JObject package = JObject.Parse(reply);
-
-                Token = package["data"]["session-token"].ToString();
-
-                return (Token.Length > 0);
+                return (TokenService.GetAccessToken().Length > 0);
             }
             catch (Exception e)
             {
@@ -190,7 +171,7 @@ namespace OptionView
         {
             try
             {
-                 return (Token.Length > 0);
+                 return (TokenService.GetAccessToken().Length > 0);
             }
             catch (Exception e)
             {
@@ -212,10 +193,7 @@ namespace OptionView
                 }
                 symbolString = symbolString.TrimEnd(',');
 
-                SetHeaders(Token);
-                string reply = Web.DownloadString("https://api.tastyworks.com/market-metrics?symbols=" + symbolString);
-
-                JObject package = JObject.Parse(reply);
+                JObject package = ExecuteGet("https://api.tastyworks.com/market-metrics?symbols=" + symbolString);
 
                 TWMarketInfos returnList = new TWMarketInfos();
 
@@ -261,10 +239,8 @@ namespace OptionView
             { 
                 App.UpdateStatusMessage("TW Accounts");
 
-                SetHeaders(Token);
-                string reply = Web.DownloadString("https://api.tastyworks.com/customers/me/accounts");
+                JObject package = ExecuteGet("https://api.tastyworks.com/customers/me/accounts");
 
-                JObject package = JObject.Parse(reply);
 
                 TWAccounts returnList = new TWAccounts();
 
@@ -294,10 +270,8 @@ namespace OptionView
             { 
                 App.UpdateStatusMessage("TW MarginData : " + accountNumber);
 
-                SetHeaders(Token);
-                string reply = Web.DownloadString("https://api.tastyworks.com/margin/accounts/" + accountNumber + "/requirements");
+                JObject package = ExecuteGet("https://api.tastyworks.com/margin/accounts/" + accountNumber + "/requirements");
 
-                JObject package = JObject.Parse(reply);
 
                 List<JToken> list = package["data"]["groups"].Children().ToList();
 
@@ -326,12 +300,10 @@ namespace OptionView
             try
             { 
                 App.UpdateStatusMessage("TW Balances : " + accountNumber);
-                if (Token.Length == 0) return new TWBalance();
+                if (TokenService == null) return new TWBalance();
 
-                SetHeaders(Token);
-                string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/balances");
+                JObject package = ExecuteGet("https://api.tastyworks.com/accounts/" + accountNumber + "/balances");
 
-                JObject package = JObject.Parse(reply);
 
                 TWBalance retval = new TWBalance()
                 {
@@ -366,12 +338,9 @@ namespace OptionView
                 // get active orders
                 Dictionary<string, Int32> orderIds = ActiveOrders(accountNumber);
 
-
-                SetHeaders(Token); // reset, lost after previous call
-
                 // retrieve specific positions
-                string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/positions");
-                JObject package = JObject.Parse(reply);
+                JObject package = ExecuteGet("https://api.tastyworks.com/accounts/" + accountNumber + "/positions");
+
 
                 TWPositions returnList = new TWPositions();
 
@@ -438,8 +407,6 @@ namespace OptionView
                 // inderminate, so skip
                 //App.UpdateStatusMessage("TW GetFutureOptionSymbol : " + symbol);
 
-                SetHeaders(Token); // reset, lost after previous call
-
                 string url = "https://api.tastyworks.com/instruments/";
                 if (symbol.Substring(0,2).IndexOf("/") > -1)
                 {
@@ -457,10 +424,8 @@ namespace OptionView
                     else
                         url += "equities/" + symbol;
                 }
+                JObject package = ExecuteGet(url);
 
-                string reply = Web.DownloadString(url);
-
-                JObject package = JObject.Parse(reply);
 
                 retval = package["data"]["streamer-symbol"].ToString();
 
@@ -484,12 +449,10 @@ namespace OptionView
                 App.UpdateStatusMessage("TW ActiveOrders : " + accountNumber);
 
                 Dictionary<string, Int32> retlist = new Dictionary<string, Int32>();
-                if (Token.Length == 0) return retlist;
+                if (TokenService == null) return retlist;
 
-                SetHeaders(Token);
-                string reply = Web.DownloadString("https://api.tastyworks.com/accounts/" + accountNumber + "/orders/live");
+                JObject package = ExecuteGet("https://api.tastyworks.com/accounts/" + accountNumber + "/orders/live");
 
-                JObject package = JObject.Parse(reply);
 
                 List<JToken> list = package["data"]["items"].Children().ToList();
 
@@ -529,15 +492,12 @@ namespace OptionView
             { 
                 App.UpdateStatusMessage("TW Transations");
 
-                SetHeaders(Token);
-
                 string url = "https://api.tastyworks.com/accounts/" + accountNumber + "/transactions?";
                 if (start != null) url += "start-date=" + String.Format("{0:yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'}", start) + "&";
                 if (end != null) url += "end-date=" + String.Format("{0:yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'}", end);
 
-                string reply = Web.DownloadString(url);
-                //Debug.WriteLine(reply);
-                JObject package = JObject.Parse(reply);
+                JObject package = ExecuteGet(url);
+
 
                 TWTransactions returnList = new TWTransactions();
 
@@ -590,9 +550,8 @@ namespace OptionView
 
                     if (pages > 1)
                     {
-                        SetHeaders(Token);
-                        reply = Web.DownloadString(url + "&page-offset=" + ++pageOffset);
-                        package = JObject.Parse(reply);
+                        package = ExecuteGet(url + "&page-offset=" + ++pageOffset);
+
                         list = package["data"]["items"].Children().ToList();
                     }
 
@@ -675,15 +634,6 @@ namespace OptionView
             }
         }
 
-        private static void SetHeaders (string token)
-        {
-            Web.Headers[HttpRequestHeader.ContentType] = "application/json";
-            Web.Headers[HttpRequestHeader.Authorization] = (token ?? "null");
-            Web.Headers[HttpRequestHeader.UserAgent] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)";
-            Web.Headers[HttpRequestHeader.Accept] = "application/json";
-        }
-
-
 
         public static StreamingParams StreamingInfo()
         {
@@ -691,10 +641,8 @@ namespace OptionView
             { 
                 App.UpdateStatusMessage("TW StreamingInfo");
 
-                SetHeaders(Token);
-                string reply = Web.DownloadString("https://api.tastyworks.com/quote-streamer-tokens");
+                JObject package = ExecuteGet("https://api.tastyworks.com/api-quote-tokens");
 
-                JObject package = JObject.Parse(reply);
 
                 StreamingParams strmParams = new StreamingParams();
 
@@ -716,14 +664,12 @@ namespace OptionView
             try
             { 
                 App.UpdateStatusMessage("TW WatchListSymbols");
-                if (Token.Length == 0) return null;
+                if (TokenService == null) return null;
 
                 List<string> retlist = new List<string>() { "BSY" };
 
-                SetHeaders(Token);
-                string reply = Web.DownloadString("https://api.tastyworks.com/public-watchlists");
+                JObject package = ExecuteGet("https://api.tastyworks.com/public-watchlists");
 
-                JObject package = JObject.Parse(reply);
 
                 List<JToken> list = package["data"]["items"].Children().ToList();
 
@@ -762,5 +708,28 @@ namespace OptionView
             }
         }
 
+
+
+        public static JObject ExecuteGet(string url)
+        {
+            return ExecuteGetAsync(url).GetAwaiter().GetResult();
+        }
+
+        private static async Task<JObject> ExecuteGetAsync(string url)
+        {
+            var token = TokenService.GetAccessToken();
+
+            var options = new RestClientOptions()
+            {
+                Timeout = TimeSpan.FromSeconds(30),
+            };
+            var client = new RestClient(options);
+            var request = new RestRequest(url, Method.Get);
+            request.AddHeader("Authorization", $"Bearer {token}");
+
+            var response = await client.ExecuteAsync(request);
+
+            return (response.Content != null) ? JObject.Parse(response.Content) : null;
+        }
     }
 }

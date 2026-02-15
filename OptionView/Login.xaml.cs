@@ -29,8 +29,8 @@ namespace OptionView
         {
             Button b = (Button)sender;
 
-            Config.SetEncryptedProp("Username", txtUser.Text);
-            Config.SetEncryptedProp("Password", txtPW.Text);
+            Config.SetEncryptedProp("ClientSecret", txtClientSecret.Text);
+            Config.SetEncryptedProp("GrantToken", txtGrantToken.Text);
 
             TastyWorks.ResetToken();
 

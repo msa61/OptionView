@@ -148,7 +148,7 @@ namespace OptionView
         public static void CloseConnections()
         {
             if ((ConnStr != null) && ConnStr.State == ConnectionState.Open) ConnStr.Close();
-            DxHandler.Close();
+            if (DxHandler != null) DxHandler.Close();
         }
 
         public static void UpdateToDos()

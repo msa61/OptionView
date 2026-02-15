@@ -46,7 +46,7 @@ namespace OptionView
 
         public Portfolio()
         {
-            //if (!App.OfflineMode) TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
+            //if (!App.OfflineMode) TastyWorks.InitiateSession(Config.GetEncryptedProp("ClientSecret"), Config.GetEncryptedProp("GrantToken"));
         }
 
         public Portfolio(Accounts acc) : this()
@@ -190,7 +190,7 @@ namespace OptionView
             // forced offline from command line
             if (App.OfflineMode) return;
 
-            App.OfflineMode = ! TastyWorks.InitiateSession(Config.GetEncryptedProp("Username"), Config.GetEncryptedProp("Password"));
+            App.OfflineMode = ! TastyWorks.InitiateSession(Config.GetEncryptedProp("ClientSecret"), Config.GetEncryptedProp("GrantToken"));
             if (App.OfflineMode) return;  // no connection
 
             StreamingParams sp = TastyWorks.StreamingInfo();
