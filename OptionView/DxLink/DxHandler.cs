@@ -325,7 +325,7 @@ namespace DxLink
                                     }
                                     break;
                                 default:
-                                    MessageWindow("\n" + e.Message);
+                                    MessageWindow("\nDxHandler unhandled message: " + e.Message);
                                     //tbDump.Text += e.DebugText;
                                     break;
                             }
