@@ -692,8 +692,11 @@ namespace OptionView
                         {
                             foreach (JToken entry in entries)
                             {
-                                string symbol = entry["symbol"].ToString();
-                                if (!retlist.Contains(symbol)) retlist.Add(symbol);
+                                if (entry["symbol"].ToString() != "RUT")
+                                {
+                                    string symbol = entry["symbol"].ToString();
+                                    if (!retlist.Contains(symbol)) retlist.Add(symbol);
+                                }
                             }
                         }
                     }

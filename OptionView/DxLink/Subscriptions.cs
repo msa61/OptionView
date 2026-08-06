@@ -127,6 +127,19 @@ namespace DxLink
             string retval = string.Format($"Total: {stats.Count}  overall: {stats.RemainingOverall}  trade: {stats.RemainingTrade}  quote: {stats.RemainingQuote} profile: {stats.RemainingProfile} summary: {stats.RemainingSummary}  greek: {stats.RemainingGreek} timeseries: {stats.RemainingTimeSeries}");
             string missingTrade = "";
 
+            // for debugging symbols that don't resolve
+            //if (stats.RemainingOverall < 5)
+            //{
+            //    foreach (KeyValuePair<string,Subscription> sub in this)
+            //    {
+            //        if (!sub.Value.IsComplete)
+            //        {
+            //            retval += "\n" + sub.Key;
+            //        }
+            //    }
+            //}
+
+
             //foreach (KeyValuePair<string, Subscription> pair in this)
             //{
             //    SubscriptionType status = pair.Value.Status;
