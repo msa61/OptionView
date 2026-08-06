@@ -27,6 +27,7 @@ namespace DxLink
         private ClientWebSocket webSocket = null;
         private TSWebSocketHandler socketHandler = null;
         private DxHandler dxHandler = null;
+        private bool isMessageLoopActive = false;
 
 
         public DxStream(string dxAddress, string dxToken, DxHandler handler)
@@ -103,13 +104,22 @@ namespace DxLink
                         Debug.WriteLine($"Exception sending heartbeat message: {ex.Message}");
                     }
                 }
+
+                Debug.WriteLine("Heartbeat process stopped.  Attempting to restart...");
+                // restart websocket
+                Setup();
+                if (!isMessageLoopActive) _ = CreateMessageLoop();
+                CreateHeartbeatProcess();
             });
         }
 
         private async Task CreateMessageLoop()
         {
+            Debug.WriteLine("Creating MessageLoop...");
             while ((webSocket.State == WebSocketState.Open) || (webSocket.State == WebSocketState.CloseSent))
             {
+                isMessageLoopActive = true;
+
                 //Debug.WriteLine("dxLoop...");
                 try
                 {
@@ -170,7 +180,8 @@ namespace DxLink
                 }
                 //Debug.WriteLine("dxLoop - end");
             }
-
+            Debug.WriteLine("MessageLoop exited");
+            isMessageLoopActive = false;
         }
 
         // reopen new channel
