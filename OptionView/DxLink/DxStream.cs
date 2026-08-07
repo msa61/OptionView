@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OptionView;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -82,34 +83,37 @@ namespace DxLink
             CancellationTokenSource heartbeatCancellation = new CancellationTokenSource();
             Task task = Task.Run(async () =>
             {
-                while (!heartbeatCancellation.Token.IsCancellationRequested && webSocket.State == WebSocketState.Open)
+                while (true)
                 {
-                    try
+                    while (!heartbeatCancellation.Token.IsCancellationRequested && webSocket.State == WebSocketState.Open)
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(30), heartbeatCancellation.Token);
+                        try
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(30), heartbeatCancellation.Token);
 
-                        string message = GetGenericMessage("heartbeat");
+                            string message = GetGenericMessage("heartbeat");
 
-                        await socketHandler.QueueMessageAsync(message);
-                        //byte[] heartbeatBuffer = Encoding.UTF8.GetBytes(message);
-                        //await webSocket.SendAsync(new ArraySegment<byte>(heartbeatBuffer), WebSocketMessageType.Text, true, CancellationToken.None);
-                        Debug.WriteLine($"Heartbeat sent: " + webSocket.State.ToString());
+                            await socketHandler.QueueMessageAsync(message);
+                            //byte[] heartbeatBuffer = Encoding.UTF8.GetBytes(message);
+                            //await webSocket.SendAsync(new ArraySegment<byte>(heartbeatBuffer), WebSocketMessageType.Text, true, CancellationToken.None);
+                            Debug.WriteLine($"Heartbeat sent: " + webSocket.State.ToString());
+                        }
+                        catch (WebSocketException ex)
+                        {
+                            Debug.WriteLine("Exception sending heartbeat message: " + ex.Message);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Exception sending heartbeat message: {ex.Message}");
+                        }
                     }
-                    catch (WebSocketException ex)
-                    {
-                        Debug.WriteLine("Exception sending heartbeat message: " + ex.Message);
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Exception sending heartbeat message: {ex.Message}");
-                    }
+
+                    Debug.WriteLine("Heartbeat process stopped.  Attempting to restart...");
+                    // restart websocket
+                    Setup();
+                    if (!isMessageLoopActive) _ = CreateMessageLoop();
+                    App.CreateRefreshTimer(true);
                 }
-
-                Debug.WriteLine("Heartbeat process stopped.  Attempting to restart...");
-                // restart websocket
-                Setup();
-                if (!isMessageLoopActive) _ = CreateMessageLoop();
-                CreateHeartbeatProcess();
             });
         }
 

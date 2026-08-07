@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Data.SQLite;
 using System.IO;
@@ -11,8 +8,9 @@ using System.Windows.Threading;
 using DxLink;
 using System.Diagnostics;
 using log4net;
-using log4net.Config;
 using System.Reflection;
+using System.Timers;
+
 
 namespace OptionView
 {
@@ -28,6 +26,7 @@ namespace OptionView
         public static bool DataRefreshMode { get; set; } = false;  // updates databases and immediately exits the app
         public static DxHandler DxHandler { get; set; } = null;
         public static readonly ILog Logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static Timer refreshTimer = null;
 
 
         private void OnStartup(object sender, StartupEventArgs e)
@@ -197,7 +196,7 @@ namespace OptionView
             }
         }
 
-        public bool IsMarketOpen()
+        public static bool IsMarketOpen()
         {
             DayOfWeek dow = DateTime.UtcNow.DayOfWeek;
             if ((dow == DayOfWeek.Saturday) || (dow == DayOfWeek.Sunday)) return false;
@@ -209,5 +208,24 @@ namespace OptionView
             if ((easternTime >= open) && (easternTime <= close)) return true;
             return false;
         }
+
+        public static void CreateRefreshTimer(bool force = false)
+        {
+            if ((refreshTimer == null) || force)
+            {
+                refreshTimer = new Timer();
+                refreshTimer.Interval = 5 * 60 * 1000;
+                refreshTimer.AutoReset = true;
+                refreshTimer.Elapsed += TimedRefresh;
+                refreshTimer.Start();
+            }
+        }
+
+        private static void TimedRefresh(object sender, ElapsedEventArgs e)
+        {
+            mainWindow.RefreshDisplay();
+        }
+
+
     }
 }

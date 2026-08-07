@@ -20,7 +20,6 @@ using System.Diagnostics;
 using System.Data;
 using Microsoft.Win32;
 using System.Web;
-using System.Timers;
 
 namespace OptionView
 {
@@ -37,7 +36,6 @@ namespace OptionView
         private bool uiDirty = false;
         private bool todoDirty = false;
         private bool initializingDatePicker = false;
-        private Timer refreshTimer = null;
 
 
         public MainWindow()
@@ -76,12 +74,7 @@ namespace OptionView
 
             if (Debugger.IsAttached) return;  // disable timed refresh while debugging, causes weird behavior if app sits a breakpoint too long
 
-            // setup timer
-            refreshTimer = new Timer();
-            refreshTimer.Interval = 5 * 60 * 1000;
-            refreshTimer.AutoReset= true;
-            refreshTimer.Elapsed += TimedRefresh;
-            refreshTimer.Start();
+            App.CreateRefreshTimer();
         }
 
         private void InitializeDataAsync(object sender, DoWorkEventArgs e)
@@ -393,7 +386,7 @@ namespace OptionView
             if (!refreshActive) RefreshDisplay();
         }
 
-        private void RefreshDisplay()
+        public void RefreshDisplay()
         {
             refreshActive = true;
             //App.InitializeStatusMessagePanel(4);
@@ -452,12 +445,7 @@ namespace OptionView
             }
         }
 
-        private void TimedRefresh(object sender, ElapsedEventArgs e)
-        {
-            RefreshDisplay();
-        }
-
-
+        
         private void DisplayTilesSafe()
         {
             if (this.Dispatcher.CheckAccess())

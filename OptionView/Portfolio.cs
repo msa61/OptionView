@@ -294,7 +294,7 @@ namespace OptionView
                             {
                                 //select price based on market status - the average bid/ask method doesn't work well when market is closed
                                 decimal price = dataCache.DxQuotes[twpos.OptionStreamerSymbol].Price;
-                                if (!((App)Application.Current).IsMarketOpen()) price = dataCache.DxQuotes[twpos.OptionStreamerSymbol].LastPrice;
+                                if (!App.IsMarketOpen()) price = dataCache.DxQuotes[twpos.OptionStreamerSymbol].LastPrice;
 
                                 //Debug.WriteLine(twpos.Market);
                                 if (currentValue == null) currentValue = 0;  // initialize now that we've found a match
