@@ -311,7 +311,7 @@ namespace OptionView
             return returnValue;
         }
 
-        private string GetDescription(Positions positions)
+        internal string GetDescription(Positions positions)
         {
             string returnValue = "Adjusted";
             int openCount = 0;

@@ -567,7 +567,7 @@ namespace OptionView
             }
         }
 
-        private static void CompleteInstance (TWTransaction tr)
+        internal static void CompleteInstance (TWTransaction tr)
         {
             if ((tr.TransactionSubcode == "Sell to Open") || (tr.TransactionSubcode == "Sell to Close")) tr.Quantity *= -1;
 
@@ -611,7 +611,7 @@ namespace OptionView
 
         }
 
-        private static void TransactionParse( string str, TWTransaction tr)
+        internal static void TransactionParse( string str, TWTransaction tr)
         {
             switch (str.ToLower())
             {

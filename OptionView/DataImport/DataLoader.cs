@@ -465,7 +465,7 @@ namespace OptionView
         }
 
 
-        private static string GuessStrategy(Positions positions)
+        internal static string GuessStrategy(Positions positions)
         {
             string retval = "";
 
@@ -537,7 +537,7 @@ namespace OptionView
         }
 
 
-        private static int DefaultDefinedRisk(string strat)
+        internal static int DefaultDefinedRisk(string strat)
         {
             if (strat.Length >= 8)
             {
@@ -547,7 +547,7 @@ namespace OptionView
             return 0;
         }
 
-        private static int DefaultNeutralStrategy(string strat)
+        internal static int DefaultNeutralStrategy(string strat)
         {
             if (strat.Length >= 8)
             {
@@ -603,7 +603,7 @@ namespace OptionView
             return 0;
         }
 
-        private static decimal DefaultRisk(string strat, decimal capital, Positions positions)
+        internal static decimal DefaultRisk(string strat, decimal capital, Positions positions)
         {
             if (strat.Length >= 8)
             {
