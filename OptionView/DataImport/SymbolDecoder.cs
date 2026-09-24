@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-using System.Windows;
 using System.Diagnostics;
 
 
@@ -102,7 +101,7 @@ namespace OptionView
                     //error
                     string response = this.Type + " | " + this.Strike.ToString() + " | " + this.Expiration.ToString() + "\n";
                     response += testType + " | " + testStrike.ToString() + " | " + testExpiration.ToString();
-                    MessageBox.Show(response, "Decoding test");
+                    App.Logger.Warn("SymbolDecoder mismatch (" + symbol + "): " + response);
                 }
             }
             catch (Exception ex)
