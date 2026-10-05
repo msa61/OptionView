@@ -1,0 +1,4 @@
+{
+  "ignore": [ "RUT", "LEG" ],
+  "add": [ "BSY" ]
+}

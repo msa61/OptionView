@@ -3,6 +3,7 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -666,7 +667,9 @@ namespace OptionView
                 App.UpdateStatusMessage("TW WatchListSymbols");
                 if (TokenService == null) return null;
 
-                List<string> retlist = new List<string>() { "BSY" };
+                List<string> ignoreList = new List<string>();
+                List<string> retlist = new List<string>();
+                LoadWatchListOverrides(ignoreList, retlist);
 
                 JObject package = ExecuteGet("https://api.tastyworks.com/public-watchlists");
 
@@ -692,11 +695,8 @@ namespace OptionView
                         {
                             foreach (JToken entry in entries)
                             {
-                                if (entry["symbol"].ToString() != "RUT")
-                                {
-                                    string symbol = entry["symbol"].ToString();
-                                    if (!retlist.Contains(symbol)) retlist.Add(symbol);
-                                }
+                                string symbol = entry["symbol"].ToString();
+                                if (!ignoreList.Contains(symbol) && !retlist.Contains(symbol)) retlist.Add(symbol);
                             }
                         }
                     }
@@ -708,6 +708,33 @@ namespace OptionView
             {
                 MessageBox.Show(ex.Message, "TW WatchListSymbols");
                 throw new Exception("Error in Tastyworks.WatchListSymbols", ex);
+            }
+        }
+
+        // reads symbols to ignore and symbols to add from watchlist.json in the application directory
+        private static void LoadWatchListOverrides(List<string> ignoreList, List<string> addList)
+        {
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "watchlist.json");
+            if (!File.Exists(path)) return;
+
+            JObject overrides = JObject.Parse(File.ReadAllText(path));
+
+            JToken ignore = overrides["ignore"];
+            if (ignore != null)
+            {
+                foreach (JToken symbol in ignore)
+                {
+                    if (!ignoreList.Contains(symbol.ToString())) ignoreList.Add(symbol.ToString());
+                }
+            }
+
+            JToken add = overrides["add"];
+            if (add != null)
+            {
+                foreach (JToken symbol in add)
+                {
+                    if (!addList.Contains(symbol.ToString())) addList.Add(symbol.ToString());
+                }
             }
         }
 
